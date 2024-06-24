@@ -1,0 +1,2 @@
+dbpass = "videopass"
+dbname = "VIDEOSCHOOL"

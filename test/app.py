@@ -23,12 +23,14 @@ def login():
         valid = extfun.login_user(user_email, password)
 
         # If credentials are valid
-        if valid:
+        if valid['success']:
             session['loggedin'] = True                            # Set 'loggedin' session variable to True
             session['username'] = user_email                      # Set 'username' session variable to user email
             msg = 'Logged in successfully !'                      # Set message
             return render_template('index.html', msg=msg)         # Redirect to home page
-    
+        else:
+            msg = "Incorrect username / password !"               # Set message if credentials are invalid
+        
     # Render login.html template with current message (empty message)    
     return render_template('login.html', msg=msg)                 
 

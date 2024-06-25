@@ -130,7 +130,27 @@ def login_log(user_id, log_type, log_date):
     cursor.execute(sql, val)
     dbconnect.commit()
 
-
+def login_user(user_email, password):
+    dbconnect,cursor = connectdb()
+    try:
+        cursor.execute("USE  {}".format(envfile.dbname))
+    except:
+        dbconnect.database = envfile.dbname
+    sql = "SELECT * FROM User WHERE user_email = %s"
+    val = (user_email,)
+    cursor.execute(sql, val)
+    result = cursor.fetchone()
+    if result == None:
+        return {
+            "success": False,
+        }
+    elif bcrypt.checkpw(password.encode('utf-8'), result[2].encode('utf-8')):
+        return {
+            "success": True,
+            "user_id": result[0],
+            "user_type": result[3],
+            "user_email": result[1]
+        }
 
 ## TEST FUNCTIONS FOR DEBUGGING
 

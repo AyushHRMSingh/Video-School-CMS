@@ -19,3 +19,5 @@
 - `assign_user_to_channel(user_id: int, channel_id: str, user_type: str)`: This function assigns a user to the relevant role in the specified channel (E.g. Manager, Editor and Creator)
 
 - `login_log(user_id: int, log_type: str, log_date: int)`: This function logs the login activity of the user
+
+- `login_user(user_email: str, password: str) -> int`: This function logs in the user and returns a dict containing the user_id, user_type and user_email

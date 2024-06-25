@@ -1,7 +1,6 @@
 # Import necessary modules
 import extfun
 from flask import Flask, render_template, request, redirect, url_for, session
-import re
 
 # Initialize Flask application
 app = Flask(__name__)
@@ -21,7 +20,7 @@ def login():
         password = request.form['password']                       # Get password from form data
 
         # Call external function to validate user credentials
-        valid = extfun.login(user_email, password)
+        valid = extfun.login_user(user_email, password)
 
         # If credentials are valid
         if valid:
@@ -53,7 +52,7 @@ def register():
         password = request.form['password']                    # Get password from form data
 
         # Call external function to add user (assuming it validates and adds to database)
-        valid = extfun.add_user(user_email, password)
+        valid = extfun.add_user(user_email, password,'USER_ADMIN')  # Add user with role 'user'
 
         msg = "User added"                                     # Set message
 
@@ -62,5 +61,5 @@ def register():
 
 # Main entry point of the application
 if __name__ == '__main__':
-    extfun.setup()                                            # Setup any necessary components from extfun module
+    extfun.setupdb()                                            # Setup any necessary components from extfun module
     app.run(debug=True)                                       # Run the Flask application in debug mode

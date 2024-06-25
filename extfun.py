@@ -10,13 +10,18 @@ def hash_password(password):
     return hashed.decode('utf-8')
 
 # function to return database connection to server for code reusability
-def connectdb():
+def connectdb(dbnam = None):
     dbconnect = mysql.connector.connect(
         host="localhost",
         user="root",
         password=envfile.dbpass,
     )
     cursor = dbconnect.cursor()
+    if dbnam != None:
+        try:
+            cursor.execute("USE  {}".format(dbnam))
+        except:
+            dbconnect.database = dbnam
     return dbconnect, cursor
 
 # sqlcommands to create the database and table during setup
@@ -37,7 +42,7 @@ sqlcommands = [
 
 # Setup the database with the proper schema
 def setupdb():
-    dbconnect,cursor = connectdb()
+    dbconnect,cursor = connectdb(envfile.dbname)
     for command in sqlcommands:
         cursor.execute(command)
         dbconnect.commit()
@@ -46,22 +51,16 @@ def setupdb():
 # function to add a user to the database ONLY FOR ADMIN
 def add_user(user_email, password, user_type):
     hashpass = hash_password(password)
-    dbconnect,cursor = connectdb()
-    try:
-        cursor.execute("USE  {}".format(envfile.dbname))
-    except:
-        dbconnect.database = envfile.dbname
+    dbconnect,cursor = connectdb(envfile.dbname)
+    
     sql = "INSERT INTO User (user_email, password, user_type, status) VALUES (%s, %s, %s, 'ACTIVE')"
     val = (user_email, hashpass, user_type)
     cursor.execute(sql, val)
     dbconnect.commit()
 
 def delete_user(user_id):
-    dbconnect,cursor = connectdb()
-    try:
-        cursor.execute("USE  {}".format(envfile.dbname))
-    except:
-        dbconnect.database = envfile.dbname
+    dbconnect,cursor = connectdb(envfile.dbname)
+    
     sql = "UPDATE User SET status = 'INACTIVE' WHERE ID = %s"
     val = (user_id,)
     cursor.execute(sql, val)
@@ -70,33 +69,24 @@ def delete_user(user_id):
 # function to add a channel to the database ONLY FOR ADMIN?
 # # TO BE REPLACED FOR GOOGLE INTEGRATION
 def add_channel(channel_id, channel_name, platform):
-    dbconnect,cursor = connectdb()
-    try:
-        cursor.execute("USE  {}".format(envfile.dbname))
-    except:
-        dbconnect.database = envfile.dbname
+    dbconnect,cursor = connectdb(envfile.dbname)
+    
     sql = "INSERT INTO Channel (ID, channel_name, platform, status) VALUES (%s, %s, %s, 'ACTIVE')"
     val = (channel_id, channel_name, platform)
     cursor.execute(sql, val)
     dbconnect.commit()
 
 def delete_channel(channel_id):
-    dbconnect,cursor = connectdb()
-    try:
-        cursor.execute("USE  {}".format(envfile.dbname))
-    except:
-        dbconnect.database = envfile.dbname
+    dbconnect,cursor = connectdb(envfile.dbname)
+    
     sql = "UPDATE Channel SET status = 'DELETED' WHERE ID = %s"
     val = (channel_id,)
     cursor.execute(sql, val)
     dbconnect.commit()
 
 def update_channel_status(channel_id, status):
-    dbconnect,cursor = connectdb()
-    try:
-        cursor.execute("USE  {}".format(envfile.dbname))
-    except:
-        dbconnect.database = envfile.dbname
+    dbconnect,cursor = connectdb(envfile.dbname)
+    
     sql = "UPDATE Channel SET status = %s WHERE ID = %s"
     val = (status, channel_id)
     cursor.execute(sql, val)
@@ -104,11 +94,8 @@ def update_channel_status(channel_id, status):
     
 # function to add a user to a channel with a specific role
 def assign_user_to_channel(user_id, channel_id, user_type):
-    dbconnect,cursor = connectdb()
-    try:
-        cursor.execute("USE  {}".format(envfile.dbname))
-    except:
-        dbconnect.database = envfile.dbname
+    dbconnect,cursor = connectdb(envfile.dbname)
+    
     if user_type == 'USER_CREATOR':
         sql = "UPDATE Channel SET user_creator = %s WHERE ID = %s"
     elif user_type == 'USER_EDITOR':
@@ -119,31 +106,36 @@ def assign_user_to_channel(user_id, channel_id, user_type):
     cursor.execute(sql, val)
     dbconnect.commit()
 
+# function to track when users log in and out of the system
 def login_log(user_id, log_type, log_date):
-    dbconnect,cursor = connectdb()
-    try:
-        cursor.execute("USE  {}".format(envfile.dbname))
-    except:
-        dbconnect.database = envfile.dbname
+    dbconnect,cursor = connectdb(envfile.dbname)
+    
     sql = "INSERT INTO LoginLog (user_id, log_type, log_date) VALUES (%s, %s, %s)"
     val = (user_id, log_type, log_date)
     cursor.execute(sql, val)
     dbconnect.commit()
 
+# function to login a user and return user details if successfull
 def login_user(user_email, password):
-    dbconnect,cursor = connectdb()
-    try:
-        cursor.execute("USE  {}".format(envfile.dbname))
-    except:
-        dbconnect.database = envfile.dbname
+    dbconnect,cursor = connectdb(envfile.dbname)
+    
     sql = "SELECT * FROM User WHERE user_email = %s"
     val = (user_email,)
     cursor.execute(sql, val)
     result = cursor.fetchone()
+    # No user found
     if result == None:
         return {
             "success": False,
+            "error": "User does not exist"
         }
+    # User deleted
+    elif result[4] == 'INACTIVE':
+        return {
+            "success": False,
+            "error": "User is disabled or deleted please contact the Administrator"
+        }
+    # User found and password matches
     elif bcrypt.checkpw(password.encode('utf-8'), result[2].encode('utf-8')):
         return {
             "success": True,
@@ -152,32 +144,27 @@ def login_user(user_email, password):
             "user_email": result[1]
         }
 
+
 ## TEST FUNCTIONS FOR DEBUGGING
 
 # Clear the database, ONLY FOR TESTING AND DEBUGGING PURPOSES
 def cleardb():
-    dbconnect,cursor = connectdb()
-    try:
-        cursor.execute("USE  {}".format(envfile.dbname))
-    except:
-        dbconnect.database = envfile.dbname
+    dbconnect,cursor = connectdb(envfile.dbname)
+    
     cursor.execute("DROP TABLE TUser")
     dbconnect.commit()
     print("Database cleared")
 
 # Clear the database, ONLY FOR TESTING AND DEBUGGING PURPOSES
 def clearpro():
-    dbconnect,cursor = connectdb()
+    dbconnect,cursor = connectdb(envfile.dbname)
     cursor.execute("DROP DATABASE {}".format(envfile.dbname))
     dbconnect.commit()
     print("Database cleared")
 
 def showuser(user_id):
-    dbconnect,cursor = connectdb()
-    try:
-        cursor.execute("USE  {}".format(envfile.dbname))
-    except:
-        dbconnect.database = envfile.dbname
+    dbconnect,cursor = connectdb(envfile.dbname)
+    
     sql = "SELECT * FROM User WHERE ID = %s"
     val = (user_id,)
     cursor.execute(sql, val)

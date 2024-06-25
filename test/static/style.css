@@ -8,6 +8,7 @@
 
 body {
     background-color: #080710;
+    font-family: 'Poppins', sans-serif;
 }
 
 .background {
@@ -128,4 +129,48 @@ button {
 
 .social i {
     margin-right: 4px;
+}
+
+/* Index Page Styles */
+.index-container {
+    margin-top: 100px;
+    text-align: center;
+    color: #ffffff;
+}
+
+.index-container .border {
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    padding: 20px;
+    border-radius: 10px;
+    backdrop-filter: blur(10px);
+    background-color: rgba(255, 255, 255, 0.13);
+    display: inline-block;
+}
+
+.index-container .header h1 {
+    font-size: 32px;
+    font-weight: 500;
+    line-height: 42px;
+}
+
+.index-container .bottom {
+    font-size: 24px;
+    margin-top: 20px;
+}
+
+.index-container .btn {
+    margin-top: 20px;
+    display: inline-block;
+    background-color: #ffffff;
+    color: #080710;
+    padding: 10px 20px;
+    font-size: 18px;
+    font-weight: 600;
+    border-radius: 5px;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.index-container .btn:hover {
+    background-color: #e5e5e5;
 }

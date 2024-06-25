@@ -1,2 +1,2 @@
-dbpass = "videopass"
+dbpass = "pass"
 dbname = "VIDEOSCHOOL"

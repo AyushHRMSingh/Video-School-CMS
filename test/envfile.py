@@ -1,2 +1,0 @@
-dbpass = "videopass"
-dbname = "VIDEOSCHOOL"

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Add User</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="add-user-container">
+        <div class="border">
+            <div class="header">
+                <h1 class="word">Add User</h1>
+            </div>
+            <form method="POST">
+                <label for="user_email">Email:</label>
+                <input type="email" name="user_email" required>
+                <br>
+                <label for="password">Password:</label>
+                <input type="password" name="password" required>
+                <br>
+                <label for="user_type">User Type:</label>
+                <input type="text" name="user_type" required>
+                <br>
+                <input type="submit" value="Add User">
+            </form>
+            <p>{{ msg }}</p>
+            <a href="{{ url_for('index') }}" class="btn">Back to Index</a>
+        </div>
+    </div>
+</body>
+</html>

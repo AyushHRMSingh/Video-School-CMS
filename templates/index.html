@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Index</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">					 
+</head>
+<body>
+    <div class="index-container">
+        <div class="border">
+            <div class="header">
+                <h1 class="word">Index</h1>
+            </div>
+            <h1 class="bottom">
+                Hi {{ session['username'] }}!!</br></br> Welcome to the index page...
+            </h1>
+            {% if session['user_type'] == 'USER_ADMIN' %}
+                <a href="{{ url_for('add_user') }}" class="btn">Add User</a>
+            {% endif %}
+            
+            <a href="{{ url_for('logout') }}" class="btn">Logout</a>
+        </div>
+    </div>
+</body>
+</html>

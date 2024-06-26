@@ -20,7 +20,7 @@ class VidSchool:
             # create channel table if it doesn't exists
             "CREATE TABLE IF NOT EXISTS Channel (ID INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255) UNIQUE NOT NULL, platform TINYINT NOT NULL DEFAULT 0, creator_id INT, editor_id INT, manager_id INT, operator_id INT, status TINYINT NOT NULL DEFAULT 0, tokens JSON NOT NULL DEFAULT ('{}'))",
             # create video table if it doesn't exists
-            "CREATE TABLE IF NOT EXISTS Video (ID INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255) UNIQUE NOT NULL, url VARCHAR(255) UNIQUE, creator_id INT NOT NULL, editor_id INT NOT NULL, manager_id INT NOT NULL, upload_date INT NOT NULL, status TINYINT NOT NULL DEFAULT 0)",
+            "CREATE TABLE IF NOT EXISTS Video (ID INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255) UNIQUE NOT NULL, url VARCHAR(255) UNIQUE, creator_id INT NOT NULL, editor_id INT NOT NULL, manager_id INT NOT NULL, upload_date INT, status TINYINT NOT NULL DEFAULT 0)",
             # create login log table if it doesn't exists
             "CREATE TABLE IF NOT EXISTS LoginLog (ID INT AUTO_INCREMENT PRIMARY KEY, user_id INT NOT NULL, log_type TINYINT NOT NULL DEFAULT 0, log_date INT NOT NULL)",
         ]
@@ -49,6 +49,8 @@ class VidSchool:
             self.dbconnect.commit()
         print("Setup complete")
 
+
+    ### USER FUNCTIONS
     # function to add a user to the database ONLY FOR ADMIN
     def add_user(self, user_email, password, user_type):
         hashpass = self.hash_password(password)
@@ -62,6 +64,33 @@ class VidSchool:
         val = (user_id,)
         self.cursor.execute(sql, val)
         self.dbconnect.commit()
+
+    def get_users(self):
+        sql = "SELECT * FROM User"
+        self.cursor.execute(sql)
+        result = self.cursor.fetchall()
+        return result
+
+    ### VIDEO FUNCTIONS
+    def add_video(self, video_name, creator_id, editor_id, manager_id):
+        sql = "INSERT INTO Video (name, creator_id, editor_id, manager_id, status) VALUES (%s, %s, %s, %s, 0)"
+        val = (video_name, creator_id, editor_id, manager_id)
+        self.cursor.execute(sql, val)
+        self.dbconnect.commit()
+
+    def set_delete_video(self, video_id):
+        sql = "UPDATE Video SET status = 7 WHERE ID = %s"
+        val = (video_id,)
+        self.cursor.execute(sql, val)
+        self.dbconnect.commit()
+
+    def get_videos(self):
+        sql = "SELECT * FROM Video"
+        self.cursor.execute(sql)
+        result = self.cursor.fetchall()
+        return result
+
+    ### CHANNEL FUNCTIONS
 
     # function to add a channel to the database ONLY FOR ADMIN?
     # # TO BE REPLACED FOR GOOGLE INTEGRATION
@@ -82,6 +111,12 @@ class VidSchool:
         val = (status, channel_id)
         self.cursor.execute(sql, val)
         self.dbconnect.commit()
+    
+    def get_channels(self):
+        sql = "SELECT * FROM Channel;"
+        self.cursor.execute(sql)
+        result = self.cursor.fetchall()
+        return result
         
     # function to add a user to a channel with a specific role
     def assign_user_to_channel(self, user_id, channel_id, user_type):
@@ -130,7 +165,6 @@ class VidSchool:
                 "user_type": result[3],
                 "user_email": result[1]
             }
-
 
     ## TEST FUNCTIONS FOR DEBUGGING
     # Clear the database, ONLY FOR TESTING AND DEBUGGING PURPOSES

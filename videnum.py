@@ -6,4 +6,5 @@ vidstatus = {
     "3": "VIDEO_STATUS_TO_BE_RESHOT",
     "4": "VIDEO_STATUS_TO_BE_REDITED",
     "6": "VIDEO_STATUS_UPLOADED",
+    "7": "VIDEO_STATUS_DELETED"
 }

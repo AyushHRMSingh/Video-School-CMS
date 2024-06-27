@@ -1,17 +1,27 @@
 # Import necessary modules
-import extfun
+from extfun import VidSchool
 from flask import Flask, render_template, request, redirect, url_for, session
+from werkzeug.middleware.proxy_fix import ProxyFix
+import envfile
 
+host = envfile.host
+username = envfile.dbuser
+password = envfile.dbpass
+dbname = envfile.dbname
 
 # Initialize Flask application
 app = Flask(__name__)
+app.wsgi_app = ProxyFix(app.wsgi_app)
 
 # Set a secret key for session management
 app.secret_key = 'your secret key'
 
+# Initialize VidSchool object with database connection parameters
+vidschool = VidSchool(host, username, password, dbname)
+
 # Route for '/' and '/login', handles both GET and POST requests
 @app.route('/')
-@app.route('/login', methods=['GET', 'POST'])
+@app.route('/login', methods=['GET', 'POST'])  
 def login():
     msg = ''
     
@@ -21,7 +31,7 @@ def login():
         password = request.form['password']                       # Get password from form data
 
         # Call external function to validate user credentials
-        valid = extfun.login_user(user_email, password)
+        valid = vidschool.login_user(user_email, password)
 
         # If credentials are valid
         if valid['success']:
@@ -64,7 +74,7 @@ def register():
         password = request.form['password']                    # Get password from form data
 
         # Call external function to add user (assuming it validates and adds to database)
-        valid = extfun.add_user(user_email, password,'USER_ADMIN')  # Add user with role 'user'
+        valid = vidschool.add_user(user_email, password,'USER_ADMIN')  # Add user with role 'user'
 
         msg = "User added"                                     # Set message
 
@@ -81,7 +91,7 @@ def add_user():
         password = request.form['password']
         user_type = request.form['user_type']
         try:
-            extfun.add_user(user_email, password, user_type)
+            vidschool.add_user(user_email, password, user_type)
             msg = 'User added successfully!'
         except Exception as e:
             msg = f'Error: {str(e)}'
@@ -89,5 +99,5 @@ def add_user():
 
 # Main entry point of the application
 if __name__ == '__main__':
-    extfun.setupdb()                                            # Setup any necessary components from extfun module
+    vidschool.setupdb()                                            # Setup any necessary components from extfun module
     app.run(debug=True)                                       # Run the Flask application in debug mode

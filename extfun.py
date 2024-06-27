@@ -19,7 +19,7 @@ class VidSchool:
             # create user table if it doesn't exists
             "CREATE TABLE IF NOT EXISTS User (ID INT AUTO_INCREMENT PRIMARY KEY, email VARCHAR(255) UNIQUE NOT NULL, password VARCHAR(255) NOT NULL, role TINYINT NOT NULL DEFAULT 0, status TINYINT NOT NULL DEFAULT 0)",
             # add default admin user
-            "INSERT IGNORE INTO User (email, password, role, status) VALUES ('root@root.com', 'root', 0, 0)",
+            f"INSERT IGNORE INTO User (email, password, role, status) VALUES ('root@root.com', '{self.hash_password('root')}', 0, 0)",
             # create channel table if it doesn't exists
             "CREATE TABLE IF NOT EXISTS Channel (ID INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255) UNIQUE NOT NULL, platform TINYINT NOT NULL DEFAULT 0, creator_id INT, editor_id INT, manager_id INT, operator_id INT, status TINYINT NOT NULL DEFAULT 0, tokens JSON NOT NULL DEFAULT ('{}'))",
             # create video table if it doesn't exists
@@ -55,7 +55,7 @@ class VidSchool:
     def add_user(self, user_email, password, user_type, author):
         if author['user_type'] == 0:
             hashpass = self.hash_password(password)
-            sql = "INSERT INTO User (email, password, role, status) VALUES (%s, %s, %s, 0)"
+            sql = "INSERT INTO User (email, \password, role, status) VALUES (%s, %s, %s, 0)"
             val = (user_email, hashpass, user_type)
             self.cursor.execute(sql, val)
             self.dbconnect.commit()
@@ -157,31 +157,31 @@ class VidSchool:
         self.dbconnect.commit()
 
     # function to login a user and return user details if successfull
-    # def login_user(self, user_email, password):
-    #     sql = "SELECT * FROM User WHERE user_email = %s"
-    #     val = (user_email,)
-    #     self.cursor.execute(sql, val)
-    #     result = self.cursor.fetchone()
-    #     # No user found
-    #     if result == None:
-    #         return {
-    #             "success": False,
-    #             "error": "User does not exist"
-    #         }
-    #     # User deleted
-    #     elif result[4] == '0':
-    #         return {
-    #             "success": False,
-    #             "error": "User is disabled or deleted please contact the Administrator"
-    #         }
-    #     # User found and password matches
-    #     elif bcrypt.checkpw(password.encode('utf-8'), result[2].encode('utf-8')):
-    #         return {
-    #             "success": True,
-    #             "user_id": result[0],
-    #             "user_type": result[3],
-    #             "user_email": result[1]
-    #         }
+    def login_user(self, user_email, password):
+        sql = "SELECT * FROM User WHERE email = %s"
+        val = (user_email,)
+        self.cursor.execute(sql, val)
+        result = self.cursor.fetchone()
+        # No user found
+        if result == None:
+            return {
+                "success": False,
+                "error": "User does not exist"
+            }
+        # User deleted
+        elif result[4] == '0':
+            return {
+                "success": False,
+                "error": "User is disabled or deleted please contact the Administrator"
+            }
+        # User found and password matches
+        elif bcrypt.checkpw(password.encode('utf-8'), result[2].encode('utf-8')):
+            return {
+                "success": True,
+                "user_id": result[0],
+                "user_type": result[3],
+                "user_email": result[1]
+            }
         
 
     # log every action

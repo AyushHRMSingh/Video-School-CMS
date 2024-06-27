@@ -1,7 +1,7 @@
 # Import necessary modules
 from extfun import VidSchool
 from flask import Flask, render_template, request, redirect, url_for, session
-from werkzeug.middleware.proxy_fix import ProxyFix
+import userenum
 import envfile
 
 host = envfile.host
@@ -11,7 +11,7 @@ dbname = envfile.dbname
 
 # Initialize Flask application
 app = Flask(__name__)
-app.wsgi_app = ProxyFix(app.wsgi_app)
+
 
 # Set a secret key for session management
 app.secret_key = 'your secret key'
@@ -63,36 +63,25 @@ def logout():
     session.pop('user_type', None)
     return redirect(url_for('login'))                            # Redirect to login page after logout
 
-# Route for '/register', handles GET and POST requests
-@app.route('/register', methods=['GET', 'POST'])
-def register():
-    msg = ''                                                    # Initialize message variable
-    
-    # Check if POST request with 'user_email' and 'password' in form data
-    if request.method == 'POST' and 'user_email' in request.form and 'password' in request.form:
-        user_email = request.form['user_email']                # Get user email from form data
-        password = request.form['password']                    # Get password from form data
-
-        # Call external function to add user (assuming it validates and adds to database)
-        valid = vidschool.add_user(user_email, password,'USER_ADMIN')  # Add user with role 'user'
-
-        msg = "User added"                                     # Set message
-
-    # Render register.html template with current message 
-    return render_template('register.html', msg=msg)
-
 @app.route('/add_user', methods=['GET', 'POST'])
 def add_user():
-    if 'loggedin' not in session or session.get('user_type') != 'USER_ADMIN':
+    if 'loggedin' not in session or session.get('user_type') != 0:
         return redirect(url_for('login'))
     msg = ''
     if request.method == 'POST' and 'user_email' in request.form and 'password' in request.form and 'user_type' in request.form:
         user_email = request.form['user_email']
         password = request.form['password']
         user_type = request.form['user_type']
+        author = {
+            "user_id": session.get("user_id"),
+            "user_email": session.get("user_email"),
+            "user_type": session.get("user_type"),
+        }
+
         try:
-            vidschool.add_user(user_email, password, user_type)
+            vidschool.add_user(user_email, password, user_type, author)
             msg = 'User added successfully!'
+            
         except Exception as e:
             msg = f'Error: {str(e)}'
     return render_template('add_user.html', msg=msg)

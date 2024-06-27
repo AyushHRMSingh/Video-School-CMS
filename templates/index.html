@@ -14,7 +14,7 @@
             <h1 class="bottom">
                 Hi {{ session['username'] }}!!</br></br> Welcome to the index page...
             </h1>
-            {% if session['user_type'] == 'USER_ADMIN' %}
+            {% if session['user_type'] == 0 %}
                 <a href="{{ url_for('add_user') }}" class="btn">Add User</a>
             {% endif %}
             

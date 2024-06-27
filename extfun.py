@@ -27,7 +27,7 @@ class VidSchool:
             # create login log table if it doesn't exists
             "CREATE TABLE IF NOT EXISTS LoginLog (ID INT AUTO_INCREMENT PRIMARY KEY, user_id INT NOT NULL, log_type TINYINT NOT NULL DEFAULT 0, log_date INT NOT NULL)",
             # create log_table table if it doesn't exists
-            # "CREATE TABLE IF NOT EXISTS LogTable (ID INT AUTO_INCREMENT PRIMARY KEY, user_id INT NOT NULL, log_type TINYINT NOT NULL DEFAULT 0, log_date INT NOT NULL, log_data JSON NOT NULL DEFAULT ('{}'))",
+            "CREATE TABLE IF NOT EXISTS LogTable (ID INT AUTO_INCREMENT PRIMARY KEY, user_id INT NOT NULL, log_type TINYINT NOT NULL DEFAULT 0, log_date INT NOT NULL, log_data JSON NOT NULL DEFAULT ('{}'))",
 
         ]
         print("Connected to database")
@@ -59,6 +59,16 @@ class VidSchool:
             val = (user_email, hashpass, user_type)
             self.cursor.execute(sql, val)
             self.dbconnect.commit()
+            self.cursor.execute("SELECT ID FROM User WHERE email = %s AND password = %s", (user_email, hashpass))
+            user = self.cursor.fetchone()
+            log_data = {
+                "action": "add_user",
+                "data" : {
+                    "user_id": user[0],
+                    "user_email": user_email,
+                    "user_type": user_type
+                }
+            }
 
     def delete_user(self, user_id, author):
         if author['user_type'] == 0:
@@ -66,6 +76,13 @@ class VidSchool:
             val = (user_id,)
             self.cursor.execute(sql, val)
             self.dbconnect.commit()
+            log_data = {
+                "action": "delete_user",
+                "data" : {
+                    "user_id": user_id
+                }
+            }
+            self.log_action(author['user_id'], 1, log_data)
 
     def get_users(self, author):
         if author['user_type'] == 0:
@@ -79,55 +96,225 @@ class VidSchool:
             }
 
     ### VIDEO FUNCTIONS
+    # function to add a video to the database
     def add_video(self, video_name, creator_id, editor_id, manager_id, author):
         if author['user_type'] < 3:
             sql = "INSERT INTO Video (name, creator_id, editor_id, manager_id, status) VALUES (%s, %s, %s, %s, 0)"
             val = (video_name, creator_id, editor_id, manager_id)
             self.cursor.execute(sql, val)
             self.dbconnect.commit()
-            # log_data = {
-            #     "action": "add_video",
-            #     "video_name": video_name,
-            #     "creator_id": creator_id,
-            #     "editor_id": editor_id,
-            #     "manager_id": manager_id,
-            # }
-            # self.log_action(creator_id, 3, log_data)
+            log_data = {
+                "action": "add_video",
+                "data": {
+                    "video_name": video_name,
+                    "creator_id": creator_id,
+                    "editor_id": editor_id,
+                    "manager_id": manager_id,
+                }
+            }
+            self.log_action(author['user_id'], 3, log_data)
 
-    def set_delete_video(self, video_id):
-        sql = "UPDATE Video SET status = 7 WHERE ID = %s"
-        val = (video_id,)
-        self.cursor.execute(sql, val)
-        self.dbconnect.commit()
+    # function to update a video in the database
+    def update_video(self, video_id, video_name, creator_id, editor_id, manager_id, author):
+        if author['user_type'] < 3:
+            defvalue = self.get_video(video_id)
+            video_name = video_name if video_name != None else defvalue[1]
+            creator_id = creator_id if creator_id != None else defvalue[2]
+            editor_id = editor_id if editor_id != None else defvalue[3]
+            manager_id = manager_id if manager_id != None else defvalue[4]
+            sql = "UPDATE Video SET name = %s, creator_id = %s, editor_id = %s, manager_id = %s WHERE ID = %s"
+            val = (video_name, creator_id, editor_id, manager_id, video_id)
+            self.cursor.execute(sql, val)
+            self.dbconnect.commit()
+            log_data = {
+                "action": "update_video",
+                "data": {
+                    "video_id": video_id,
+                    "video_name": video_name,
+                    "creator_id": creator_id,
+                    "editor_id": editor_id,
+                    "manager_id": manager_id,
+                }
+            }
+            self.log_action(author['user_id'], 3, log_data)
 
+    # function to set the status of a video
+    def set_video_status(self, video_id, status, author, message = None):
+        if status == 0:
+            sql = "UPDATE Video SET status = 0 WHERE ID = %s"
+            val = (video_id,)
+            self.cursor.execute(sql, val)
+            self.dbconnect.commit()
+            log_data = {
+                "action": "set_video_status",
+                "data": {
+                    "video_id": video_id,
+                    "status": status,
+                    "message": message if message != None else "No message"
+                }
+            }
+            self.log_action(author['user_id'], 3, log_data)
+        elif status == 1:
+            sql = "UPDATE Video SET status = 1 WHERE ID = %s"
+            val = (video_id,)
+            self.cursor.execute(sql, val)
+            self.dbconnect.commit()
+            log_data = {
+                "action": "set_video_status",
+                "data": {
+                    "video_id": video_id,
+                    "status": status,
+                    "message": message if message != None else "No message"
+                }
+            }
+            self.log_action(author['user_id'], 3, log_data)
+        elif status == 2 or status == 3:
+            if author['user_type'] <= 3:
+                sql = "UPDATE Video SET status = 2 WHERE ID = %s"
+                val = (video_id,)
+                self.cursor.execute(sql, val)
+                self.dbconnect.commit()
+                log_data = {
+                    "action": "set_video_status",
+                    "data": {
+                        "video_id": video_id,
+                        "status": status,
+                        "message": message if message != None else "No message"
+                    }
+                }
+                self.log_action(author['user_id'], 3, log_data)
+        elif status == 4:
+            if author['user_type'] <=2 or author['user_type'] == 4:
+                sql = "UPDATE Video SET status = 4 WHERE ID = %s"
+                val = (video_id,)
+                self.cursor.execute(sql, val)
+                self.dbconnect.commit()
+                log_data = {
+                    "action": "set_video_status",
+                    "data": {
+                        "video_id": video_id,
+                        "status": status,
+                        "message": message if message != None else "No message"
+                    }
+                }
+                self.log_action(author['user_id'], 3, log_data)
+        elif status == 6:
+            if author['user_type'] <= 2:
+                sql = "UPDATE Video SET status = 6 WHERE ID = %s"
+                val = (video_id,)
+                self.cursor.execute(sql, val)
+                self.dbconnect.commit()
+                log_data = {
+                    "action": "set_video_status",
+                    "data": {
+                        "video_id": video_id,
+                        "status": status,
+                        "message": message if message != None else "No message"
+                    }
+                }
+                self.log_action(author['user_id'], 3, log_data)
+        else:
+            return {
+                "error": "Invalid status"
+            }
 
+    # function to delete a video from the database
+    def set_delete_video(self, video_id, author):
+        if author['user_type'] >2:
+            sql = "UPDATE Video SET status = 7 WHERE ID = %s"
+            val = (video_id,)
+            self.cursor.execute(sql, val)
+            self.dbconnect.commit()
+            log_data = {
+                "action": "delete_video",
+                "data": {
+                    "video_id": video_id
+                }
+            }
+            self.log_action(author['user_id'], 3, log_data)
+
+    # function to get all videos from the database
     def get_videos(self):
         sql = "SELECT * FROM Video"
         self.cursor.execute(sql)
         result = self.cursor.fetchall()
         return result
 
+    # function to get a specific video from the database
+    def get_video(self, video_id):
+        sql = "SELECT * FROM Video WHERE ID = %s"
+        val = (video_id,)
+        self.cursor.execute(sql, val)
+        result = self.cursor.fetchone()
+        return result
+
     ### CHANNEL FUNCTIONS
-
-    # function to add a channel to the database ONLY FOR ADMIN?
     # # TO BE REPLACED FOR GOOGLE INTEGRATION
-    def add_channel(self,channel_id, channel_name, platform):
-        sql = "INSERT INTO Channel (ID, name, platform, status) VALUES (%s, %s, %s, 1)"
-        val = (channel_id, channel_name, platform)
-        self.cursor.execute(sql, val)
-        self.dbconnect.commit()
+    def add_channel(self,channel_id, channel_name, platform, author):
+        if author['user_type'] == 0:
+            sql = "INSERT INTO Channel (ID, name, platform, status) VALUES (%s, %s, %s, 1)"
+            val = (channel_id, channel_name, platform)
+            self.cursor.execute(sql, val)
+            self.dbconnect.commit()
+            log_data = {
+                "action": "add_channel",
+                "data": {
+                    "channel_id": channel_id,
+                    "channel_name": channel_name,
+                    "platform": platform
+                }
+            }
+            self.log_action(author['user_id'], 2, log_data)
 
-    def delete_channel(self, channel_id):
-        sql = "UPDATE Channel SET status = 'DELETED' WHERE ID = %s"
-        val = (channel_id,)
-        self.cursor.execute(sql, val)
-        self.dbconnect.commit()
+    # function to delete a channel from the database
+    def delete_channel(self, channel_id, author):
+        if author['user_type'] == 0:
+            sql = "UPDATE Channel SET status = 'DELETED' WHERE ID = %s"
+            val = (channel_id,)
+            self.cursor.execute(sql, val)
+            self.dbconnect.commit()
+            log_data = {
+                "action": "delete_channel",
+                "data": {
+                    "channel_id": channel_id
+                }
+            }
+            self.log_action(author['user_id'], 2, log_data)
 
-    def update_channel_status(self, channel_id, status):
-        sql = "UPDATE Channel SET status = %s WHERE ID = %s"
-        val = (status, channel_id)
-        self.cursor.execute(sql, val)
-        self.dbconnect.commit()
+    def edit_channel(self, channel_id, channel_name, platform, author):
+        if author['user_type'] == 0:
+            defvalue = self.get_channel(channel_id)
+            channel_name = channel_name if channel_name != None else defvalue[1]
+            platform = platform if platform != None else defvalue[2]
+            sql = "UPDATE Channel SET name = %s, platform = %s WHERE ID = %s"
+            val = (channel_name, platform, channel_id)
+            self.cursor.execute(sql, val)
+            self.dbconnect.commit()
+            log_data = {
+                "action": "edit_channel",
+                "data": {
+                    "channel_id": channel_id,
+                    "channel_name": channel_name,
+                    "platform": platform
+                }
+            }
+            self.log_action(author['user_id'], 2, log_data)
+
+    # function to update the status of a channel
+    def update_channel_status(self, channel_id, status, author):
+        if author['user_type'] == 0:
+            sql = "UPDATE Channel SET status = %s WHERE ID = %s"
+            val = (status, channel_id)
+            self.cursor.execute(sql, val)
+            self.dbconnect.commit()
+            log_data = {
+                "action": "update_channel_status",
+                "data": {
+                    "channel_id": channel_id,
+                    "status": status
+                }
+            }
+            self.log_action(author['user_id'], 2, log_data)
     
     def get_channels(self):
         sql = "SELECT * FROM Channel;"
@@ -135,8 +322,15 @@ class VidSchool:
         result = self.cursor.fetchall()
         return result
         
+    def get_channel(self, channel_id):
+        sql = "SELECT * FROM Channel WHERE ID = %s"
+        val = (channel_id,)
+        self.cursor.execute(sql, val)
+        result = self.cursor.fetchone()
+        return result
+
     # function to add a user to a channel with a specific role
-    def assign_user_to_channel(self, user_id, channel_id, user_type):
+    def assign_user_to_channel(self, user_id, channel_id, user_type, author):
         if user_type == '4':
             sql = "UPDATE Channel SET creator_id = %s WHERE ID = %s"
         elif user_type == '3':
@@ -148,6 +342,15 @@ class VidSchool:
         val = (user_id, channel_id)
         self.cursor.execute(sql, val)
         self.dbconnect.commit()
+        log_data = {
+            "action": "assign_user_to_channel",
+            "data": {
+                "user_id": user_id,
+                "channel_id": channel_id,
+                "user_type": user_type
+            }
+        }
+        self.log_action(author['user_id'], 2, log_data)
 
     # function to track when users log in and out of the system
     def login_log(self, user_id, log_type, log_date):
@@ -183,7 +386,6 @@ class VidSchool:
                 "user_email": result[1]
             }
         
-
     # log every action
     def log_action(self, user_id, log_type, log_data, log_time = int( time.time() )):
         sql = "INSERT INTO LogTable (user_id, log_type, log_date,log_data) VALUES (%s, %s, %s, %s)"
@@ -194,20 +396,7 @@ class VidSchool:
 
     ## TEST FUNCTIONS FOR DEBUGGING
     # Clear the database, ONLY FOR TESTING AND DEBUGGING PURPOSES
-    def cleardb(self):
-        self.cursor.execute("DROP TABLE TUser")
-        self.dbconnect.commit()
-        print("Database cleared")
-
-    # Clear the database, ONLY FOR TESTING AND DEBUGGING PURPOSES
     def clearpro(self):
         self.cursor.execute("DROP DATABASE {}".format(self.dbname))
         self.dbconnect.commit()
         print("Database cleared")
-
-    def showuser(self, user_id, passa):
-        sql = "SELECT * FROM User WHERE ID = %s"
-        val = (user_id,)
-        self.cursor.execute(sql, val)
-        result = self.cursor.fetchall()
-        print(result)

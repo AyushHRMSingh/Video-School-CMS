@@ -1,7 +1,6 @@
 # Import necessary modules
 from extfun import VidSchool
 from flask import Flask, render_template, request, redirect, url_for, session
-import userenum
 import envfile
 
 host = envfile.host
@@ -85,6 +84,20 @@ def add_user():
         except Exception as e:
             msg = f'Error: {str(e)}'
     return render_template('add_user.html', msg=msg)
+
+@app.route('/view_users')
+def view_users():
+    if 'loggedin' not in session or session.get('user_type') != 0:
+        return redirect(url_for('login'))
+    
+    author = {
+        "user_id": session.get("user_id"),
+        "user_email": session.get("user_email"),
+        "user_type": session.get("user_type"),
+    }
+
+    users = vidschool.get_users(author)
+    return render_template('view_users.html', users=users)
 
 # Main entry point of the application
 if __name__ == '__main__':

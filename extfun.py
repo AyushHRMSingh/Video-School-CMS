@@ -1,5 +1,6 @@
 import bcrypt
 import mysql.connector
+import time
 
 class VidSchool:  
     def __init__(self, dbhost, dbusername, dbpassword, dbname):
@@ -17,12 +18,17 @@ class VidSchool:
             "USE  {}".format(self.dbname),
             # create user table if it doesn't exists
             "CREATE TABLE IF NOT EXISTS User (ID INT AUTO_INCREMENT PRIMARY KEY, email VARCHAR(255) UNIQUE NOT NULL, password VARCHAR(255) NOT NULL, role TINYINT NOT NULL DEFAULT 0, status TINYINT NOT NULL DEFAULT 0)",
+            # add default admin user
+            "INSERT IGNORE INTO User (email, password, role, status) VALUES ('root@root.com', 'root', 0, 0)",
             # create channel table if it doesn't exists
             "CREATE TABLE IF NOT EXISTS Channel (ID INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255) UNIQUE NOT NULL, platform TINYINT NOT NULL DEFAULT 0, creator_id INT, editor_id INT, manager_id INT, operator_id INT, status TINYINT NOT NULL DEFAULT 0, tokens JSON NOT NULL DEFAULT ('{}'))",
             # create video table if it doesn't exists
             "CREATE TABLE IF NOT EXISTS Video (ID INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255) UNIQUE NOT NULL, url VARCHAR(255) UNIQUE, creator_id INT NOT NULL, editor_id INT NOT NULL, manager_id INT NOT NULL, upload_date INT, status TINYINT NOT NULL DEFAULT 0)",
             # create login log table if it doesn't exists
             "CREATE TABLE IF NOT EXISTS LoginLog (ID INT AUTO_INCREMENT PRIMARY KEY, user_id INT NOT NULL, log_type TINYINT NOT NULL DEFAULT 0, log_date INT NOT NULL)",
+            # create log_table table if it doesn't exists
+            # "CREATE TABLE IF NOT EXISTS LogTable (ID INT AUTO_INCREMENT PRIMARY KEY, user_id INT NOT NULL, log_type TINYINT NOT NULL DEFAULT 0, log_date INT NOT NULL, log_data JSON NOT NULL DEFAULT ('{}'))",
+
         ]
         print("Connected to database")
     
@@ -30,17 +36,12 @@ class VidSchool:
         self.dbconnect.close()
         print("Disconnected from database")
 
-    # MAJOR TODO
-    # UPDATE ALL ROLE RELATED COMMANDS
-
     # hashing and salting password for security with bcrypt library
-    def hash_password(password):
+    def hash_password(self, password):
         password = password.encode('utf-8')
         salt = bcrypt.gensalt()
         hashed = bcrypt.hashpw(password, salt)
         return hashed.decode('utf-8')
-
-    # sqlcommands to create the database and table during setup
 
     # Setup the database with the proper schema
     def setupdb(self):
@@ -49,40 +50,56 @@ class VidSchool:
             self.dbconnect.commit()
         print("Setup complete")
 
-
     ### USER FUNCTIONS
     # function to add a user to the database ONLY FOR ADMIN
-    def add_user(self, user_email, password, user_type):
-        hashpass = self.hash_password(password)
-        sql = "INSERT INTO User (user_email, password, user_type, status) VALUES (%s, %s, %s, 1)"
-        val = (user_email, hashpass, user_type)
-        self.cursor.execute(sql, val)
-        self.dbconnect.commit()
+    def add_user(self, user_email, password, user_type, author):
+        if author['user_type'] == 0:
+            hashpass = self.hash_password(password)
+            sql = "INSERT INTO User (email, password, role, status) VALUES (%s, %s, %s, 0)"
+            val = (user_email, hashpass, user_type)
+            self.cursor.execute(sql, val)
+            self.dbconnect.commit()
 
-    def delete_user(self, user_id):
-        sql = "UPDATE User SET status = 0 WHERE ID = %s"
-        val = (user_id,)
-        self.cursor.execute(sql, val)
-        self.dbconnect.commit()
+    def delete_user(self, user_id, author):
+        if author['user_type'] == 0:
+            sql = "UPDATE User SET status = 1 WHERE ID = %s"
+            val = (user_id,)
+            self.cursor.execute(sql, val)
+            self.dbconnect.commit()
 
-    def get_users(self):
-        sql = "SELECT * FROM User"
-        self.cursor.execute(sql)
-        result = self.cursor.fetchall()
-        return result
+    def get_users(self, author):
+        if author['user_type'] == 0:
+            sql = "SELECT * FROM User"
+            self.cursor.execute(sql)
+            result = self.cursor.fetchall()
+            return result
+        else:
+            return {
+                "error": "You do not have permission to view this data"
+            }
 
     ### VIDEO FUNCTIONS
-    def add_video(self, video_name, creator_id, editor_id, manager_id):
-        sql = "INSERT INTO Video (name, creator_id, editor_id, manager_id, status) VALUES (%s, %s, %s, %s, 0)"
-        val = (video_name, creator_id, editor_id, manager_id)
-        self.cursor.execute(sql, val)
-        self.dbconnect.commit()
+    def add_video(self, video_name, creator_id, editor_id, manager_id, author):
+        if author['user_type'] < 3:
+            sql = "INSERT INTO Video (name, creator_id, editor_id, manager_id, status) VALUES (%s, %s, %s, %s, 0)"
+            val = (video_name, creator_id, editor_id, manager_id)
+            self.cursor.execute(sql, val)
+            self.dbconnect.commit()
+            # log_data = {
+            #     "action": "add_video",
+            #     "video_name": video_name,
+            #     "creator_id": creator_id,
+            #     "editor_id": editor_id,
+            #     "manager_id": manager_id,
+            # }
+            # self.log_action(creator_id, 3, log_data)
 
     def set_delete_video(self, video_id):
         sql = "UPDATE Video SET status = 7 WHERE ID = %s"
         val = (video_id,)
         self.cursor.execute(sql, val)
         self.dbconnect.commit()
+
 
     def get_videos(self):
         sql = "SELECT * FROM Video"
@@ -140,31 +157,40 @@ class VidSchool:
         self.dbconnect.commit()
 
     # function to login a user and return user details if successfull
-    def login_user(self, user_email, password):
-        sql = "SELECT * FROM User WHERE user_email = %s"
-        val = (user_email,)
+    # def login_user(self, user_email, password):
+    #     sql = "SELECT * FROM User WHERE user_email = %s"
+    #     val = (user_email,)
+    #     self.cursor.execute(sql, val)
+    #     result = self.cursor.fetchone()
+    #     # No user found
+    #     if result == None:
+    #         return {
+    #             "success": False,
+    #             "error": "User does not exist"
+    #         }
+    #     # User deleted
+    #     elif result[4] == '0':
+    #         return {
+    #             "success": False,
+    #             "error": "User is disabled or deleted please contact the Administrator"
+    #         }
+    #     # User found and password matches
+    #     elif bcrypt.checkpw(password.encode('utf-8'), result[2].encode('utf-8')):
+    #         return {
+    #             "success": True,
+    #             "user_id": result[0],
+    #             "user_type": result[3],
+    #             "user_email": result[1]
+    #         }
+        
+
+    # log every action
+    def log_action(self, user_id, log_type, log_data, log_time = int( time.time() )):
+        sql = "INSERT INTO LogTable (user_id, log_type, log_date,log_data) VALUES (%s, %s, %s, %s)"
+        val = (user_id, log_type, log_time, log_data)
         self.cursor.execute(sql, val)
-        result = self.cursor.fetchone()
-        # No user found
-        if result == None:
-            return {
-                "success": False,
-                "error": "User does not exist"
-            }
-        # User deleted
-        elif result[4] == '0':
-            return {
-                "success": False,
-                "error": "User is disabled or deleted please contact the Administrator"
-            }
-        # User found and password matches
-        elif bcrypt.checkpw(password.encode('utf-8'), result[2].encode('utf-8')):
-            return {
-                "success": True,
-                "user_id": result[0],
-                "user_type": result[3],
-                "user_email": result[1]
-            }
+        self.dbconnect.commit()
+
 
     ## TEST FUNCTIONS FOR DEBUGGING
     # Clear the database, ONLY FOR TESTING AND DEBUGGING PURPOSES

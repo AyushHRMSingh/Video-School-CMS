@@ -106,6 +106,27 @@ class VidSchool:
         self.cursor.execute(sql, val)
         result = self.cursor.fetchone()
         return result
+    
+    def edit_user(self, user_id, user_email, password, user_type, author):
+        if author['user_type'] == 0:
+            defvalue = self.get_user(user_id)
+            user_email = user_email if user_email != None else defvalue[1]
+            hashpass = self.hash_password(password) if password != None else defvalue[2]
+            user_type = user_type if user_type != None else defvalue[3]
+            sql = "UPDATE User SET email = %s, password = %s, role = %s WHERE ID = %s"
+            val = (user_email, hashpass, user_type, user_id)
+            self.cursor.execute(sql, val)
+            self.dbconnect.commit()
+            log_data = {
+                "action": "edit_user",
+                "author_id": author['user_id'],
+                "data": {
+                    "user_id": user_id,
+                    "user_email": user_email,
+                    "user_type": user_type
+                }
+            }
+            self.log_action(1, log_data)
 
     ### VIDEO FUNCTIONS
     # function to add a video to the database

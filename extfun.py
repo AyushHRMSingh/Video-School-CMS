@@ -1,3 +1,4 @@
+import json
 import bcrypt
 import mysql.connector
 import time
@@ -27,7 +28,7 @@ class VidSchool:
             # create login log table if it doesn't exists
             "CREATE TABLE IF NOT EXISTS LoginLog (ID INT AUTO_INCREMENT PRIMARY KEY, user_id INT NOT NULL, log_type TINYINT NOT NULL DEFAULT 0, log_date INT NOT NULL)",
             # create log_table table if it doesn't exists
-            "CREATE TABLE IF NOT EXISTS LogTable (ID INT AUTO_INCREMENT PRIMARY KEY, user_id INT NOT NULL, log_type TINYINT NOT NULL DEFAULT 0, log_date INT NOT NULL, log_data JSON NOT NULL DEFAULT ('{}'))",
+            "CREATE TABLE IF NOT EXISTS LogTable (ID INT AUTO_INCREMENT PRIMARY KEY, log_type TINYINT NOT NULL DEFAULT 0, log_date INT NOT NULL, log_data JSON NOT NULL DEFAULT ('{}'))",
 
         ]
         print("Connected to database")
@@ -399,13 +400,13 @@ class VidSchool:
         elif bcrypt.checkpw(password.encode('utf-8'), result[2].encode('utf-8')):
             log_data = {
                 "action": "login",
-                "author_id": result[0],
                 "data": {
                     "user_id": result[0],
                     "user_email": user_email,
                     "login_time": int( time.time() )
                 }
             }
+            self.log_action(0, log_data)
             return {
                 "success": True,
                 "user_id": result[0],
@@ -415,6 +416,9 @@ class VidSchool:
         
     # log every action
     def log_action(self, log_type, log_data, log_time = int( time.time() )):
+        log_data = json.dumps(log_data)
+        print(log_data)
+        print(type(log_data))
         sql = "INSERT INTO LogTable (log_type, log_date,log_data) VALUES (%s, %s, %s)"
         val = (log_type, log_time, log_data)
         self.cursor.execute(sql, val)

@@ -3,7 +3,7 @@ import bcrypt
 import mysql.connector
 import time
 
-class VidSchool:  
+class VidSchool:
     def __init__(self, dbhost, dbusername, dbpassword, dbname):
         self.dbconnect = mysql.connector.connect(
             host = dbhost,
@@ -20,13 +20,11 @@ class VidSchool:
             # create user table if it doesn't exists
             "CREATE TABLE IF NOT EXISTS User (ID INT AUTO_INCREMENT PRIMARY KEY, email VARCHAR(255) UNIQUE NOT NULL, password VARCHAR(255) NOT NULL, role TINYINT NOT NULL DEFAULT 0, status TINYINT NOT NULL DEFAULT 0)",
             # add default admin user
-            f"INSERT IGNORE INTO User (email, password, role, status) VALUES ('root@root.com', '{self.hash_password('root')}', 0, 0)",
+            # f"INSERT IGNORE INTO User (email, password, role, status) VALUES ('root@root.com', '{self.hash_password('root')}', 0, 0)",
             # create channel table if it doesn't exists
             "CREATE TABLE IF NOT EXISTS Channel (ID INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255) UNIQUE NOT NULL, platform TINYINT NOT NULL DEFAULT 0, creator_id INT, editor_id INT, manager_id INT, operator_id INT, status TINYINT NOT NULL DEFAULT 0, tokens JSON NOT NULL DEFAULT ('{}'))",
             # create video table if it doesn't exists
-            "CREATE TABLE IF NOT EXISTS Video (ID INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255) UNIQUE NOT NULL, url VARCHAR(255) UNIQUE, creator_id INT NOT NULL, editor_id INT NOT NULL, manager_id INT NOT NULL, upload_date INT, status TINYINT NOT NULL DEFAULT 0)",
-            # create login log table if it doesn't exists
-            "CREATE TABLE IF NOT EXISTS LoginLog (ID INT AUTO_INCREMENT PRIMARY KEY, user_id INT NOT NULL, log_type TINYINT NOT NULL DEFAULT 0, log_date INT NOT NULL)",
+            "CREATE TABLE IF NOT EXISTS Video (ID INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255) UNIQUE NOT NULL, url VARCHAR(255) UNIQUE, creator_id INT, editor_id INT, manager_id INT, upload_date INT, status TINYINT NOT NULL DEFAULT 0)",
             # create log_table table if it doesn't exists
             "CREATE TABLE IF NOT EXISTS LogTable (ID INT AUTO_INCREMENT PRIMARY KEY, log_type TINYINT NOT NULL DEFAULT 0, log_date INT NOT NULL, log_data JSON NOT NULL DEFAULT ('{}'))",
 
@@ -34,8 +32,9 @@ class VidSchool:
         print("Connected to database")
     
     def __del__(self):
-        self.dbconnect.close()
-        print("Disconnected from database")
+        if self.dbconnect.is_connected():
+            self.dbconnect.close()
+            print("Disconnected from database")
 
     # hashing and salting password for security with bcrypt library
     def hash_password(self, password):

@@ -63,12 +63,14 @@ class VidSchool:
             user = self.cursor.fetchone()
             log_data = {
                 "action": "add_user",
+                "author_id": author['user_id'],
                 "data" : {
                     "user_id": user[0],
                     "user_email": user_email,
                     "user_type": user_type
                 }
             }
+            self.log_action(1, log_data)
 
     def delete_user(self, user_id, author):
         if author['user_type'] == 0:
@@ -78,12 +80,14 @@ class VidSchool:
             self.dbconnect.commit()
             log_data = {
                 "action": "delete_user",
+                "author_id": author['user_id'],
                 "data" : {
                     "user_id": user_id
                 }
             }
-            self.log_action(author['user_id'], 1, log_data)
+            self.log_action(1, log_data)
 
+    # function to get all users in the database
     def get_users(self, author):
         if author['user_type'] == 0:
             sql = "SELECT * FROM User"
@@ -94,6 +98,14 @@ class VidSchool:
             return {
                 "error": "You do not have permission to view this data"
             }
+    
+    # function to get a specific user from the database
+    def get_user(self, user_id):
+        sql = "SELECT * FROM User WHERE ID = %s"
+        val = (user_id,)
+        self.cursor.execute(sql, val)
+        result = self.cursor.fetchone()
+        return result
 
     ### VIDEO FUNCTIONS
     # function to add a video to the database
@@ -105,6 +117,7 @@ class VidSchool:
             self.dbconnect.commit()
             log_data = {
                 "action": "add_video",
+                "author_id": author['user_id'],
                 "data": {
                     "video_name": video_name,
                     "creator_id": creator_id,
@@ -112,7 +125,7 @@ class VidSchool:
                     "manager_id": manager_id,
                 }
             }
-            self.log_action(author['user_id'], 3, log_data)
+            self.log_action(3, log_data)
 
     # function to update a video in the database
     def update_video(self, video_id, video_name, creator_id, editor_id, manager_id, author):
@@ -128,6 +141,7 @@ class VidSchool:
             self.dbconnect.commit()
             log_data = {
                 "action": "update_video",
+                "author_id": author['user_id'],
                 "data": {
                     "video_id": video_id,
                     "video_name": video_name,
@@ -136,7 +150,7 @@ class VidSchool:
                     "manager_id": manager_id,
                 }
             }
-            self.log_action(author['user_id'], 3, log_data)
+            self.log_action(3, log_data)
 
     # function to set the status of a video
     def set_video_status(self, video_id, status, author, message = None):
@@ -147,13 +161,14 @@ class VidSchool:
             self.dbconnect.commit()
             log_data = {
                 "action": "set_video_status",
+                "author_id": author['user_id'],
                 "data": {
                     "video_id": video_id,
                     "status": status,
                     "message": message if message != None else "No message"
                 }
             }
-            self.log_action(author['user_id'], 3, log_data)
+            self.log_action(3, log_data)
         elif status == 1:
             sql = "UPDATE Video SET status = 1 WHERE ID = %s"
             val = (video_id,)
@@ -161,13 +176,14 @@ class VidSchool:
             self.dbconnect.commit()
             log_data = {
                 "action": "set_video_status",
+                "author_id": author['user_id'],
                 "data": {
                     "video_id": video_id,
                     "status": status,
                     "message": message if message != None else "No message"
                 }
             }
-            self.log_action(author['user_id'], 3, log_data)
+            self.log_action(3, log_data)
         elif status == 2 or status == 3:
             if author['user_type'] <= 3:
                 sql = "UPDATE Video SET status = 2 WHERE ID = %s"
@@ -176,13 +192,14 @@ class VidSchool:
                 self.dbconnect.commit()
                 log_data = {
                     "action": "set_video_status",
+                    "author_id": author['user_id'],
                     "data": {
                         "video_id": video_id,
                         "status": status,
                         "message": message if message != None else "No message"
                     }
                 }
-                self.log_action(author['user_id'], 3, log_data)
+                self.log_action(3, log_data)
         elif status == 4:
             if author['user_type'] <=2 or author['user_type'] == 4:
                 sql = "UPDATE Video SET status = 4 WHERE ID = %s"
@@ -191,13 +208,14 @@ class VidSchool:
                 self.dbconnect.commit()
                 log_data = {
                     "action": "set_video_status",
+                    "author_id": author['user_id'],
                     "data": {
                         "video_id": video_id,
                         "status": status,
                         "message": message if message != None else "No message"
                     }
                 }
-                self.log_action(author['user_id'], 3, log_data)
+                self.log_action(3, log_data)
         elif status == 6:
             if author['user_type'] <= 2:
                 sql = "UPDATE Video SET status = 6 WHERE ID = %s"
@@ -206,13 +224,14 @@ class VidSchool:
                 self.dbconnect.commit()
                 log_data = {
                     "action": "set_video_status",
+                    "author_id": author['user_id'],
                     "data": {
                         "video_id": video_id,
                         "status": status,
                         "message": message if message != None else "No message"
                     }
                 }
-                self.log_action(author['user_id'], 3, log_data)
+                self.log_action(3, log_data)
         else:
             return {
                 "error": "Invalid status"
@@ -227,11 +246,12 @@ class VidSchool:
             self.dbconnect.commit()
             log_data = {
                 "action": "delete_video",
+                "author_id": author['user_id'],
                 "data": {
                     "video_id": video_id
                 }
             }
-            self.log_action(author['user_id'], 3, log_data)
+            self.log_action(3, log_data)
 
     # function to get all videos from the database
     def get_videos(self):
@@ -258,28 +278,30 @@ class VidSchool:
             self.dbconnect.commit()
             log_data = {
                 "action": "add_channel",
+                "author_id": author['user_id'],
                 "data": {
                     "channel_id": channel_id,
                     "channel_name": channel_name,
                     "platform": platform
                 }
             }
-            self.log_action(author['user_id'], 2, log_data)
+            self.log_action(2, log_data)
 
     # function to delete a channel from the database
     def delete_channel(self, channel_id, author):
         if author['user_type'] == 0:
-            sql = "UPDATE Channel SET status = 'DELETED' WHERE ID = %s"
+            sql = "UPDATE Channel SET status = 3 WHERE ID = %s"
             val = (channel_id,)
             self.cursor.execute(sql, val)
             self.dbconnect.commit()
             log_data = {
                 "action": "delete_channel",
+                "author_id": author['user_id'],
                 "data": {
                     "channel_id": channel_id
                 }
             }
-            self.log_action(author['user_id'], 2, log_data)
+            self.log_action(2, log_data)
 
     def edit_channel(self, channel_id, channel_name, platform, author):
         if author['user_type'] == 0:
@@ -292,13 +314,14 @@ class VidSchool:
             self.dbconnect.commit()
             log_data = {
                 "action": "edit_channel",
+                "author_id": author['user_id'],
                 "data": {
                     "channel_id": channel_id,
                     "channel_name": channel_name,
                     "platform": platform
                 }
             }
-            self.log_action(author['user_id'], 2, log_data)
+            self.log_action(2, log_data)
 
     # function to update the status of a channel
     def update_channel_status(self, channel_id, status, author):
@@ -309,12 +332,13 @@ class VidSchool:
             self.dbconnect.commit()
             log_data = {
                 "action": "update_channel_status",
+                "author_id": author['user_id'],
                 "data": {
                     "channel_id": channel_id,
                     "status": status
                 }
             }
-            self.log_action(author['user_id'], 2, log_data)
+            self.log_action(2, log_data)
     
     def get_channels(self):
         sql = "SELECT * FROM Channel;"
@@ -344,20 +368,14 @@ class VidSchool:
         self.dbconnect.commit()
         log_data = {
             "action": "assign_user_to_channel",
+            "author_id": author['user_id'],
             "data": {
                 "user_id": user_id,
                 "channel_id": channel_id,
                 "user_type": user_type
             }
         }
-        self.log_action(author['user_id'], 2, log_data)
-
-    # function to track when users log in and out of the system
-    def login_log(self, user_id, log_type, log_date):
-        sql = "INSERT INTO LoginLog (user_id, log_type, log_date) VALUES (%s, %s, %s)"
-        val = (user_id, log_type, log_date)
-        self.cursor.execute(sql, val)
-        self.dbconnect.commit()
+        self.log_action(2, log_data)
 
     # function to login a user and return user details if successfull
     def login_user(self, user_email, password):
@@ -379,6 +397,15 @@ class VidSchool:
             }
         # User found and password matches
         elif bcrypt.checkpw(password.encode('utf-8'), result[2].encode('utf-8')):
+            log_data = {
+                "action": "login",
+                "author_id": result[0],
+                "data": {
+                    "user_id": result[0],
+                    "user_email": user_email,
+                    "login_time": int( time.time() )
+                }
+            }
             return {
                 "success": True,
                 "user_id": result[0],
@@ -387,12 +414,11 @@ class VidSchool:
             }
         
     # log every action
-    def log_action(self, user_id, log_type, log_data, log_time = int( time.time() )):
-        sql = "INSERT INTO LogTable (user_id, log_type, log_date,log_data) VALUES (%s, %s, %s, %s)"
-        val = (user_id, log_type, log_time, log_data)
+    def log_action(self, log_type, log_data, log_time = int( time.time() )):
+        sql = "INSERT INTO LogTable (log_type, log_date,log_data) VALUES (%s, %s, %s)"
+        val = (log_type, log_time, log_data)
         self.cursor.execute(sql, val)
         self.dbconnect.commit()
-
 
     ## TEST FUNCTIONS FOR DEBUGGING
     # Clear the database, ONLY FOR TESTING AND DEBUGGING PURPOSES

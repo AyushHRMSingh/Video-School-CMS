@@ -1,23 +1,38 @@
 # Main Functions:-
+<!-- referring to extfun.py file functions -->
 
 - `hash_password(password: str) -> str`: This funcitons takes a password as input and returns the hashed and salted version of the password
 
-- `connectdb()` -> `mysql.connector.connect() object`, `mysql.connector.connect.cursor() object`: This function connects to the database and returns the connection object and the cursor object
-
 - `setupdb()`: This function connects to MySQL and creates the main VIDEOSCHOOL database and the required tables with the defined schema
 
-- `add_user(username: str, password: str, user_type: str)`: This function creates and adds a new user to the database
+- `add_user(email:str, password:str, role:int, author:dict)`: This function adds a new user to the database
 
-- `delete_user(user_id: int)`: This function sets the user status to INACTIVE in the database
+- `delete_user(id:int, author:dict)`: This function sets the status of the user to 1
 
-- `add_channel(channel_id: str, channel_name: str, user_id: int)`: This function adds a new channel to the database (NOTE: will be updated in the future to allow for google auth token storage)
+- `get_user(id:int)`: This function returns the user details of the given user id
 
-- `delete_channel(channel_id: str)`: This function sets the channel status to DELETED in the database
+- `add_video(video_name:str, creator_id:int, editor_id:int, manager_id:int, author:dict)`: This function adds a new video to the database
 
-- `update_channel_status(channel_id: str, status: str)`: This function updates the status of the channel in the database
+- `update_video(video_id:int, video_name:str, creator_id:int, editor_id:int, manager_id:int, author:dict)`: This function updates the video details
 
-- `assign_user_to_channel(user_id: int, channel_id: str, user_type: str)`: This function assigns a user to the relevant role in the specified channel (E.g. Manager, Editor and Creator)
+- `set_video_status(video_id:int, status:int, author:dict, message:string (optional)`: This function sets the status of the video to the defined value
 
-- `login_log(user_id: int, log_type: str, log_date: int)`: This function logs the login activity of the user
+- `set_delete_video(video_id:int, author:dict)`: This function sets the status of the video to 7
 
-- `login_user(user_email: str, password: str) -> int`: This function logs in the user and returns a dict containing the user_id, user_type and user_email
+- `get_videos()`: This function returns the list of videos
+
+- `get_video(video_id:int)`: This function returns the details of the video
+
+- `add_channel(channel_id:int, channel_name:str, platform:str, author:dict)`: This function adds a new channel to the database
+
+- `delete_channel(channel_id:int, author:dict)`: This function sets the status of the channel to 3
+
+- `edit_channel(channel_id:int, channel_name:str, platform:str, author:dict)`: This function updates the channel details to those that are set
+
+- `update_channel_status(channel_id:int, status:int, author:dict)`: This function sets the status of the channel to the defined value
+
+- `get_channels()`: This function returns the list of channels
+
+- `get_channel(channel_id:int)`: This function returns the details of the channel
+
+- `assign_user_to_channel(user_id:int, channel_id:int, user_type:int, author:dict)`: This function assigns a user to a channel with the defined role

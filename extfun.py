@@ -55,7 +55,7 @@ class VidSchool:
     def add_user(self, user_email, password, user_type, author):
         if author['user_type'] == 0:
             hashpass = self.hash_password(password)
-            sql = "INSERT INTO User (email, \password, role, status) VALUES (%s, %s, %s, 0)"
+            sql = "INSERT INTO User (email, password, role, status) VALUES (%s, %s, %s, 0)"
             val = (user_email, hashpass, user_type)
             self.cursor.execute(sql, val)
             self.dbconnect.commit()

@@ -1,11 +1,56 @@
-<!-- view_users.html -->
-{% if users %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Users</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid black;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <a href="{{ url_for('index') }}" class="btn">Back to Index</a>
     <h1>Users</h1>
-    <ul>
-        {% for user in users %}
-            <li>{{ user }}</li>
-        {% endfor %}
-    </ul>
-{% else %}
-    <p>No users found or you do not have permission to view users.</p>
-{% endif %}
+    {% if users %}
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Email</th>
+                    <th>Password</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th>Edit</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                    <tr>
+                        <td>{{ user[0] }}</td>
+                        <td>{{ user[1] }}</td>
+                        <td>{{ user[2] }}</td>
+                        <td>{{ user[3] }}</td>
+                        <td>{{ user[4] }}</td>
+                        <td>
+                            <a href="{{ url_for('edit_user', user_id=user[0]) }}" class="btn">Edit</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No users found or you do not have permission to view users.</p>
+    {% endif %}
+
+</body>
+</html>

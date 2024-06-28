@@ -1,5 +1,5 @@
 # Import necessary modules
-from extfun import VidSchool
+from newextfun import VidSchool
 from flask import Flask, render_template, request, redirect, url_for, session
 import envfile
 
@@ -169,22 +169,24 @@ def add_video():
     msg = ''
     if request.method == 'POST':                                                        # Check if POST request with 'video_name', 'creator_id', 'editor_id' and 'manager_id' in form data
         video_name = request.form['video_name']                                         # Get video name from form data
+        channel_id = request.form['channel_id']
         creator_id = request.form['creator_id']                                         # Get creator id from form data
         editor_id = request.form['editor_id']                                           # Get editor id from form data
         manager_id = request.form['manager_id']                                         # Get manager id from form data
+        operator_id = request.form['operator_id']                                       # Get operator id from form data
         author = {                                                                      # Author dictionary with user_id, user_email and user_type
             "user_id": session.get("user_id"),                                          # Get user id from session
             "user_email": session.get("user_email"),                                    # Get user email from session
             "user_type": session.get("user_type"),                                      # Get user type from session
         }
 
-        try:                                                                            # Try to add video with video_name, creator_id, editor_id, manager_id
-            vidschool.add_video(video_name, creator_id, editor_id, manager_id,author)   # Add video with video_name, creator_id, editor_id, manager_id
-            msg = 'Video added successfully!'                                           # Set message
-        except Exception as e:                                                          # Catch any exceptions and show error message
+        try:                                                                                        # Try to add video with video_name, creator_id, editor_id, manager_id
+            vidschool.add_video(video_name, channel_id, creator_id, editor_id, manager_id, operator_id, author)   # Add video with video_name, creator_id, editor_id, manager_id
+            msg = 'Video added successfully!'                                                       # Set message
+        except Exception as e:                                                                      # Catch any exceptions and show error message
             msg = f'Error: {str(e)}'
     
-    return render_template('add_video.html', msg=msg)                                   # Render add_video.html template with current message
+    return render_template('add_video.html', msg=msg)                                                # Render add_video.html template with current message
 
 # Main entry point of the application
 if __name__ == '__main__':

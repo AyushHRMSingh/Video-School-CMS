@@ -418,7 +418,7 @@ class VidSchool:
                 "error": "User is disabled or deleted please contact the Administrator"
             }
         # User found and password matches
-        elif result[0] == 0: 
+        elif result[4] == 0: 
             if bcrypt.checkpw(password.encode('utf-8'), result[2].encode('utf-8')):
                 log_data = {
                     "action": "login",

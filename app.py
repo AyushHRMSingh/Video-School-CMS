@@ -62,6 +62,7 @@ def logout():
     session.pop('user_type', None)
     return redirect(url_for('login'))                            # Redirect to login page after logout
 
+# Route for '/adduser', handles both GET and POST requests
 @app.route('/add_user', methods=['GET', 'POST'])
 def add_user():
     if 'loggedin' not in session or session.get('user_type') != 0:
@@ -85,6 +86,7 @@ def add_user():
             msg = f'Error: {str(e)}'
     return render_template('add_user.html', msg=msg)
 
+# Route for '/viewusers' to view all users
 @app.route('/view_users')
 def view_users():
     if 'loggedin' not in session or session.get('user_type') != 0:
@@ -99,27 +101,40 @@ def view_users():
     users = vidschool.get_users(author)
     return render_template('view_users.html', users=users)
 
-@app.route('/edit_users', methods=['GET', 'POST'])
-def edit_users():
+# Route for '/edituser' to edit a user with user_id
+@app.route('/edit_user/<int:user_id>', methods=['GET', 'POST'])
+def edit_user(user_id):
     if 'loggedin' not in session or session.get('user_type') != 0:
         return redirect(url_for('login'))
-    msg = ''
-    if request.method == 'POST' and 'user_id' in request.form:
-        user_id = request.form['user_id']
-        user_email = request.form.get('user_email')
-        password = request.form.get('password')
-        user_type = request.form.get('user_type')
-        author = {
-            "user_id": session.get("user_id"),
-            "user_email": session.get("user_email"),
-            "user_type": session.get("user_type"),
-        }
+    
+    author = {
+        "user_id": session.get("user_id"),
+        "user_email": session.get("user_email"),
+        "user_type": session.get("user_type"),
+    }
+
+    if request.method == 'POST':
+        user_email = request.form['user_email']
+        password = request.form['password']
+        user_type = request.form['user_type']
+
         try:
             vidschool.edit_user(user_id, user_email, password, user_type, author)
-            msg = 'User edited successfully!'
+            return redirect(url_for('view_users'))
         except Exception as e:
-            msg = f'Error: {str(e)}'
-    return render_template('edit_user.html', msg=msg)
+            return f'Error: {str(e)}'
+    
+    user = vidschool.get_user(user_id)
+    return render_template('edit_user.html', user=user)
+
+@app.route('/view_logs')
+def view_logs():
+    if 'loggedin' not in session or session.get('user_type') != 0:
+        return redirect(url_for('login'))
+    
+    logs = vidschool.get_logs()
+    
+    return render_template('view_logs.html', logs=logs)
 
 # Main entry point of the application
 if __name__ == '__main__':

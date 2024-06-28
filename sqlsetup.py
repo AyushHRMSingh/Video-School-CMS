@@ -40,3 +40,5 @@ def mainB():
     for command in sqlcommands:
         print("Executing command: ", command)
         cursor.execute(command)
+
+mainB()

@@ -4,6 +4,7 @@ import mysql.connector
 import time
 
 class VidSchool:
+    # constructor function
     def __init__(self, dbhost, dbusername, dbpassword, dbname):
         self.dbconnect = mysql.connector.connect(
             host = dbhost,
@@ -13,23 +14,11 @@ class VidSchool:
         self.cursor = self.dbconnect.cursor()
         self.dbname = dbname
         self.sqlcommands = [
-            # create database if not exists
-            # "CREATE DATABASE IF NOT EXISTS {}".format(dbname),
-            # user the database
             "USE  {}".format(dbname),
-            # create user table if it doesn't exists
-            # "CREATE TABLE IF NOT EXISTS User (ID INT AUTO_INCREMENT PRIMARY KEY, email VARCHAR(255) UNIQUE NOT NULL, password VARCHAR(255) NOT NULL, role TINYINT NOT NULL DEFAULT 0, status TINYINT NOT NULL DEFAULT 0)",
-            # add default admin user
-            # f"INSERT INTO  User (email, password, role, status) VALUES ('root@root.com', '{self.hash_password('root')}', 0, 0)",
-            # create channel table if it doesn't exists
-            # "CREATE TABLE IF NOT EXISTS IF NOT EXISTS Channel (ID INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255) UNIQUE NOT NULL, platform TINYINT NOT NULL DEFAULT 0, creator_id INT, editor_id INT, manager_id INT, operator_id INT, status TINYINT NOT NULL DEFAULT 0, tokens JSON NOT NULL DEFAULT ('{}'))",
-            # create video table if it doesn't exists
-            # "CREATE TABLE IF NOT EXISTS Video (ID INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255) UNIQUE NOT NULL, channel_id INT NOT NULL, url VARCHAR(255) UNIQUE, creator_id INT, editor_id INT, manager_id INT, operator_id INT, upload_date INT, status TINYINT NOT NULL DEFAULT 0)",
-            # create log_table table if it doesn't exists
-            # "CREATE TABLE IF NOT EXISTS LogTable (ID INT AUTO_INCREMENT PRIMARY KEY, log_type TINYINT NOT NULL DEFAULT 0, log_date INT NOT NULL, log_data JSON NOT NULL DEFAULT ('{}'))",
-        ]
+            ]
         print("Connected to database")
     
+    # destructor function
     def __del__(self):
         if self.dbconnect.is_connected():
             self.dbconnect.close()
@@ -52,14 +41,18 @@ class VidSchool:
     ### USER FUNCTIONS
     # function to add a user to the database ONLY FOR ADMIN
     def add_user(self, user_email, password, user_type, author):
+        # checks permission
         if author['user_type'] == 0:
+            # hash password
             hashpass = self.hash_password(password)
+            # executes SQL command
             sql = "INSERT INTO User (email, password, role, status) VALUES (%s, %s, %s, 0)"
             val = (user_email, hashpass, user_type)
             self.cursor.execute(sql, val)
             self.dbconnect.commit()
             self.cursor.execute("SELECT ID FROM User WHERE email = %s AND password = %s", (user_email, hashpass))
             user = self.cursor.fetchone()
+            # Logging
             log_data = {
                 "action": "add_user",
                 "author_id": author['user_id'],
@@ -71,12 +64,16 @@ class VidSchool:
             }
             self.log_action(1, log_data)
 
+    # sets user to INACTIVE
     def delete_user( self, user_id, author):
+        # checks permissions
         if author['user_type'] == 0:
+            # executes SQL command
             sql = "UPDATE User SET status = 1 WHERE ID = %s"
             val = (user_id,)
             self.cursor.execute(sql, val)
             self.dbconnect.commit()
+            # Logging
             log_data = {
                 "action": "delete_user",
                 "author_id": author['user_id'],
@@ -88,7 +85,9 @@ class VidSchool:
 
     # function to get all users in the database
     def get_users(self, author):
+        # checks permissions
         if author['user_type'] == 0:
+            # executes SQL command
             sql = "SELECT * FROM User"
             self.cursor.execute(sql)
             result = self.cursor.fetchall()
@@ -100,22 +99,29 @@ class VidSchool:
     
     # function to get a specific user from the database
     def get_user(self, user_id):
+        # executes SQL command
         sql = "SELECT * FROM User WHERE ID = %s"
         val = (user_id,)
         self.cursor.execute(sql, val)
         result = self.cursor.fetchone()
         return result
     
+    # function to edit a user in the database
     def edit_user(self, user_id, user_email, password, user_type, author):
+        # checks permissions
         if author['user_type'] == 0:
+            # stores default values from DB
             defvalue = self.get_user(user_id)
+            # sets values to default if None
             user_email = user_email if user_email != None else defvalue[1]
             hashpass = self.hash_password(password) if password != None else defvalue[2]
             user_type = user_type if user_type != None else defvalue[3]
+            # executes SQL command
             sql = "UPDATE User SET email = %s, password = %s, role = %s WHERE ID = %s"
             val = (user_email, hashpass, user_type, user_id)
             self.cursor.execute(sql, val)
             self.dbconnect.commit()
+            # Logging
             log_data = {
                 "action": "edit_user",
                 "author_id": author['user_id'],
@@ -126,15 +132,22 @@ class VidSchool:
                 }
             }
             self.log_action(1, log_data)
+        else:
+            return {
+                "error": "You do not have permission to edit this user"
+            }
 
     ### VIDEO FUNCTIONS
     # function to add a video to the database
     def add_video(self, channel_id, video_name, creator_id, editor_id, manager_id, operator_id, author):
-        if author['user_type'] < 3:
+        # checks user is higher permissions than operator
+        if author['user_type'] < 2:
+            # executes SQL command
             sql = "INSERT INTO Video (name, channel_id, creator_id, editor_id, manager_id, operator_id, status) VALUES (%s, %s, %s, %s, %s, %s, 0)"
             val = (video_name, channel_id, creator_id, editor_id, manager_id, operator_id)
             self.cursor.execute(sql, val)
             self.dbconnect.commit()
+            # Logging
             log_data = {
                 "action": "add_video",
                 "author_id": author['user_id'],
@@ -150,40 +163,48 @@ class VidSchool:
 
     # function to update a video in the database
     def update_video(self, video_id, video_name, creator_id, editor_id, manager_id, operator_id, author):
-        if author['user_type'] < 3:
-            defvalue = self.get_video(video_id)
-            video_name = video_name if video_name != None else defvalue[1]
-            creator_id = creator_id if creator_id != None else defvalue[2]
-            editor_id = editor_id if editor_id != None else defvalue[3]
-            manager_id = manager_id if manager_id != None else defvalue[4]
-            operator_id = operator_id if operator_id != None else defvalue[5]
-            sql = "UPDATE Video SET name = %s, creator_id = %s, editor_id = %s, manager_id = %s, operator_id = %s WHERE ID = %s"
-            val = (video_name, creator_id, editor_id, manager_id, operator_id, video_id)
-            self.cursor.execute(sql, val)
-            self.dbconnect.commit()
-            log_data = {
-                "action": "update_video",
-                "author_id": author['user_id'],
-                "data": {
-                    "video_id": video_id,
-                    "video_name": video_name,
-                    "creator_id": creator_id,
-                    "editor_id": editor_id,
-                    "manager_id": manager_id,
-                }
+        # stores values from DB as default
+        defvalue = self.get_video(video_id)
+        # if value is None, set to default value
+        video_name = video_name if video_name != None else defvalue[1]
+        creator_id = creator_id if creator_id != None else defvalue[2]
+        editor_id = editor_id if editor_id != None else defvalue[3]
+        manager_id = manager_id if manager_id != None else defvalue[4]
+        operator_id = operator_id if operator_id != None else defvalue[5]
+        # executes SQL command
+        sql = "UPDATE Video SET name = %s, creator_id = %s, editor_id = %s, manager_id = %s, operator_id = %s WHERE ID = %s"
+        val = (video_name, creator_id, editor_id, manager_id, operator_id, video_id)
+        self.cursor.execute(sql, val)
+        self.dbconnect.commit()
+        # Logging
+        log_data = {
+            "action": "update_video",
+            "author_id": author['user_id'],
+            "data": {
+                "video_id": video_id,
+                "video_name": video_name,
+                "creator_id": creator_id,
+                "editor_id": editor_id,
+                "manager_id": manager_id,
             }
-            self.log_action(3, log_data)
+        }
+        self.log_action(3, log_data)
 
     # function to set the status of a video
     def set_video_status(self, video_id, status, author, message = None):
+        # checks if message is set
         if message != None:
             set_message = True
+        # checks differen usertypes to check if action is permitted
+        # creator
         if author['user_type'] == 4:
             if status == 1:
+                # executes SQL command
                 sql = "UPDATE Video SET status = 1 WHERE ID = %s"
                 val = (video_id,)
                 self.cursor.execute(sql, val)
                 self.dbconnect.commit()
+                # storing log data in var
                 log_data = {
                     "action": "set_video_status",
                     "author_id": author['user_id'],
@@ -192,12 +213,19 @@ class VidSchool:
                         "status": status
                     }
                 }
+            else:
+                return {
+                    "error": "You do not have permission to set that status"
+                }
+        # editor
         elif author['user_type'] == 3:
             if status == 2 or status == 3:
+                # executes SQL command
                 sql = "UPDATE Video SET status = %s WHERE ID = %s"
                 val = (status, video_id)
                 self.cursor.execute(sql, val)
                 self.dbconnect.commit()
+                # storing log data in var
                 log_data = {
                     "action": "set_video_status",
                     "author_id": author['user_id'],
@@ -206,12 +234,18 @@ class VidSchool:
                         "status": status
                     }
                 }
+            else:
+                return {
+                    "error": "You do not have permission to set that status"
+                }
+        # operations
         elif author['user_type'] == 2:
             if status == 2 or status == 4:
                 sql = "UPDATE Video SET status = %s WHERE ID = %s"
                 val = (status, video_id)
                 self.cursor.execute(sql, val)
                 self.dbconnect.commit()
+                # storing log data in var
                 log_data = {
                     "action": "set_video_status",
                     "author_id": author['user_id'],
@@ -220,11 +254,18 @@ class VidSchool:
                         "status": status
                     }
                 }
+            else:
+                return {
+                    "error": "You do not have permission to set that status"
+                }
+        # manager and admin
         elif author['user_type'] == 1 or author['user_type'] == 0:
+            # executes SQL command
             sql = "UPDATE Video SET status = %s WHERE ID = %s"
             val = (status, video_id)
             self.cursor.execute(sql, val)
             self.dbconnect.commit()
+            # storing log data in var
             log_data = {
                 "action": "set_video_status",
                 "author_id": author['user_id'],
@@ -234,20 +275,25 @@ class VidSchool:
                 }
             }
         else:
+            # return if invalid author
             return {
                 "error": "INVALID AUTHOR"
             }
+        # if message is set, add message to log data
         if set_message:
             log_data['data']['message'] = message
         self.log_action(3, log_data)
         
     # function to delete a video from the database
     def set_delete_video(self, video_id, author):
-        if author['user_type'] >2:
+        # checks that user is higher than operator
+        if author['user_type'] <2:
+            # executes SQL command
             sql = "UPDATE Video SET status = 7 WHERE ID = %s"
             val = (video_id,)
             self.cursor.execute(sql, val)
             self.dbconnect.commit()
+            # Logging
             log_data = {
                 "action": "delete_video",
                 "author_id": author['user_id'],
@@ -259,6 +305,7 @@ class VidSchool:
 
     # function to get all videos from the database
     def get_videos(self):
+        # executes SQL command
         sql = "SELECT * FROM Video"
         self.cursor.execute(sql)
         result = self.cursor.fetchall()
@@ -268,24 +315,28 @@ class VidSchool:
     def get_videos(self, author):
         # creator
         if author['user_type'] == 4:
+            # executes SQL command
             sql = "SELECT * FROM Video WHERE status = 0 OR status = 3"
             self.cursor.execute(sql)
             result = self.cursor.fetchall()
             return result
         # editor
         elif author['user_type'] == 3:
+            # executes SQL command
             sql = "SELECT * FROM Video WHERE status = 1 OR status = 4"
             self.cursor.execute(sql)
             result = self.cursor.fetchall()
             return result
         # operations
         elif author['user_type'] == 2:
+            # executes SQL command
             sql = "SELECT * FROM Video WHERE status = 3"
             self.cursor.execute(sql)
             result = self.cursor.fetchall()
             return result
         # manager and admin
         elif author['user_type'] == 1 or author['user_type'] == 0:
+            # executes SQL command
             sql = "SELECT * FROM Video"
             self.cursor.execute(sql)
             result = self.cursor.fetchall()
@@ -297,6 +348,7 @@ class VidSchool:
 
     # function to get a specific video from the database
     def get_video(self, video_id):
+        # executes SQL command
         sql = "SELECT * FROM Video WHERE ID = %s"
         val = (video_id,)
         self.cursor.execute(sql, val)
@@ -307,16 +359,20 @@ class VidSchool:
     ### CHANNEL FUNCTIONS
     # # TO BE REPLACED FOR GOOGLE INTEGRATION
     def add_channel(self, channel_name, url, platform, author):
+        # checks if user is admin
         if author['user_type'] == 0:
+            # executes SQL command
             sql = "INSERT INTO Channel (name, url ,platform, status) VALUES (%s, %s, %s, 1)"
             val = (channel_name, url, platform)
             self.cursor.execute(sql, val)
             self.dbconnect.commit()
+            # gets channel ID after adding
             sql = "SELECT ID FROM Channel WHERE name = %s AND url = %s AND platform = %s"
             val = (channel_name, url, platform)
             self.cursor.execute(sql, val)
             channel = self.cursor.fetchone()
             channel_id = channel[0]
+            # Logging
             log_data = {
                 "action": "add_channel",
                 "author_id": author['user_id'],
@@ -330,11 +386,14 @@ class VidSchool:
 
     # function to delete a channel from the database
     def delete_channel(self, channel_id, author):
+        # checks if user is admin
         if author['user_type'] == 0:
+            # executes SQL command
             sql = "UPDATE Channel SET status = 3 WHERE ID = %s"
             val = (channel_id,)
             self.cursor.execute(sql, val)
             self.dbconnect.commit()
+            # logging
             log_data = {
                 "action": "delete_channel",
                 "author_id": author['user_id'],
@@ -344,15 +403,21 @@ class VidSchool:
             }
             self.log_action(2, log_data)
 
+    # function to edit a channel in the database
     def edit_channel(self, channel_id, channel_name, url, platform, author):
+        # checks if user is admin
         if author['user_type'] == 0:
+            # stores default values from DB
             defvalue = self.get_channel(channel_id)
+            # sets values to default if None
             channel_name = channel_name if channel_name != None else defvalue[1]
             platform = platform if platform != None else defvalue[2]
+            # executes SQL command
             sql = "UPDATE Channel SET name = %s, url=%s, platform = %s WHERE ID = %s"
             val = (channel_name, url, platform, channel_id)
             self.cursor.execute(sql, val)
             self.dbconnect.commit()
+            # logging
             log_data = {
                 "action": "edit_channel",
                 "author_id": author['user_id'],
@@ -366,11 +431,14 @@ class VidSchool:
 
     # function to update the status of a channel
     def update_channel_status(self, channel_id, status, author):
+        # checks if user is admin
         if author['user_type'] == 0:
+            # executes SQL command
             sql = "UPDATE Channel SET status = %s WHERE ID = %s"
             val = (status, channel_id)
             self.cursor.execute(sql, val)
             self.dbconnect.commit()
+            # logging
             log_data = {
                 "action": "update_channel_status",
                 "author_id": author['user_id'],
@@ -380,14 +448,17 @@ class VidSchool:
                 }
             }
             self.log_action(2, log_data)
-    
+    # gets all channels from the database
     def get_channels(self):
+        # executes SQL command
         sql = "SELECT * FROM Channel;"
         self.cursor.execute(sql)
         result = self.cursor.fetchall()
         return result
-        
+    
+    # gets a specific channel from the database
     def get_channel(self, channel_id):
+        # executes SQL command
         sql = "SELECT * FROM Channel WHERE ID = %s"
         val = (channel_id,)
         self.cursor.execute(sql, val)
@@ -396,17 +467,27 @@ class VidSchool:
 
     # function to add a user to a channel with a specific role
     def assign_user_to_channel(self, user_id, channel_id, user_type, author):
+        # creator
         if user_type == '4':
+            # sets SQL command
             sql = "UPDATE Channel SET creator_id = %s WHERE ID = %s"
+        # editor
         elif user_type == '3':
+            # sets SQL command
             sql = "UPDATE Channel SET editor_id = %s WHERE ID = %s"
+        # operations
         elif user_type == '2':
+            # sets SQL command
             sql = "UPDATE Channel SET operator_id = %s WHERE ID = %s"
+        # manager
         elif user_type == '1':
+            # sets SQL command
             sql = "UPDATE Channel SET manager_id = %s WHERE ID = %s"
+        # executes SQL command
         val = (user_id, channel_id)
         self.cursor.execute(sql, val)
         self.dbconnect.commit()
+        # Logging
         log_data = {
             "action": "assign_user_to_channel",
             "author_id": author['user_id'],
@@ -512,10 +593,12 @@ class VidSchool:
 
     # function to login a user and return user details if successfull
     def login_user(self, user_email, password):
+        # executes SQL command
         sql = "SELECT * FROM User WHERE email = %s"
         val = (user_email,)
         self.cursor.execute(sql, val)
         result = self.cursor.fetchone()
+        # User not found
         if result == None:
             return {
                 "success": False,
@@ -527,9 +610,11 @@ class VidSchool:
                 "success": False,
                 "error": "User is disabled or deleted please contact the Administrator"
             }
-        # User found and password matches
+        # User found
         elif result[4] == 0: 
+            # checks if password is correct
             if bcrypt.checkpw(password.encode('utf-8'), result[2].encode('utf-8')):
+                # Logging
                 log_data = {
                     "action": "login",
                     "data": {
@@ -539,12 +624,14 @@ class VidSchool:
                     }
                 }
                 self.log_action(0, log_data)
+                # returns infor for session storage
                 return {
                     "success": True,
                     "user_id": result[0],
                     "user_type": result[3],
                     "user_email": result[1]
                 }
+        # if all else fails
         else:
             return {
                 "success": False,
@@ -553,15 +640,17 @@ class VidSchool:
         
     # log every action
     def log_action(self, log_type, log_data, log_time = int( time.time() )):
+        # converts log_data to JSON
         log_data = json.dumps(log_data)
-        # print(log_data)
-        # print(type(log_data))
+        # executes SQL command
         sql = "INSERT INTO LogTable (log_type, log_date,log_data) VALUES (%s, %s, %s)"
         val = (log_type, log_time, log_data)
         self.cursor.execute(sql, val)
         self.dbconnect.commit()
 
+    # get all logs
     def get_logs(self):
+        # executes SQL command
         sql = "SELECT * FROM LogTable"
         self.cursor.execute(sql)
         result = self.cursor.fetchall()

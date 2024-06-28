@@ -132,7 +132,7 @@ class VidSchool:
     # function to add a video to the database
     def add_video(self, video_name, creator_id, editor_id, manager_id, author):
         if author['user_type'] < 3:
-            sql = "INSERT INTO Video (name, creator_id, editor_id, manager_id, status) VALUES (%s, %s, %s, %s, 0)"
+            sql = "INSERT INTO Video (name, channel_id, creator_id, editor_id, manager_id, status) VALUES (%s, %s, %s, %s, 0)"
             val = (video_name, creator_id, editor_id, manager_id)
             self.cursor.execute(sql, val)
             self.dbconnect.commit()
@@ -404,6 +404,7 @@ class VidSchool:
         val = (user_email,)
         self.cursor.execute(sql, val)
         result = self.cursor.fetchone()
+        print(result)
         # No user found
         if result == None:
             return {
@@ -411,27 +412,33 @@ class VidSchool:
                 "error": "User does not exist"
             }
         # User deleted
-        elif result[4] == '0':
+        elif result[4] == 1:
             return {
                 "success": False,
                 "error": "User is disabled or deleted please contact the Administrator"
             }
         # User found and password matches
-        elif bcrypt.checkpw(password.encode('utf-8'), result[2].encode('utf-8')):
-            log_data = {
-                "action": "login",
-                "data": {
-                    "user_id": result[0],
-                    "user_email": user_email,
-                    "login_time": int( time.time() )
+        elif result[0] == 0: 
+            if bcrypt.checkpw(password.encode('utf-8'), result[2].encode('utf-8')):
+                log_data = {
+                    "action": "login",
+                    "data": {
+                        "user_id": result[0],
+                        "user_email": user_email,
+                        "login_time": int( time.time() )
+                    }
                 }
-            }
-            self.log_action(0, log_data)
+                self.log_action(0, log_data)
+                return {
+                    "success": True,
+                    "user_id": result[0],
+                    "user_type": result[3],
+                    "user_email": result[1]
+                }
+        else:
             return {
-                "success": True,
-                "user_id": result[0],
-                "user_type": result[3],
-                "user_email": result[1]
+                "success": False,
+                "error": "invalid database?"
             }
         
     # log every action

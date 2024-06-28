@@ -180,13 +180,14 @@ def add_video():
             "user_type": session.get("user_type"),                                      # Get user type from session
         }
 
-        try:                                                                                        # Try to add video with video_name, creator_id, editor_id, manager_id
-            vidschool.add_video(video_name, channel_id, creator_id, editor_id, manager_id, operator_id, author)   # Add video with video_name, creator_id, editor_id, manager_id
-            msg = 'Video added successfully!'                                                       # Set message
-        except Exception as e:                                                                      # Catch any exceptions and show error message
+        try:                                                                                                      # Try to add video with video_name, creator_id, editor_id, manager_id
+            vidschool.add_video(channel_id, video_name, creator_id, editor_id, manager_id, operator_id, author)   # Add video with video_name, creator_id, editor_id, manager_id
+            msg = 'Video added successfully!'                                                                     # Set message
+        except Exception as e:                                                                                    # Catch any exceptions and show error message
             msg = f'Error: {str(e)}'
     
-    return render_template('add_video.html', msg=msg)                                                # Render add_video.html template with current message
+    return render_template('add_video.html', msg=msg)                                                             # Render add_video.html template with current message
+
 
 # Main entry point of the application
 if __name__ == '__main__':

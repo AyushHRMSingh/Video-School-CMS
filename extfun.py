@@ -24,7 +24,7 @@ class VidSchool:
             # create channel table if it doesn't exists
             "CREATE TABLE IF NOT EXISTS Channel (ID INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255) UNIQUE NOT NULL, platform TINYINT NOT NULL DEFAULT 0, creator_id INT, editor_id INT, manager_id INT, operator_id INT, status TINYINT NOT NULL DEFAULT 0, tokens JSON NOT NULL DEFAULT ('{}'))",
             # create video table if it doesn't exists
-            "CREATE TABLE IF NOT EXISTS Video (ID INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255) UNIQUE NOT NULL, url VARCHAR(255) UNIQUE, creator_id INT, editor_id INT, manager_id INT, upload_date INT, status TINYINT NOT NULL DEFAULT 0)",
+            "CREATE TABLE IF NOT EXISTS Video (ID INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255) UNIQUE NOT NULL, channel_id INT NOT NULL, url VARCHAR(255) UNIQUE, creator_id INT, editor_id INT, manager_id INT, upload_date INT, status TINYINT NOT NULL DEFAULT 0)",
             # create log_table table if it doesn't exists
             "CREATE TABLE IF NOT EXISTS LogTable (ID INT AUTO_INCREMENT PRIMARY KEY, log_type TINYINT NOT NULL DEFAULT 0, log_date INT NOT NULL, log_data JSON NOT NULL DEFAULT ('{}'))",
 
@@ -443,6 +443,12 @@ class VidSchool:
         val = (log_type, log_time, log_data)
         self.cursor.execute(sql, val)
         self.dbconnect.commit()
+
+    def get_logs(self):
+        sql = "SELECT * FROM LogTable"
+        self.cursor.execute(sql)
+        result = self.cursor.fetchall()
+        return result
 
     ## TEST FUNCTIONS FOR DEBUGGING
     # Clear the database, ONLY FOR TESTING AND DEBUGGING PURPOSES

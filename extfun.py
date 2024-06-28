@@ -170,7 +170,6 @@ class VidSchool:
                     "creator_id": creator_id,
                     "editor_id": editor_id,
                     "manager_id": manager_id,
-                    "operator_id": operator_id
                 }
             }
             self.log_action(3, log_data)

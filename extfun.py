@@ -129,10 +129,10 @@ class VidSchool:
 
     ### VIDEO FUNCTIONS
     # function to add a video to the database
-    def add_video(self, video_name, creator_id, editor_id, manager_id, operator_id, author):
+    def add_video(self, channel_id, video_name, creator_id, editor_id, manager_id, operator_id, author):
         if author['user_type'] < 3:
             sql = "INSERT INTO Video (name, channel_id, creator_id, editor_id, manager_id, operator_id INT, status) VALUES (%s, %s, %s, %s, 0)"
-            val = (video_name, creator_id, editor_id, manager_id, operator_id)
+            val = (video_name, channel_id, creator_id, editor_id, manager_id, operator_id)
             self.cursor.execute(sql, val)
             self.dbconnect.commit()
             log_data = {
@@ -143,6 +143,7 @@ class VidSchool:
                     "creator_id": creator_id,
                     "editor_id": editor_id,
                     "manager_id": manager_id,
+                    "operator_id": operator_id
                 }
             }
             self.log_action(3, log_data)
@@ -169,6 +170,7 @@ class VidSchool:
                     "creator_id": creator_id,
                     "editor_id": editor_id,
                     "manager_id": manager_id,
+                    "operator_id": operator_id
                 }
             }
             self.log_action(3, log_data)

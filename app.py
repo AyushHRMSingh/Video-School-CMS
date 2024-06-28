@@ -1,5 +1,5 @@
 # Import necessary modules
-from newextfun import VidSchool
+from extfun import VidSchool
 from flask import Flask, render_template, request, redirect, url_for, session
 import envfile
 

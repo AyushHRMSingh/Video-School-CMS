@@ -193,7 +193,7 @@ class VidSchool:
                         "status": status
                     }
                 }
-        elif author['user_tyoe'] == 3:
+        elif author['user_type'] == 3:
             if status == 2 or status == 3:
                 sql = "UPDATE Video SET status = %s WHERE ID = %s"
                 val = (status, video_id)

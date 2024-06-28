@@ -13,6 +13,7 @@ def hash_password(password):
     return hashed.decode('utf-8')
 
 sqlcommands = [
+    "DROP DATABASE IF EXISTS {}".format(dbname),
     # create database if not exists
     "CREATE DATABASE {}".format(dbname),
     # user the database
@@ -29,7 +30,7 @@ sqlcommands = [
     "CREATE TABLE LogTable (ID INT AUTO_INCREMENT PRIMARY KEY, log_type TINYINT NOT NULL DEFAULT 0, log_date INT NOT NULL, log_data JSON NOT NULL DEFAULT ('{}'))",
 ]
 
-def main():
+def mainB():
     dbconnect = mysql.connector.connect(
         host=host,
         user=username,
@@ -39,5 +40,3 @@ def main():
     for command in sqlcommands:
         print("Executing command: ", command)
         cursor.execute(command)
-
-main()

@@ -22,7 +22,7 @@ sqlcommands = [
     # add default admin user
     f"INSERT INTO User (email, password, role, status) VALUES ('root@root.com', '{hash_password('root')}', 0, 0)",
     # create channel table if it doesn't exists
-    "CREATE TABLE Channel (ID INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255) UNIQUE NOT NULL, platform TINYINT NOT NULL DEFAULT 0, creator_id INT, editor_id INT, manager_id INT, operator_id INT, status TINYINT NOT NULL DEFAULT 0, tokens JSON NOT NULL DEFAULT ('{}'))",
+    "CREATE TABLE Channel (ID INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255) UNIQUE NOT NULL, url VARCHAR(255),platform TINYINT NOT NULL DEFAULT 0, creator_id INT, editor_id INT, manager_id INT, operator_id INT, status TINYINT NOT NULL DEFAULT 0, tokens JSON NOT NULL DEFAULT ('{}'))",
     # create video table if it doesn't exists
     "CREATE TABLE Video (ID INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255) UNIQUE NOT NULL, channel_id INT NOT NULL, url VARCHAR(255) UNIQUE, creator_id INT, editor_id INT, manager_id INT, operator_id INT, upload_date INT, status TINYINT NOT NULL DEFAULT 0)",
     # create log_table table if it doesn't exists

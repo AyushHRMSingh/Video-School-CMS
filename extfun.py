@@ -71,7 +71,7 @@ class VidSchool:
             }
             self.log_action(1, log_data)
 
-    def delete_user(self, user_id, author):
+    def delete_user( self, user_id, author):
         if author['user_type'] == 0:
             sql = "UPDATE User SET status = 1 WHERE ID = %s"
             val = (user_id,)
@@ -131,7 +131,7 @@ class VidSchool:
     # function to add a video to the database
     def add_video(self, channel_id, video_name, creator_id, editor_id, manager_id, operator_id, author):
         if author['user_type'] < 3:
-            sql = "INSERT INTO Video (name, channel_id, creator_id, editor_id, manager_id, operator_id INT, status) VALUES (%s, %s, %s, %s, 0)"
+            sql = "INSERT INTO Video (name, channel_id, creator_id, editor_id, manager_id, operator_id, status) VALUES (%s, %s, %s, %s, %s, %s, 0)"
             val = (video_name, channel_id, creator_id, editor_id, manager_id, operator_id)
             self.cursor.execute(sql, val)
             self.dbconnect.commit()
@@ -307,12 +307,17 @@ class VidSchool:
 
     ### CHANNEL FUNCTIONS
     # # TO BE REPLACED FOR GOOGLE INTEGRATION
-    def add_channel(self,channel_id, channel_name, platform, author):
+    def add_channel(self, channel_name, url, platform, author):
         if author['user_type'] == 0:
-            sql = "INSERT INTO Channel (ID, name, platform, status) VALUES (%s, %s, %s, 1)"
-            val = (channel_id, channel_name, platform)
+            sql = "INSERT INTO Channel (name, url ,platform, status) VALUES (%s, %s, %s, 1)"
+            val = (channel_name, url, platform)
             self.cursor.execute(sql, val)
             self.dbconnect.commit()
+            sql = "SELECT ID FROM Channel WHERE name = %s AND url = %s AND platform = %s"
+            val = (channel_name, url, platform)
+            self.cursor.execute(sql, val)
+            channel = self.cursor.fetchone()
+            channel_id = channel[0]
             log_data = {
                 "action": "add_channel",
                 "author_id": author['user_id'],
@@ -340,13 +345,13 @@ class VidSchool:
             }
             self.log_action(2, log_data)
 
-    def edit_channel(self, channel_id, channel_name, platform, author):
+    def edit_channel(self, channel_id, channel_name, url, platform, author):
         if author['user_type'] == 0:
             defvalue = self.get_channel(channel_id)
             channel_name = channel_name if channel_name != None else defvalue[1]
             platform = platform if platform != None else defvalue[2]
-            sql = "UPDATE Channel SET name = %s, platform = %s WHERE ID = %s"
-            val = (channel_name, platform, channel_id)
+            sql = "UPDATE Channel SET name = %s, url=%s, platform = %s WHERE ID = %s"
+            val = (channel_name, url, platform, channel_id)
             self.cursor.execute(sql, val)
             self.dbconnect.commit()
             log_data = {

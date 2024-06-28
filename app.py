@@ -40,8 +40,8 @@ def login():
             msg = 'Logged in successfully !'                      # Set message
             return render_template('index.html', msg=msg)         # Redirect to home page
         else:
-            msg = "Incorrect username / password !"               # Set message if credentials are invalid
-        
+            msg = "Login Failed!! Contact Administrator"          # Set message if credentials are invalid
+            return render_template('login.html', msg=msg)
     # Render login.html template with current message (empty message)    
     return render_template('login.html', msg=msg)                 
 
@@ -150,6 +150,7 @@ def delete_user(user_id):
     
     return redirect(url_for('view_users'))                                           # Redirect to view_users page after deleting user
 
+# Route for '/viewvideos' to view all videos
 @app.route('/view_logs')
 def view_logs():
     if 'loggedin' not in session or session.get('user_type') != 0:                    # Check if user is logged in and is an admin
@@ -159,6 +160,31 @@ def view_logs():
     
     return render_template('view_logs.html', logs=logs)                               # Render view_logs.html template with logs
 
+# Route for '/addvideo', handles both GET and POST requests
+@app.route('/add_video', methods=['GET', 'POST'])
+def add_video():
+    if 'loggedin' not in session or session.get('user_type') not in [0, 1]:            # Check if user is logged in and is an admin or manager
+        return redirect(url_for('login'))                                              # Redirect to login page if user is not logged in or is not an admin or manager
+    
+    msg = ''
+    if request.method == 'POST':                                                        # Check if POST request with 'video_name', 'creator_id', 'editor_id' and 'manager_id' in form data
+        video_name = request.form['video_name']                                         # Get video name from form data
+        creator_id = request.form['creator_id']                                         # Get creator id from form data
+        editor_id = request.form['editor_id']                                           # Get editor id from form data
+        manager_id = request.form['manager_id']                                         # Get manager id from form data
+        author = {                                                                      # Author dictionary with user_id, user_email and user_type
+            "user_id": session.get("user_id"),                                          # Get user id from session
+            "user_email": session.get("user_email"),                                    # Get user email from session
+            "user_type": session.get("user_type"),                                      # Get user type from session
+        }
+
+        try:                                                                            # Try to add video with video_name, creator_id, editor_id, manager_id
+            vidschool.add_video(video_name, creator_id, editor_id, manager_id,author)   # Add video with video_name, creator_id, editor_id, manager_id
+            msg = 'Video added successfully!'                                           # Set message
+        except Exception as e:                                                          # Catch any exceptions and show error message
+            msg = f'Error: {str(e)}'
+    
+    return render_template('add_video.html', msg=msg)                                   # Render add_video.html template with current message
 
 # Main entry point of the application
 if __name__ == '__main__':

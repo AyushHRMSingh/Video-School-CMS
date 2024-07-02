@@ -27,5 +27,10 @@
             <a href="{{ url_for('index') }}" class="btn">Back to Index</a>
         </div>
     </div>
+    {% if msg %}
+        <script>
+            alert("{{ msg }}");
+        </script>
+    {% endif %}
 </body>
 </html>

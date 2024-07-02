@@ -28,6 +28,10 @@
 
         <input type="submit" value="Update">
     </form>
-
+    {% if msg %}
+    <script>
+        alert("{{ msg }}");
+    </script>
+{% endif %}
 </body>
 </html>

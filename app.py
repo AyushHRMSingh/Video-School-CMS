@@ -3,10 +3,10 @@ from extfun import VidSchool
 from flask import Flask, render_template, request, redirect, url_for, session
 import envfile
 
-host = envfile.host
-username = envfile.dbuser
-password = envfile.dbpass
-dbname = envfile.dbname
+host = envfile.host                                    # Get host from envfile
+username = envfile.dbuser                              # Get username from envfile
+password = envfile.dbpass                              # Get password from envfile
+dbname = envfile.dbname                                # Get dbname from envfile
 
 # Initialize Flask application
 app = Flask(__name__)
@@ -35,8 +35,8 @@ def login():
         # If credentials are valid
         if valid and valid.get('success'):
             session['loggedin'] = True                            # Set 'loggedin' session variable to True
-            session['username'] = user_email
-            session['user_type'] = valid['user_type']             # Set 'username' session variable to user email
+            session['username'] = user_email                      # Set 'username' session variable to user email
+            session['user_type'] = valid['user_type']             # Set 'user_type' session variable to user type
             msg = 'Logged in successfully !'                      # Set message
             return render_template('index.html', msg=msg)         # Redirect to home page
         else:
@@ -47,7 +47,7 @@ def login():
 
 @app.route('/index')
 def index():
-    if 'loggedin' in session:
+    if 'loggedin' in session:                            # Check if user is logged in
         return render_template('index.html')             # Render index.html template if user is logged in
     else:
         return redirect(url_for('login'))                # Redirect to login page if user is not logged in
@@ -71,10 +71,10 @@ def add_user():
 
     # Check if POST request with 'user_email', 'password' and 'user_type' in form data
     if request.method == 'POST' and 'user_email' in request.form and 'password' in request.form and 'user_type' in request.form:
-        user_email = request.form['user_email']                       # Get user email from form data
-        password = request.form['password']                           # Get password from form data
-        user_type = request.form['user_type']                         # Get user type from form data
-        author = {
+        user_email = request.form['user_email']                        # Get user email from form data
+        password = request.form['password']                            # Get password from form data
+        user_type = request.form['user_type']                          # Get user type from form data
+        author = {                                                     # Author dictionary with user_id, user_email and user_type
             "user_id": session.get("user_id"),                         # Get user id from session
             "user_email": session.get("user_email"),                   # Get user email from session
             "user_type": session.get("user_type"),                     # Get user type from session
@@ -83,7 +83,7 @@ def add_user():
         # Call external function to add user
         try:
             vidschool.add_user(user_email, password, user_type, author)     # Add user with user_email, password and user_type
-            msg = 'User added successfully!'
+            msg = 'User added successfully!'                                # Set message
 
         except Exception as e:                                           # Catch any exceptions and show error message
             msg = f'Error: {str(e)}'                                     # Show error message
@@ -110,7 +110,7 @@ def edit_user(user_id):
     if 'loggedin' not in session or session.get('user_type') != 0:      # Check if user is logged in and is an admin
         return redirect(url_for('login'))                               # Redirect to login page if user is not logged in or is not an admin
     
-    author = {
+    author = {                                                          # Author dictionary with user_id, user_email and user_type
         "user_id": session.get("user_id"),                              # Get user id from session
         "user_email": session.get("user_email"),                        # Get user email from session
         "user_type": session.get("user_type"),                          # Get user type from session
@@ -146,7 +146,7 @@ def delete_user(user_id):
         vidschool.delete_user(user_id, author)                                       # Delete user with user_id
         msg = 'User deleted successfully!'
     except Exception as e:                                                           # Catch any exceptions and show error message
-        msg = f'Error: {str(e)}'
+        msg = f'Error: {str(e)}'                                                     # Show error message
     
     return redirect(url_for('view_users'))                                           # Redirect to view_users page after deleting user
 
@@ -169,7 +169,7 @@ def add_video():
     msg = ''
     if request.method == 'POST':                                                        # Check if POST request with 'video_name', 'creator_id', 'editor_id' and 'manager_id' in form data
         video_name = request.form['video_name']                                         # Get video name from form data
-        channel_id = request.form['channel_id']
+        channel_id = request.form['channel_id']                                         # Get channel id from form data
         creator_id = request.form['creator_id']                                         # Get creator id from form data
         editor_id = request.form['editor_id']                                           # Get editor id from form data
         manager_id = request.form['manager_id']                                         # Get manager id from form data
@@ -184,7 +184,7 @@ def add_video():
             vidschool.add_video(channel_id, video_name, creator_id, editor_id, manager_id, operator_id, author)   # Add video with video_name, creator_id, editor_id, manager_id
             msg = 'Video added successfully!'                                                                     # Set message
         except Exception as e:                                                                                    # Catch any exceptions and show error message
-            msg = f'Error: {str(e)}'
+            msg = f'Error: {str(e)}'                                                                              # Show error message
     
     return render_template('add_video.html', msg=msg)                                                             # Render add_video.html template with current message
 

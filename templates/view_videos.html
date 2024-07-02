@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Videos</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='view_videos_style.css') }}">
+</head>
+<body>
+    <div class="view-videos-container">
+        <div class="border">
+            <div class="header">
+                <h1 class="word">View Videos</h1>
+            </div>
+            {% if msg %}
+                <p>{{ msg }}</p>
+            {% endif %}
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Video Name</th>
+                <th>Channel ID</th>
+                <th>URL</th>
+                <th>Creator ID</th>
+                <th>Editor ID</th>
+                <th>Manager ID</th>
+                <th>Operator ID</th>
+                <th>Upload Date</th>
+                <th>Status</th>
+                <th>Edit</th>
+                <th>Delete</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for video in videos %}
+            <tr>
+                <td>{{ video[0] }}</td>
+                <td>{{ video[1] }}</td>
+                <td>{{ video[2] }}</td>
+                <td>{{ video[3] }}</td>
+                <td>{{ video[4] }}</td>
+                <td>{{ video[5] }}</td>
+                <td>{{ video[6] }}</td>
+                <td>{{ video[7] }}</td>
+                <td>{{ video[8] }}</td>
+                <td>
+                    <form action="{{ url_for('update_video_status', video_id=video[0]) }}" method="post">
+                        <select name="status" onchange="this.form.submit()">
+                            <option value="0" {% if video[9] == 0 %}selected{% endif %}>To be created</option>
+                            <option value="1" {% if video[9] == 1 %}selected{% endif %}>Shot</option>
+                            <option value="2" {% if video[9] == 2 %}selected{% endif %}>Edited</option>
+                            <option value="3" {% if video[9] == 3 %}selected{% endif %}>To be Reshot</option>
+                            <option value="4" {% if video[9] == 4 %}selected{% endif %}>To be Re-edited</option>
+                            <option value="6" {% if video[9] == 6 %}selected{% endif %}>Uploaded</option>
+                            <option value="7" {% if video[9] == 7 %}selected{% endif %}>Deleted</option>
+                        </select>
+                    </form>
+                </td>
+                <td>
+                    <a href="{{ url_for('edit_video', video_id=video[0]) }}" class="btn">Edit</a>
+                </td>
+                <td>
+                    <a href="{{ url_for('delete_video', video_id=video[0]) }}" class="btn">Delete</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <a href="{{ url_for('index') }}" class="btn">Back to Index</a>
+</div>
+</div>
+</body>
+</html>
+

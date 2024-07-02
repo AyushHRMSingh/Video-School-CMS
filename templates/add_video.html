@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Add Video</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='add_video_style.css') }}">
 </head>
 <body>
     <h1>Add Video</h1>
@@ -28,6 +28,7 @@
         <input type="text" id="operator_id" name="operator_id" required>
         <button type="submit">Add Video</button>
     </form>
+     <a href="{{ url_for('index') }}" class="btn">Back to Index</a>
     {% if msg %}
         <script>
             alert("{{ msg }}");

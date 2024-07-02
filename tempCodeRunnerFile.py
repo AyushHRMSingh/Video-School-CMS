@@ -1,0 +1,2 @@
+# create channel table if it doesn't exists
+    "CREATE TABLE Channel (ID INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255) UNIQUE NOT NULL, url VARCHAR(255),platform TINYINT NOT NULL DEFAULT 0, creator_id INT, editor_id INT, manager_id INT, operator_id INT, status TINYINT NOT NULL DEFAULT 0, tokens JSON NOT NULL DEFAULT ('{}'))",

@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Channel</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='edit_channel_style.css') }}">
+</head>
+<body>
+    <div class="edit-channel-container">
+        <div class="border">
+            <div class="header">
+                <h1 class="word">Edit Channel</h1>
+            </div>
+            <form method="POST">
+                <label for="channel_name">Channel Name:</label>
+                <input type="text" name="channel_name" value="{{ channel[1] }}" required>
+                <br>
+                <label for="url">URL:</label>
+                <input type="url" name="url" value="{{ channel[2] }}" required>
+                <br>
+                <label for="platform">Platform:</label>
+                <select name="platform" required>
+                    <option value="0" {% if channel[3] == 0 %}selected{% endif %}>0 - Youtube</option>
+                    <!-- Add more options as needed -->
+                </select>
+                <br>
+                <input type="submit" value="Update Channel">
+            </form>
+            <p>{{ msg }}</p>
+            <a href="{{ url_for('view_channels') }}" class="btn">Back to Channels</a>
+        </div>
+    </div>
+</body>
+</html>

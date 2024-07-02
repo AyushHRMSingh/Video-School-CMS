@@ -20,8 +20,14 @@
         <label for="password">Password:</label>
         <input type="password" id="password" name="password" ><br><br>
         
-        <label for="user_type">Role:</label>
-        <input type="text" id="user_type" name="user_type" value="{{ user[3] }}"><br><br>
+        <label for="user_type">User Type:</label>
+                <select name="user_type" required>
+                    <option value="0">0 - Admin</option>
+                    <option value="1">1 - Manager</option>
+                    <option value="2">2 - Ops</option>
+                    <option value="3">3 - Editor</option>
+                    <option value="4">4 - Creator</option>
+                </select><br><br>
 
         <label for="status">Status:</label>
         <input type="text" id="status" name="status" value="{{ user[4] }}" readonly><br><br>

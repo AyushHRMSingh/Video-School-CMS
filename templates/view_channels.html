@@ -36,11 +36,11 @@
                             <td>{{ channel[0] }}</td>
                             <td>{{ channel[1] }}</td>
                             <td>{{ channel[2] }}</td>
-                            <td>{{ channel[3] }}</td>
-                            <td>{{ channel[4] }}</td>
-                            <td>{{ channel[5] }}</td>
-                            <td>{{ channel[6] }}</td>
-                            <td>{{ channel[7] }}</td>
+                            <td>{{ platform_id[channel[3]] }}</td>
+                            <td>{{ creator_dict.get(channel[4], 'Unknown') }}</td>
+                            <td>{{ editor_dict.get(channel[5], 'Unknown') }}</td>
+                            <td>{{ manager_dict.get(channel[6], 'Unknown') }}</td>
+                            <td>{{ ops_dict.get(channel[7], 'Unknown') }}</td>
                             <td>
                                 <form method="POST" action="{{ url_for('update_channel_status', channel_id=channel[0]) }}">
                                     <select name="status" onchange="this.form.submit()">

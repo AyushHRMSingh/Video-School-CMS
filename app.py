@@ -3,6 +3,7 @@ from extfun import VidSchool
 from flask import Flask, render_template, request, redirect, url_for, session
 import envfile
 import userenum
+import platform_type
 
 host = envfile.host                                    # Get host from envfile
 username = envfile.dbuser                              # Get username from envfile
@@ -245,12 +246,21 @@ def view_channels():
 
     try:
         channels = vidschool.get_channels()                            # Get all channels
+        platform_id = platform_type.platform_names                      # Get all platform types from platform_type module
+        creators = vidschool.get_users_by_role(4)                    # Get all creators
+        creator_dict = {creator[0]: creator[1] for creator in creators}
+        editors = vidschool.get_users_by_role(3)                     # Get all editors
+        editor_dict = {editor[0]: editor[1] for editor in editors}
+        managers = vidschool.get_users_by_role(1)                    # Get all managers
+        manager_dict = {manager[0]: manager[1] for manager in managers}
+        opss = vidschool.get_users_by_role(2)                        # Get all opss
+        ops_dict = {ops[0]: ops[1] for ops in opss}
     except Exception as e:                                             # Catch any exceptions and show error message
         channels = []                                                  # Set channels to empty list
         msg = f'Error: {str(e)}'                                       # Show error message
         return render_template('view_channels.html', channels=channels, msg=msg)          # Render view_channels.html template with channels data and error message
     
-    return render_template('view_channels.html', channels=channels, msg='')  # Render view_channels.html template with channels data
+    return render_template('view_channels.html', channels=channels,platform_id=platform_id,creator_dict=creator_dict,editor_dict=editor_dict,manager_dict=manager_dict,ops_dict=ops_dict, msg='')  # Render view_channels.html template with channels data
 
 # Route for '/editchannel' to edit a channel with channel_id
 @app.route('/edit_channel/<int:channel_id>', methods=['GET', 'POST'])
@@ -263,7 +273,7 @@ def edit_channel(channel_id):
     channel = vidschool.get_channel(channel_id)
 
     if request.method == 'POST':                                               # Check if POST request with 'channel_name', 'url' and 'platform' in form data
-        channel_name = request.form.get('channel_name')                        # Get channel name from form data
+        channel_name = request.form.get('channel_name')                        # Get channel name from form data    
         url = request.form.get('url')                                          # Get URL from form data 
         platform = request.form.get('platform')                                # Get platform from form data
         creator_id = request.form['creator_id']                             # Get creator from form data
@@ -277,7 +287,7 @@ def edit_channel(channel_id):
         }
 
         try:                                                                           # Try to edit channel with channel_id, channel_name, URL, and platform
-            vidschool.edit_channel(channel_id, channel_name, url, platform,creator_id, editor_id, manager_id, ops_id, author)   
+            vidschool.edit_channel(channel_id, channel_name, url, platform, creator_id, editor_id, manager_id, ops_id, author)   
             msg = 'Channel updated successfully!'                                      # Set success message
             return redirect(url_for('view_channels'))                                  # Redirect to view_channels page after editing channel
         except Exception as e:                                                         # Catch any exceptions and show error message

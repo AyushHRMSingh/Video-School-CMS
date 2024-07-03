@@ -2,6 +2,7 @@
 from extfun import VidSchool
 from flask import Flask, render_template, request, redirect, url_for, session
 import envfile
+import userenum
 
 host = envfile.host                                    # Get host from envfile
 username = envfile.dbuser                              # Get username from envfile
@@ -70,7 +71,8 @@ def add_user():
     msg = ''
 
     # Check if POST request with 'user_email', 'password' and 'user_type' in form data
-    if request.method == 'POST' and 'user_email' in request.form and 'password' in request.form and 'user_type' in request.form:
+    if request.method == 'POST' and 'user_email' in request.form and 'password' in request.form and 'user_type' in request.form:         
+        user_name = request.form['user_name']                          # Get user name from form data
         user_email = request.form['user_email']                        # Get user email from form data
         password = request.form['password']                            # Get password from form data
         user_type = request.form['user_type']                          # Get user type from form data
@@ -82,7 +84,7 @@ def add_user():
 
         # Call external function to add user
         try:
-            vidschool.add_user(user_email, password, user_type, author)     # Add user with user_email, password and user_type
+            vidschool.add_user(user_name,user_email, password, user_type, author)     # Add user with user_email, password and user_type
             msg = 'User added successfully!'                                # Set message
 
         except Exception as e:                                           # Catch any exceptions and show error message
@@ -102,7 +104,9 @@ def view_users():
     }
 
     users = vidschool.get_users(author)                                # Get all users from external function
-    return render_template('view_users.html', users=users)             # Render view_users.html template with users
+    roles = userenum.roletype                                           # Get all user roles from userenum module
+    status=userenum.userstatus
+    return render_template('view_users.html', users=users,roles=roles,status=status)             # Render view_users.html template with users
 
 # Route for '/edituser' to edit a user with user_id
 @app.route('/edit_user/<int:user_id>', methods=['GET', 'POST'])
@@ -117,12 +121,13 @@ def edit_user(user_id):
     }
 
     if request.method == 'POST':                                        # Check if POST request with 'user_email', 'password' and 'user_type' in form data
+        user_name = request.form['user_name']                          # Get user name from form data
         user_email = request.form['user_email']                         # Get user email from form data
         password = request.form['password']                             # Get password from form data
         user_type = request.form['user_type']                           # Get user type from form data
 
         try:
-            vidschool.edit_user(user_id, user_email, password, user_type, author)     # Edit user with user_id, user_email, password and user_type
+            vidschool.edit_user(user_name,user_id, user_email, password, user_type, author)     # Edit user with user_id, user_email, password and user_type
             return redirect(url_for('view_users'))                                    # Redirect to view_users page after editing user
         except Exception as e:                                                        # Catch any exceptions and show error message
             return f'Error: {str(e)}'                                                 # Show error message
@@ -173,7 +178,7 @@ def add_video():
         creator_id = request.form['creator_id']                                         # Get creator id from form data
         editor_id = request.form['editor_id']                                           # Get editor id from form data
         manager_id = request.form['manager_id']                                         # Get manager id from form data
-        operator_id = request.form['operator_id']                                       # Get operator id from form data
+        ops_id = request.form['ops_id']                                       # Get ops id from form data
         author = {                                                                      # Author dictionary with user_id, user_email and user_type
             "user_id": session.get("user_id"),                                          # Get user id from session
             "user_email": session.get("user_email"),                                    # Get user email from session
@@ -181,19 +186,19 @@ def add_video():
         }
 
         try:                                                                                                      # Try to add video with video_name, creator_id, editor_id, manager_id
-            vidschool.add_video(channel_id, video_name, creator_id, editor_id, manager_id, operator_id, author)   # Add video with video_name, creator_id, editor_id, manager_id
+            vidschool.add_video(channel_id, video_name, creator_id, editor_id, manager_id, ops_id, author)   # Add video with video_name, creator_id, editor_id, manager_id
             msg = 'Video added successfully!'                                                                     # Set message
         except Exception as e:                                                                                    # Catch any exceptions and show error message
             msg = f'Error: {str(e)}'                                                                              # Show error message
     
     # Fetch users for each role
-    creators = vidschool.get_user_by_role(4)                                                                     # Get all creators
-    editors = vidschool.get_user_by_role(3)                                                                      # Get all editors
-    managers = vidschool.get_user_by_role(1)                                                                     # Get all managers
-    operators = vidschool.get_user_by_role(2)                                                                    # Get all operators
-    channels = vidschool.get_channels()                                                                          # Get all channels
+    creators = vidschool.get_users_by_role(4)                                                                     # Get all creators
+    editors = vidschool.get_users_by_role(3)                                                                      # Get all editors
+    managers = vidschool.get_users_by_role(1)                                                                     # Get all managers
+    opss = vidschool.get_users_by_role(2)                                                                         # Get all opss
+    channels = vidschool.get_channels()                                                                           # Get all channels
 
-    return render_template('add_video.html', msg=msg, creators=creators, editors=editors, managers=managers, operators=operators, channels=channels)       # Render add_video.html template with current message
+    return render_template('add_video.html', msg=msg, creators=creators, editors=editors, managers=managers, opss=opss, channels=channels)       # Render add_video.html template with current message
 
 # Route for '/viewchannnel' to view all videos
 @app.route('/add_channel', methods=['GET', 'POST'])
@@ -206,6 +211,10 @@ def add_channel():
         channel_name = request.form['channel_name']                   # Get channel name from form data
         url = request.form['url']                                     # Get URL from form data
         platform = request.form['platform']                           # Get platform from form data
+        creator_id = request.form['creator_id']                             # Get creator from form data
+        editor_id = request.form['editor_id']                               # Get editor from form data
+        manager_id = request.form['manager_id']                             # Get manager from form data
+        ops_id = request.form['ops_id']                                     # Get ops from form data
         author = {                                                    # Author dictionary with user_id, user_email and user_type
             "user_id": session.get("user_id"),                        # Get user id from session
             "user_email": session.get("user_email"),                  # Get user email from session
@@ -213,13 +222,20 @@ def add_channel():
         }
 
         try:
-            vidschool.add_channel(channel_name, url, platform, author)  # Add channel with channel_name, URL, and platform
+            vidschool.add_channel(channel_name, url, platform, creator_id, editor_id, manager_id, ops_id, author)  
             msg = 'Channel added successfully!'                        # Set success message
 
         except Exception as e:                                          # Catch any exceptions and show error message
             msg = f'Error: {str(e)}'                                    # Show error message
 
-    return render_template('add_channel.html', msg=msg)                 # Render add_channel.html template with the current message
+    # Fetch users for each role
+    creators = vidschool.get_users_by_role(4)                                                                     # Get all creators
+    editors = vidschool.get_users_by_role(3)                                                                      # Get all editors
+    managers = vidschool.get_users_by_role(1)                                                                     # Get all managers
+    opss = vidschool.get_users_by_role(2)                                                                         # Get all opss
+    channels = vidschool.get_channels()                                                                           # Get all channels
+
+    return render_template('add_channel.html', msg=msg, creators=creators, editors=editors, managers=managers, opss=opss, channels=channels)            
 
 # Route for '/viewchannnel' to view all videos
 @app.route('/view_channels')
@@ -250,6 +266,10 @@ def edit_channel(channel_id):
         channel_name = request.form.get('channel_name')                        # Get channel name from form data
         url = request.form.get('url')                                          # Get URL from form data 
         platform = request.form.get('platform')                                # Get platform from form data
+        creator_id = request.form['creator_id']                             # Get creator from form data
+        editor_id = request.form['editor_id']                               # Get editor from form data
+        manager_id = request.form['manager_id']                             # Get manager from form data
+        ops_id = request.form['ops_id']                                     # Get ops from form data
         author = {                                                             # Author dictionary with user_id, user_email and user_type
             "user_id": session.get("user_id"),                                 # Get user id from session 
             "user_email": session.get("user_email"),                           # Get user email from session
@@ -257,13 +277,20 @@ def edit_channel(channel_id):
         }
 
         try:                                                                           # Try to edit channel with channel_id, channel_name, URL, and platform
-            vidschool.edit_channel(channel_id, channel_name, url, platform, author)    # Edit channel with channel_id, channel_name, URL, and platform
+            vidschool.edit_channel(channel_id, channel_name, url, platform,creator_id, editor_id, manager_id, ops_id, author)   
             msg = 'Channel updated successfully!'                                      # Set success message
             return redirect(url_for('view_channels'))                                  # Redirect to view_channels page after editing channel
         except Exception as e:                                                         # Catch any exceptions and show error message
             msg = f'Error: {str(e)}'                                                   # Show error message
+    # Fetch users for each role
+    creators = vidschool.get_users_by_role(4)                                                                     # Get all creators
+    editors = vidschool.get_users_by_role(3)                                                                      # Get all editors
+    managers = vidschool.get_users_by_role(1)                                                                     # Get all managers
+    opss = vidschool.get_users_by_role(2)                                                                         # Get all opss
+    channels = vidschool.get_channels()                                                                           # Get all channels
 
-    return render_template('edit_channel.html', channel=channel, msg=msg)              # Render edit_channel.html template with channel and message
+
+    return render_template('edit_channel.html', channel=channel, msg=msg , creators=creators, editors=editors, managers=managers, opss=opss, channels=channels)             
 
 # Route for '/deletechannel' to delete a channel with channel_id
 @app.route('/delete_channel/<int:channel_id>')
@@ -333,12 +360,12 @@ def edit_video(video_id):
     msg = ''                                                                            # Initialize message to empty string
 
     video = vidschool.get_video(video_id)                                               # Get video with video_id
-    if request.method == 'POST':                                                        # Check if POST request with 'video_name', 'creator_id', 'editor_id', 'manager_id' and 'operator_id' in form data
+    if request.method == 'POST':                                                        # Check if POST request with 'video_name', 'creator_id', 'editor_id', 'manager_id' and 'ops_id' in form data
         video_name = request.form.get('video_name')                                     # Get video name from form data
         creator_id = request.form.get('creator_id')                                     # Get creator id from form data
         editor_id = request.form.get('editor_id')                                       # Get editor id from form data
         manager_id = request.form.get('manager_id')                                     # Get manager id from form data
-        operator_id = request.form.get('operator_id')                                   # Get operator id from form data
+        ops_id = request.form.get('ops_id')                                   # Get ops id from form data
         
 
         author = {                                                                      # Author dictionary with user_id, user_email and user_type
@@ -347,8 +374,8 @@ def edit_video(video_id):
             "user_type": session.get("user_type"),                                      # Get user type from session
         }
 
-        try:                                                                                                       # Try to update video with video_id, video_name, creator_id, editor_id, manager_id, operator_id
-            vidschool.update_video(video_id, video_name, creator_id, editor_id, manager_id, operator_id, author)   # Update video with video_id, video_name, creator_id, editor_id, manager_id,operator_id
+        try:                                                                                                       # Try to update video with video_id, video_name, creator_id, editor_id, manager_id, ops_id
+            vidschool.update_video(video_id, video_name, creator_id, editor_id, manager_id, ops_id, author)   # Update video with video_id, video_name, creator_id, editor_id, manager_id,ops_id
             msg = 'Video updated successfully!'                                                                    # Set success message
         except Exception as e:                                                                                     # Catch any exceptions and show error message
             msg = f'Error: {str(e)}'                                                                               # Show error message

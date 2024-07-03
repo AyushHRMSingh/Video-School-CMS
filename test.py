@@ -30,9 +30,9 @@ typea = 2
 def testuser(obj:VidSchool):
     printarr(obj.get_users({'user_type':typea,'user_id':1}))
     # add user
-    obj.add_user('ayush@mail.com', 'pass', 1, {'user_type':typea,'user_id':1})
+    obj.add_user('Ayush Singh','ayush@mail.com', 'pass', 1, {'user_type':typea,'user_id':1})
     printarr(obj.get_users({'user_type':typea,'user_id':1}))
-    obj.add_user('prasad@mail.com', 'pass', 1, {'user_type':typea,'user_id':1})
+    obj.add_user('Prasad jambukar','prasad@mail.com', 'pass', 1, {'user_type':typea,'user_id':1})
     printarr(obj.get_users({'user_type':typea,'user_id':1}))
     print('single')
     print(obj.get_user(1))

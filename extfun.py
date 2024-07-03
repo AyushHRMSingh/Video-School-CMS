@@ -17,6 +17,8 @@ class VidSchool:
             "USE  {}".format(dbname),
             ]
         print("Connected to database")
+        if self.dbconnect.is_connected():
+            self.setupdb()
     
     # destructor function
     def __del__(self):
@@ -40,14 +42,14 @@ class VidSchool:
 
     ### USER FUNCTIONS
     # function to add a user to the database ONLY FOR ADMIN
-    def add_user(self, user_email, password, user_type, author):
+    def add_user(self, user_name,user_email, password, user_type, author):
         # checks permission
         if author['user_type'] == 0:
             # hash password
             hashpass = self.hash_password(password)
             # executes SQL command
-            sql = "INSERT INTO User (email, password, role, status) VALUES (%s, %s, %s, 0)"
-            val = (user_email, hashpass, user_type)
+            sql = "INSERT INTO User (name, email, password, role, status) VALUES (%s, %s, %s, %s, 0)"
+            val = (user_name, user_email, hashpass, user_type)
             self.cursor.execute(sql, val)
             self.dbconnect.commit()
             self.cursor.execute("SELECT ID FROM User WHERE email = %s AND password = %s", (user_email, hashpass))
@@ -97,6 +99,15 @@ class VidSchool:
                 "error": "You do not have permission to view this data"
             }
     
+    def get_users_by_role(self, user_type, author):
+        # checks permissions
+        # executes SQL command
+        sql = "SELECT * FROM User WHERE role = %s"
+        val = (user_type,)
+        self.cursor.execute(sql, val)
+        result = self.cursor.fetchall()
+        return result
+
     # function to get a specific user from the database
     def get_user(self, user_id):
         # executes SQL command
@@ -107,18 +118,19 @@ class VidSchool:
         return result
     
     # function to edit a user in the database
-    def edit_user(self, user_id, user_email, password, user_type, author):
+    def edit_user(self, user_name, user_id, user_email, password, user_type, author):
         # checks permissions
         if author['user_type'] == 0:
             # stores default values from DB
             defvalue = self.get_user(user_id)
             # sets values to default if None
+            user_name = user_name if user_name != None else defvalue[1]
             user_email = user_email if user_email != None else defvalue[1]
             hashpass = self.hash_password(password) if password != None else defvalue[2]
             user_type = user_type if user_type != None else defvalue[3]
             # executes SQL command
-            sql = "UPDATE User SET email = %s, password = %s, role = %s WHERE ID = %s"
-            val = (user_email, hashpass, user_type, user_id)
+            sql = "UPDATE User SET name = %s, email = %s, password = %s, role = %s WHERE ID = %s"
+            val = (user_name, user_email, hashpass, user_type, user_id)
             self.cursor.execute(sql, val)
             self.dbconnect.commit()
             # Logging
@@ -139,12 +151,12 @@ class VidSchool:
 
     ### VIDEO FUNCTIONS
     # function to add a video to the database
-    def add_video(self, channel_id, video_name, creator_id, editor_id, manager_id, operator_id, author):
-        # checks user is higher permissions than operator
+    def add_video(self, channel_id, video_name, creator_id, editor_id, manager_id, ops_id, author):
+        # checks user is higher permissions than ops
         if author['user_type'] < 2:
             # executes SQL command
-            sql = "INSERT INTO Video (name, channel_id, creator_id, editor_id, manager_id, operator_id, status) VALUES (%s, %s, %s, %s, %s, %s, 0)"
-            val = (video_name, channel_id, creator_id, editor_id, manager_id, operator_id)
+            sql = "INSERT INTO Video (name, channel_id, creator_id, editor_id, manager_id, ops_id, status) VALUES (%s, %s, %s, %s, %s, %s, 0)"
+            val = (video_name, channel_id, creator_id, editor_id, manager_id, ops_id)
             self.cursor.execute(sql, val)
             self.dbconnect.commit()
             # Logging
@@ -156,13 +168,13 @@ class VidSchool:
                     "creator_id": creator_id,
                     "editor_id": editor_id,
                     "manager_id": manager_id,
-                    "operator_id": operator_id
+                    "ops_id": ops_id
                 }
             }
             self.log_action(3, log_data)
 
     # function to update a video in the database
-    def update_video(self, video_id, video_name, creator_id, editor_id, manager_id, operator_id, author):
+    def update_video(self, video_id, video_name, creator_id, editor_id, manager_id, ops_id, author):
         # stores values from DB as default
         defvalue = self.get_video(video_id)
         # if value is None, set to default value
@@ -170,10 +182,10 @@ class VidSchool:
         creator_id = creator_id if creator_id != None else defvalue[2]
         editor_id = editor_id if editor_id != None else defvalue[3]
         manager_id = manager_id if manager_id != None else defvalue[4]
-        operator_id = operator_id if operator_id != None else defvalue[5]
+        ops_id = ops_id if ops_id != None else defvalue[5]
         # executes SQL command
-        sql = "UPDATE Video SET name = %s, creator_id = %s, editor_id = %s, manager_id = %s, operator_id = %s WHERE ID = %s"
-        val = (video_name, creator_id, editor_id, manager_id, operator_id, video_id)
+        sql = "UPDATE Video SET name = %s, creator_id = %s, editor_id = %s, manager_id = %s, ops_id = %s WHERE ID = %s"
+        val = (video_name, creator_id, editor_id, manager_id, ops_id, video_id)
         self.cursor.execute(sql, val)
         self.dbconnect.commit()
         # Logging
@@ -286,7 +298,7 @@ class VidSchool:
         
     # function to delete a video from the database
     def set_delete_video(self, video_id, author):
-        # checks that user is higher than operator
+        # checks that user is higher than ops
         if author['user_type'] <2:
             # executes SQL command
             sql = "UPDATE Video SET status = 7 WHERE ID = %s"
@@ -358,12 +370,12 @@ class VidSchool:
 
     ### CHANNEL FUNCTIONS
     # # TO BE REPLACED FOR GOOGLE INTEGRATION
-    def add_channel(self, channel_name, url, platform, author):
+    def add_channel(self, channel_name, url, platform, creator_id, editor_id, manager_id, ops_id, author):
         # checks if user is admin
         if author['user_type'] == 0:
             # executes SQL command
-            sql = "INSERT INTO Channel (name, url ,platform, status) VALUES (%s, %s, %s, 1)"
-            val = (channel_name, url, platform)
+            sql = "INSERT INTO Channel (name, url ,platform, creator_id, editor_id, manager_id, ops_id, status) VALUES (%s, %s, %s, %s, %s, %s, %s, 1)"
+            val = (channel_name, url, platform, creator_id, editor_id, manager_id, ops_id)
             self.cursor.execute(sql, val)
             self.dbconnect.commit()
             # gets channel ID after adding
@@ -404,17 +416,23 @@ class VidSchool:
             self.log_action(2, log_data)
 
     # function to edit a channel in the database
-    def edit_channel(self, channel_id, channel_name, url, platform, author):
+    def edit_channel(self, channel_id, channel_name, url, platform, creator_id, editor_id, manager_id, ops_id, status, author):
         # checks if user is admin
         if author['user_type'] == 0:
             # stores default values from DB
             defvalue = self.get_channel(channel_id)
             # sets values to default if None
             channel_name = channel_name if channel_name != None else defvalue[1]
-            platform = platform if platform != None else defvalue[2]
+            url = url if url != None else defvalue[2]
+            platform = platform if platform != None else defvalue[3]
+            creator_id = creator_id if creator_id != None else defvalue[4]
+            editor_id = editor_id if editor_id != None else defvalue[5]
+            manager_id = manager_id if manager_id != None else defvalue[6]
+            ops_id = ops_id if ops_id != None else defvalue[7]
+            status = status if status != None else defvalue[8]
             # executes SQL command
-            sql = "UPDATE Channel SET name = %s, url=%s, platform = %s WHERE ID = %s"
-            val = (channel_name, url, platform, channel_id)
+            sql = "UPDATE Channel SET name = %s, url=%s, platform = %s, creator_id = %s, editor_id = %s, manager_id = %s, ops_id = %s, status = %s WHERE ID = %s"
+            val = (channel_name, url, platform, creator_id, editor_id, manager_id, ops_id, status, channel_id)
             self.cursor.execute(sql, val)
             self.dbconnect.commit()
             # logging
@@ -478,7 +496,7 @@ class VidSchool:
         # operations
         elif user_type == '2':
             # sets SQL command
-            sql = "UPDATE Channel SET operator_id = %s WHERE ID = %s"
+            sql = "UPDATE Channel SET ops_id = %s WHERE ID = %s"
         # manager
         elif user_type == '1':
             # sets SQL command
@@ -568,7 +586,7 @@ class VidSchool:
         }
         self.log_action(2, log_data)
 
-    def assign_operator_to_channel(self, user_id, channel_id, author):
+    def assign_ops_to_channel(self, user_id, channel_id, author):
         sql = "SELECT * FROM Channel WHERE ID = %s"
         val = (channel_id,)
         self.cursor.execute(sql, val)
@@ -577,12 +595,12 @@ class VidSchool:
             return {
                 "error": "Channel does not exist"
             }
-        sql = "UPDATE Channel SET operator_id = %s WHERE ID = %s"
+        sql = "UPDATE Channel SET ops_id = %s WHERE ID = %s"
         val = (user_id, channel_id)
         self.cursor.execute(sql, val)
         self.dbconnect.commit()
         log_data = {
-            "action": "assign_operator_to_channel",
+            "action": "assign_ops_to_channel",
             "author_id": author['user_id'],
             "data": {
                 "user_id": user_id,

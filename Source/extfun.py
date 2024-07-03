@@ -102,7 +102,7 @@ class VidSchool:
     def get_users_by_role(self, user_type):
         # checks permissions
         # executes SQL command
-        sql = "SELECT * FROM User WHERE role = %s, status = 0"
+        sql = "SELECT * FROM User WHERE role = %s and status = 0"
         val = (user_type,)
         self.cursor.execute(sql, val)
         result = self.cursor.fetchall()

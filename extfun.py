@@ -125,9 +125,9 @@ class VidSchool:
             defvalue = self.get_user(user_id)
             # sets values to default if None
             user_name = user_name if user_name != None else defvalue[1]
-            user_email = user_email if user_email != None else defvalue[1]
-            hashpass = self.hash_password(password) if password != None else defvalue[2]
-            user_type = user_type if user_type != None else defvalue[3]
+            user_email = user_email if user_email != None else defvalue[2]
+            hashpass = self.hash_password(password) if password != None else defvalue[3]
+            user_type = user_type if user_type != None else defvalue[4]
             # executes SQL command
             sql = "UPDATE User SET name = %s, email = %s, password = %s, role = %s WHERE ID = %s"
             val = (user_name, user_email, hashpass, user_type, user_id)
@@ -631,7 +631,7 @@ class VidSchool:
         # User found
         elif result[4] == 0: 
             # checks if password is correct
-            if bcrypt.checkpw(password.encode('utf-8'), result[2].encode('utf-8')):
+            if bcrypt.checkpw(password.encode('utf-8'), result[3].encode('utf-8')):
                 # Logging
                 log_data = {
                     "action": "login",
@@ -646,8 +646,8 @@ class VidSchool:
                 return {
                     "success": True,
                     "user_id": result[0],
-                    "user_type": result[3],
-                    "user_email": result[1]
+                    "user_type": result[4],
+                    "user_email": result[2]
                 }
         # if all else fails
         else:

@@ -21,7 +21,7 @@ sqlcommands = [
     # create user table if it doesn't exists
     "CREATE TABLE User (ID INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255) NOT NULL,email VARCHAR(255) UNIQUE NOT NULL, password VARCHAR(255) NOT NULL, role TINYINT NOT NULL DEFAULT 0, status TINYINT NOT NULL DEFAULT 0)",
     # add default admin user
-    f"INSERT INTO User (email, password, role, status) VALUES ('root@root.com', '{hash_password('root')}', 0, 0)",
+    f"INSERT INTO User (name, email, password, role, status) VALUES ('root user','root@root.com', '{hash_password('root')}', 0, 0)",
     # create channel table if it doesn't exists
     "CREATE TABLE Channel (ID INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255) UNIQUE NOT NULL, url VARCHAR(255),platform TINYINT NOT NULL DEFAULT 0, creator_id INT, editor_id INT, manager_id INT, ops_id INT, status TINYINT NOT NULL DEFAULT 0, tokens JSON NOT NULL DEFAULT ('{}'))",
     # create video table if it doesn't exists

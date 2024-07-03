@@ -6,6 +6,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='add_channel_style.css') }}">
 </head>
 <body>
+    <a href="{{ url_for('index') }}" class="btn">Back to Dashboard</a>
     <div class="add-channel-container">
         <div class="border">
             <div class="header">
@@ -19,14 +20,14 @@
                 <input type="url" name="url" required>
                 <br>
                 <label for="platform">Platform:</label>
-                <select name="platform" required>
+                <select name="platform" class="select" required>
                     <option value="0"> Youtube</option>
                 </select>
                 <br>
                 <input type="submit" value="Add Channel">
             </form>
             <p>{{ msg }}</p>
-            <a href="{{ url_for('index') }}" class="btn">Back to Index</a>
+
         </div>
     </div>
     {% if msg %}

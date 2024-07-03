@@ -1,5 +1,5 @@
 # Import necessary modules
-from extfun import VidSchool
+from newextfun import VidSchool
 from flask import Flask, render_template, request, redirect, url_for, session
 import envfile
 
@@ -186,7 +186,14 @@ def add_video():
         except Exception as e:                                                                                    # Catch any exceptions and show error message
             msg = f'Error: {str(e)}'                                                                              # Show error message
     
-    return render_template('add_video.html', msg=msg)                                                             # Render add_video.html template with current message
+    # Fetch users for each role
+    creators = vidschool.get_user_by_role(4)                                                                     # Get all creators
+    editors = vidschool.get_user_by_role(3)                                                                      # Get all editors
+    managers = vidschool.get_user_by_role(1)                                                                     # Get all managers
+    operators = vidschool.get_user_by_role(2)                                                                    # Get all operators
+    channels = vidschool.get_channels()                                                                          # Get all channels
+
+    return render_template('add_video.html', msg=msg, creators=creators, editors=editors, managers=managers, operators=operators, channels=channels)       # Render add_video.html template with current message
 
 # Route for '/viewchannnel' to view all videos
 @app.route('/add_channel', methods=['GET', 'POST'])
@@ -223,177 +230,173 @@ def view_channels():
     try:
         channels = vidschool.get_channels()                            # Get all channels
     except Exception as e:                                             # Catch any exceptions and show error message
-        channels = []
-        msg = f'Error: {str(e)}'
-        return render_template('view_channels.html', channels=channels, msg=msg)
+        channels = []                                                  # Set channels to empty list
+        msg = f'Error: {str(e)}'                                       # Show error message
+        return render_template('view_channels.html', channels=channels, msg=msg)          # Render view_channels.html template with channels data and error message
     
     return render_template('view_channels.html', channels=channels, msg='')  # Render view_channels.html template with channels data
 
+# Route for '/editchannel' to edit a channel with channel_id
 @app.route('/edit_channel/<int:channel_id>', methods=['GET', 'POST'])
 def edit_channel(channel_id):
-    if 'loggedin' not in session or session.get('user_type') != 0:
-        return redirect(url_for('login'))
-    msg = ''
+    if 'loggedin' not in session or session.get('user_type') != 0:             # Check if user is logged in and is an admin
+        return redirect(url_for('login'))                                      # Redirect to login page if user is not logged in or is not an admin
+    msg = ''                                                                   # Initialize message to empty string
 
     # Fetch the channel details to pre-fill the form
     channel = vidschool.get_channel(channel_id)
 
-    if request.method == 'POST':
-        channel_name = request.form.get('channel_name')
-        url = request.form.get('url')
-        platform = request.form.get('platform')
-        author = {
-            "user_id": session.get("user_id"),
-            "user_email": session.get("user_email"),
-            "user_type": session.get("user_type"),
+    if request.method == 'POST':                                               # Check if POST request with 'channel_name', 'url' and 'platform' in form data
+        channel_name = request.form.get('channel_name')                        # Get channel name from form data
+        url = request.form.get('url')                                          # Get URL from form data 
+        platform = request.form.get('platform')                                # Get platform from form data
+        author = {                                                             # Author dictionary with user_id, user_email and user_type
+            "user_id": session.get("user_id"),                                 # Get user id from session 
+            "user_email": session.get("user_email"),                           # Get user email from session
+            "user_type": session.get("user_type"),                             # Get user type from session
         }
 
-        try:
-            vidschool.edit_channel(channel_id, channel_name, url, platform, author)
-            msg = 'Channel updated successfully!'
-            return redirect(url_for('view_channels'))
-        except Exception as e:
-            msg = f'Error: {str(e)}'
+        try:                                                                           # Try to edit channel with channel_id, channel_name, URL, and platform
+            vidschool.edit_channel(channel_id, channel_name, url, platform, author)    # Edit channel with channel_id, channel_name, URL, and platform
+            msg = 'Channel updated successfully!'                                      # Set success message
+            return redirect(url_for('view_channels'))                                  # Redirect to view_channels page after editing channel
+        except Exception as e:                                                         # Catch any exceptions and show error message
+            msg = f'Error: {str(e)}'                                                   # Show error message
 
-    return render_template('edit_channel.html', channel=channel, msg=msg)
+    return render_template('edit_channel.html', channel=channel, msg=msg)              # Render edit_channel.html template with channel and message
 
-
+# Route for '/deletechannel' to delete a channel with channel_id
 @app.route('/delete_channel/<int:channel_id>')
 def delete_channel(channel_id):
-    if 'loggedin' not in session or session.get('user_type') != 0:
-        return redirect(url_for('login'))
+    if 'loggedin' not in session or session.get('user_type') != 0:                       # Check if user is logged in and is an admin
+        return redirect(url_for('login'))                                                # Redirect to login page if user is not logged in or is not an admin
 
-    author = {
-        "user_id": session.get("user_id"),
-        "user_email": session.get("user_email"),
-        "user_type": session.get("user_type"),
+    author = {                                                                           # Author dictionary with user_id, user_email and user_type
+        "user_id": session.get("user_id"),                                               # Get user id from session
+        "user_email": session.get("user_email"),                                         # Get user email from session
+        "user_type": session.get("user_type"),                                           # Get user type from session
     }
 
-    try:
-        vidschool.delete_channel(channel_id, author)
-        msg = 'Channel deleted successfully!'
-    except Exception as e:
-        msg = f'Error: {str(e)}'
+    try:                                                                                 # Try to delete channel with channel_id
+        vidschool.delete_channel(channel_id, author)                                     # Delete channel with channel_id
+        msg = 'Channel deleted successfully!'                                            # Set success message
+    except Exception as e:                                                               # Catch any exceptions and show error message
+        msg = f'Error: {str(e)}'                                                         # Show error message
 
-    return redirect(url_for('view_channels', msg=msg))
+    return redirect(url_for('view_channels', msg=msg))                                   # Redirect to view_channels page after deleting channel
 
+# Route for '/updatechannelstatus' to update channel status
 @app.route('/update_channel_status/<int:channel_id>', methods=['POST'])
 def update_channel_status(channel_id):
-    if 'loggedin' not in session or session.get('user_type') != 0:
-        return redirect(url_for('login'))
+    if 'loggedin' not in session or session.get('user_type') != 0:                       # Check if user is logged in and is an admin
+        return redirect(url_for('login'))                                                # Redirect to login page if user is not logged in or is not an admin
 
-    new_status = request.form.get('status')
-    author = {
-        "user_id": session.get("user_id"),
-        "user_email": session.get("user_email"),
-        "user_type": session.get("user_type"),
+    new_status = request.form.get('status')                                              # Get new status from form data
+    author = {                                                                           # Author dictionary with user_id, user_email and user_type
+        "user_id": session.get("user_id"),                                               # Get user id from session
+        "user_email": session.get("user_email"),                                         # Get user email from session
+        "user_type": session.get("user_type"),                                           # Get user type from session
     }
 
-    try:
-        vidschool.update_channel_status(channel_id, new_status, author)
-        msg = 'Channel status updated successfully!'
-    except Exception as e:
-        msg = f'Error: {str(e)}'
+    try:                                                                                 # Try to update channel status with channel_id and new_status
+        vidschool.update_channel_status(channel_id, new_status, author)                  # Update channel status with channel_id and new_status
+        msg = 'Channel status updated successfully!'                                     # Set success message
+    except Exception as e:                                                               # Catch any exceptions and show error message
+        msg = f'Error: {str(e)}'                                                         # Show error message
 
-    return redirect(url_for('view_channels', msg=msg))
-
+    return redirect(url_for('view_channels', msg=msg))                                   # Redirect to view_channels page after updating channel status
+ 
 # Route for '/view_videos' to view all videos
 @app.route('/view_videos')
 def view_videos():
   
-    author = {
-        "user_id": session.get("user_id"),
-        "user_email": session.get("user_email"),
-        "user_type": session.get("user_type"), 
+    author = {                                                                           # Author dictionary with user_id, user_email and user_type
+        "user_id": session.get("user_id"),                                               # Get user id from session
+        "user_email": session.get("user_email"),                                         # Get user email from session
+        "user_type": session.get("user_type"),                                           # Get user type from session
     }
     
-    try:
-        # Assuming vidschool is your database handling object
-        videos = vidschool.get_videos(author)
-        return render_template('view_videos.html', videos=videos)
+    try:                                                                                # Try to get all videos
+        videos = vidschool.get_videos(author)                                           # Get all videos
+        return render_template('view_videos.html', videos=videos)                       # Render view_videos.html template with videos
     
-    except Exception as e:
-        # Handle exceptions or errors
-        return render_template('index.html', error=str(e))
+    except Exception as e:                                                              # Catch any exceptions and show error message
+        return render_template('index.html', error=str(e))                              # Render index.html template with error message
 
 # Route for '/editvideo' to edit a video with video_id
 # Route for editing a video
 @app.route('/edit_video/<int:video_id>', methods=['GET', 'POST'])
 def edit_video(video_id):
-    if 'loggedin' not in session:
-        return redirect(url_for('login'))
+    if 'loggedin' not in session:                                                       # Check if user is logged in
+        return redirect(url_for('login'))                                               # Redirect to login page if user is not logged in
 
-    msg = ''
+    msg = ''                                                                            # Initialize message to empty string
 
-    video = vidschool.get_video(video_id)  
-    if request.method == 'POST':
-        video_name = request.form.get('video_name')
-        creator_id = request.form.get('creator_id')
-        editor_id = request.form.get('editor_id')
-        manager_id = request.form.get('manager_id')
-        operator_id = request.form.get('operator_id')
+    video = vidschool.get_video(video_id)                                               # Get video with video_id
+    if request.method == 'POST':                                                        # Check if POST request with 'video_name', 'creator_id', 'editor_id', 'manager_id' and 'operator_id' in form data
+        video_name = request.form.get('video_name')                                     # Get video name from form data
+        creator_id = request.form.get('creator_id')                                     # Get creator id from form data
+        editor_id = request.form.get('editor_id')                                       # Get editor id from form data
+        manager_id = request.form.get('manager_id')                                     # Get manager id from form data
+        operator_id = request.form.get('operator_id')                                   # Get operator id from form data
         
 
-        author = {
-            "user_id": session.get("user_id"),
-            "user_email": session.get("user_email"),
-            "user_type": session.get("user_type"),
+        author = {                                                                      # Author dictionary with user_id, user_email and user_type
+            "user_id": session.get("user_id"),                                          # Get user id from session
+            "user_email": session.get("user_email"),                                    # Get user email from session
+            "user_type": session.get("user_type"),                                      # Get user type from session
         }
 
-        try:
-            vidschool.update_video(video_id, video_name, creator_id, editor_id, manager_id, operator_id, author)
-            msg = 'Video updated successfully!'
-        except Exception as e:
-            msg = f'Error: {str(e)}'
+        try:                                                                                                       # Try to update video with video_id, video_name, creator_id, editor_id, manager_id, operator_id
+            vidschool.update_video(video_id, video_name, creator_id, editor_id, manager_id, operator_id, author)   # Update video with video_id, video_name, creator_id, editor_id, manager_id,operator_id
+            msg = 'Video updated successfully!'                                                                    # Set success message
+        except Exception as e:                                                                                     # Catch any exceptions and show error message
+            msg = f'Error: {str(e)}'                                                                               # Show error message
 
-    return render_template('edit_video.html', video=video, msg=msg)
+    return render_template('edit_video.html', video=video, msg=msg)                                                # Render edit_video.html template with video and message
 
-# app.py
-
+# Route for '/deletevideo' to delete a video with video_id
 # Route for deleting a video
 @app.route('/delete_video/<int:video_id>', methods=['GET'])
 def delete_video(video_id):
-    if 'loggedin' not in session:
-        return redirect(url_for('login'))
+    if 'loggedin' not in session:                                                       # Check if user is logged in
+        return redirect(url_for('login'))                                               # Redirect to login page if user is not logged in
 
-    author = {
-        "user_id": session.get("user_id"),
-        "user_email": session.get("user_email"),
-        "user_type": session.get("user_type"),
+    author = {                                                                          # Author dictionary with user_id, user_email and user_type
+        "user_id": session.get("user_id"),                                              # Get user id from session
+        "user_email": session.get("user_email"),                                        # Get user email from session
+        "user_type": session.get("user_type"),                                          # Get user type from session
     }
 
-    try:
-        vidschool.set_delete_video(video_id, author)
-        msg = 'Video deleted successfully!'
-    except Exception as e:
-        msg = f'Error: {str(e)}'
+    try:                                                                                # Try to delete video with video_id
+        vidschool.set_delete_video(video_id, author)                                    # Delete video with video_id
+        msg = 'Video deleted successfully!'                                             # Set success message
+    except Exception as e:                                                              # Catch any exceptions and show error message
+        msg = f'Error: {str(e)}'                                                        # Show error message
 
-    # Redirect back to view_videos page after deletion
-    return redirect(url_for('view_videos', msg=msg))
+    return redirect(url_for('view_videos', msg=msg))                                    # Redirect to view_videos page after deleting video
 
-# app.py
-
+# Route for '/updatevideostatus' to update video status
 # Route for updating video status
 @app.route('/update_video_status/<int:video_id>', methods=['POST'])
 def update_video_status(video_id):
-    if 'loggedin' not in session:
-        return redirect(url_for('login'))
+    if 'loggedin' not in session:                                                       # Check if user is logged in
+        return redirect(url_for('login'))                                               # Redirect to login page if user is not logged in
 
-    status = request.form['status']
-    author = {
-        "user_id": session.get("user_id"),
-        "user_email": session.get("user_email"),
-        "user_type": session.get("user_type"),
+    status = request.form['status']                                                     # Get new status from form data
+    author = {                                                                          # Author dictionary with user_id, user_email and user_type
+        "user_id": session.get("user_id"),                                              # Get user id from session
+        "user_email": session.get("user_email"),                                        # Get user email from session
+        "user_type": session.get("user_type"),                                          # Get user type from session
     }
 
-    try:
-        vidschool.set_video_status(video_id, int(status), author)
-        msg = 'Video status updated successfully!'
-    except Exception as e:
-        msg = f'Error: {str(e)}'
+    try:                                                                                # Try to update video status with video_id and status
+        vidschool.set_video_status(video_id, int(status), author)                       # Update video status with video_id and status
+        msg = 'Video status updated successfully!'                                      # Set success message
+    except Exception as e:                                                              # Catch any exceptions and show error message
+        msg = f'Error: {str(e)}'                                                        # Show error message
 
-    # Redirect back to view_videos page after updating
-    return redirect(url_for('view_videos', msg=msg))
+    return redirect(url_for('view_videos', msg=msg))                                    # Redirect back to view_videos page after updating
 
 
 # Main entry point of the application

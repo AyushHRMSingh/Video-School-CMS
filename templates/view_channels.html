@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>View Channels</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='view_channels_style.css') }}">
+</head>
+<body>
+    <div class="view-channels-container">
+        <div class="border">
+            <div class="header">
+                <h1 class="word">View Channels</h1>
+            </div>
+            {% if msg %}
+                <p>{{ msg }}</p>
+            {% endif %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>URL</th>
+                        <th>Platform</th>
+                        <th>Creator ID</th>
+                        <th>Editor ID</th>
+                        <th>Manager ID</th>
+                        <th>Operator ID</th>
+                        <th>Status</th>
+                        <th>Edit</th>
+                        <th>Delete</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for channel in channels %}
+                        <tr>
+                            <td>{{ channel[0] }}</td>
+                            <td>{{ channel[1] }}</td>
+                            <td>{{ channel[2] }}</td>
+                            <td>{{ channel[3] }}</td>
+                            <td>{{ channel[4] }}</td>
+                            <td>{{ channel[5] }}</td>
+                            <td>{{ channel[6] }}</td>
+                            <td>{{ channel[7] }}</td>
+                            <td>
+                                <form method="POST" action="{{ url_for('update_channel_status', channel_id=channel[0]) }}">
+                                    <select name="status" onchange="this.form.submit()">
+                                        <option value="0" {% if channel[8] == 0 %}selected{% endif %}>Active</option>
+                                        <option value="1" {% if channel[8] == 1 %}selected{% endif %}>Inactive</option>
+                                        <option value="2" {% if channel[8] == 2 %}selected{% endif %}>To be deleted</option>
+                                        <option value="3" {% if channel[8] == 3 %}selected{% endif %}>Deleted</option>
+                                    </select>
+                                </form>
+                            </td>
+                            <td>
+                                <a href="{{ url_for('edit_channel', channel_id=channel[0]) }}" class="btn">Edit</a>
+                            </td>
+                            <td>    
+                                <a href="{{ url_for('delete_channel', channel_id=channel[0]) }}" class="btn">Delete</a>
+                            </td>
+                            
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <a href="{{ url_for('index') }}" class="btn">Back to Index</a>
+        </div>
+    </div>
+</body>
+</html>

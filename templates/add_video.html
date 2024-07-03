@@ -4,30 +4,60 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Add Video</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='add_video_style.css') }}">
+    <link href="https://fonts.googleapis.com/css?family=Roboto:400,500,700" rel="stylesheet">
 </head>
 <body>
-    <h1>Add Video</h1>
+    <a href="{{ url_for('index') }}" class="btn">Back to Dashboard</a>
+    <div class="add-channel-container">
+        <div class="border">
+            <div class="header">
+                <h1 class="word">Add Video</h1>
+            </div>
     <form action="{{ url_for('add_video') }}" method="post">
         <label for="video_name">Video Name:</label>
         <input type="text" id="video_name" name="video_name" required>
         <br>
         <label for="channel_id">Channel ID:</label>
-        <input type="text" id="channel_id" name="channel_id" required>
+        <select id="channel_id" name="channel_id" class="select" required>
+            {% for channel in channels %}
+                <option value="{{ channel[0] }}">{{ channel[1] }}</option>
+            {% endfor %}
+        </select>
         <br>
         <label for="creator_id">Creator ID:</label>
-        <input type="text" id="creator_id" name="creator_id" required>
+        <select id="creator_id" name="creator_id" class="select" required>
+            {% for creator in creators %}
+                <option value="{{ creator[0] }}">{{ creator[1] }}</option>
+            {% endfor %}
+        </select>
         <br>
         <label for="editor_id">Editor ID:</label>
-        <input type="text" id="editor_id" name="editor_id" required>
+        <select id="editor_id" name="editor_id" class="select" required>
+            {% for editor in editors %}
+                <option value="{{ editor[0] }}">{{ editor[1] }}</option>
+            {% endfor %}
+        </select>
         <br>
         <label for="manager_id">Manager ID:</label>
-        <input type="text" id="manager_id" name="manager_id" required>
+        <select id="manager_id" name="manager_id" class="select" required>
+            {% for manager in managers %}
+                <option value="{{ manager[0] }}">{{ manager[1] }}</option>
+            {% endfor %}
+        </select>
         <br>
         <label for="operator_id">Ops ID:</label>
-        <input type="text" id="operator_id" name="operator_id" required>
-        <button type="submit">Add Video</button>
+        <select id="operator_id" name="operator_id" class="select" required>
+            {% for operator in operators %}
+                <option value="{{ operator[0] }}">{{ operator[1] }}</option>
+            {% endfor %}
+        </select>
+        <br>
+        <button type="submit" class="submitbtn">Add Video</button>
     </form>
+  
+        </div>
+    </div>
     {% if msg %}
         <script>
             alert("{{ msg }}");

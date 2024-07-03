@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Add User</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='add_user_style.css') }}">
 </head>
 <body>
     <div class="add-user-container">
@@ -19,7 +19,13 @@
                 <input type="password" name="password" required>
                 <br>
                 <label for="user_type">User Type:</label>
-                <input type="text" name="user_type" required>
+                <select name="user_type" required>
+                    <option value="0">Admin</option>
+                    <option value="1">Manager</option>
+                    <option value="2">Ops</option>
+                    <option value="3">Editor</option>
+                    <option value="4">Creator</option>
+                </select>
                 <br>
                 <input type="submit" value="Add User">
             </form>

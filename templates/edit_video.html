@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Video</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='edit_channel_style.css') }}">
+</head>
+<body>
+    <div class="edit-video-container">
+        <div class="border">
+            <div class="header">
+                <h1 class="word">Edit Video</h1>
+            </div>
+    <form action="{{ url_for('edit_video', video_id=video[0]) }}" method="post">
+        <label for="video_name">Video Name:</label>
+        <input type="text" id="video_name" name="video_name" value="{{ video[1] }}" required>
+        <br>
+        <label for="creator_id">Creator ID:</label>
+        <input type="text" id="creator_id" name="creator_id" value="{{ video[4] }}" required>
+        <br>
+        <label for="editor_id">Editor ID:</label>
+        <input type="text" id="editor_id" name="editor_id" value="{{ video[5] }}" required>
+        <br>
+        <label for="manager_id">Manager ID:</label>
+        <input type="text" id="manager_id" name="manager_id" value="{{ video[6] }}" required>
+        <br>
+        <label for="operator_id">Ops ID:</label>
+        <input type="text" id="operator_id" name="operator_id" value="{{ video[7] }}" required>
+        <br>
+        <button type="submit">Update Video</button>
+    </form>
+    {% if msg %}
+        <p>{{ msg }}</p>
+    {% endif %}
+    <a href="{{ url_for('view_videos') }}" class="btn">Back to View Videos</a>
+</div>
+</div>
+</body>
+</html>

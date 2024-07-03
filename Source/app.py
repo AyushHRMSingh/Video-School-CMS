@@ -179,7 +179,7 @@ def add_video():
         creator_id = request.form['creator_id']                                         # Get creator id from form data
         editor_id = request.form['editor_id']                                           # Get editor id from form data
         manager_id = request.form['manager_id']                                         # Get manager id from form data
-        ops_id = request.form['ops_id']                                       # Get ops id from form data
+        ops_id = request.form['ops_id']                                                 # Get ops id from form data
         author = {                                                                      # Author dictionary with user_id, user_email and user_type
             "user_id": session.get("user_id"),                                          # Get user id from session
             "user_email": session.get("user_email"),                                    # Get user email from session
@@ -356,7 +356,15 @@ def view_videos():
     
     try:                                                                                # Try to get all videos
         videos = vidschool.get_videos(author)                                           # Get all videos
-        return render_template('view_videos.html', videos=videos)                       # Render view_videos.html template with videos
+        creators = vidschool.get_users_by_role(4)                    # Get all creators
+        creator_dict = {creator[0]: creator[1] for creator in creators}
+        editors = vidschool.get_users_by_role(3)                     # Get all editors
+        editor_dict = {editor[0]: editor[1] for editor in editors}
+        managers = vidschool.get_users_by_role(1)                    # Get all managers
+        manager_dict = {manager[0]: manager[1] for manager in managers}
+        opss = vidschool.get_users_by_role(2)                        # Get all opss
+        ops_dict = {ops[0]: ops[1] for ops in opss}
+        return render_template('view_videos.html', videos=videos,creator_dict=creator_dict,editor_dict=editor_dict,manager_dict=manager_dict,ops_dict=ops_dict)                       # Render view_videos.html template with videos
     
     except Exception as e:                                                              # Catch any exceptions and show error message
         return render_template('index.html', error=str(e))                              # Render index.html template with error message
@@ -376,7 +384,7 @@ def edit_video(video_id):
         creator_id = request.form.get('creator_id')                                     # Get creator id from form data
         editor_id = request.form.get('editor_id')                                       # Get editor id from form data
         manager_id = request.form.get('manager_id')                                     # Get manager id from form data
-        ops_id = request.form.get('ops_id')                                   # Get ops id from form data
+        ops_id = request.form.get('ops_id')                                             # Get ops id from form data
         
 
         author = {                                                                      # Author dictionary with user_id, user_email and user_type
@@ -391,7 +399,14 @@ def edit_video(video_id):
         except Exception as e:                                                                                     # Catch any exceptions and show error message
             msg = f'Error: {str(e)}'                                                                               # Show error message
 
-    return render_template('edit_video.html', video=video, msg=msg)                                                # Render edit_video.html template with video and message
+    # Fetch users for each role
+    creators = vidschool.get_users_by_role(4)                                                                     # Get all creators
+    editors = vidschool.get_users_by_role(3)                                                                      # Get all editors
+    managers = vidschool.get_users_by_role(1)                                                                     # Get all managers
+    opss = vidschool.get_users_by_role(2)                                                                         # Get all opss
+    channels = vidschool.get_channels()  
+
+    return render_template('edit_video.html', video=video,creators=creators,editors=editors,managers=managers,opss=opss,channels=channels, msg=msg)                                                # Render edit_video.html template with video and message
 
 # Route for '/deletevideo' to delete a video with video_id
 # Route for deleting a video

@@ -39,10 +39,10 @@
                 <td>{{ video[1] }}</td>
                 <td>{{ video[2] }}</td>
                 <td>{{ video[3] }}</td>
-                <td>{{ video[4] }}</td>
-                <td>{{ video[5] }}</td>
-                <td>{{ video[6] }}</td>
-                <td>{{ video[7] }}</td>
+                <td>{{ creator_dict.get(video[4], 'Unknown') }}</td>
+                <td>{{ editor_dict.get(video[5], 'Unknown') }}</td>   
+                <td>{{ manager_dict.get(video[6], 'Unknown') }}</td>
+                <td>{{ ops_dict.get(video[7], 'Unknown') }}</td>
                 <td>{{ video[8] }}</td>
                 <td>
                     <form action="{{ url_for('update_video_status', video_id=video[0]) }}" method="post">

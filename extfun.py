@@ -99,7 +99,7 @@ class VidSchool:
                 "error": "You do not have permission to view this data"
             }
     
-    def get_users_by_role(self, user_type, author):
+    def get_users_by_role(self, user_type):
         # checks permissions
         # executes SQL command
         sql = "SELECT * FROM User WHERE role = %s"

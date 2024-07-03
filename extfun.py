@@ -102,7 +102,7 @@ class VidSchool:
     def get_users_by_role(self, user_type):
         # checks permissions
         # executes SQL command
-        sql = "SELECT * FROM User WHERE role = %s"
+        sql = "SELECT * FROM User WHERE role = %s, status = 0"
         val = (user_type,)
         self.cursor.execute(sql, val)
         result = self.cursor.fetchall()
@@ -623,13 +623,13 @@ class VidSchool:
                 "error": "User does not exist"
             }
         # User deleted
-        elif result[4] == 1:
+        elif result[5] == 1:
             return {
                 "success": False,
                 "error": "User is disabled or deleted please contact the Administrator"
             }
         # User found
-        elif result[4] == 0: 
+        elif result[5] == 0: 
             # checks if password is correct
             if bcrypt.checkpw(password.encode('utf-8'), result[3].encode('utf-8')):
                 # Logging
@@ -646,8 +646,9 @@ class VidSchool:
                 return {
                     "success": True,
                     "user_id": result[0],
+                    "user_name": result[1],
+                    "user_email": result[2],
                     "user_type": result[4],
-                    "user_email": result[2]
                 }
         # if all else fails
         else:

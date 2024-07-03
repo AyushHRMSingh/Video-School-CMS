@@ -385,7 +385,7 @@ class VidSchool:
             channel = self.cursor.fetchone()
             channel_id = channel[0]
             # Logging
-            log_data = {
+            log_data = {  
                 "action": "add_channel",
                 "author_id": author['user_id'],
                 "data": {

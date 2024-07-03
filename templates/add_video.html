@@ -46,10 +46,10 @@
             {% endfor %}
         </select>
         <br>
-        <label for="operator_id">Ops ID:</label>
-        <select id="operator_id" name="operator_id" class="select" required>
-            {% for operator in operators %}
-                <option value="{{ operator[0] }}">{{ operator[1] }}</option>
+        <label for="ops_id">Ops ID:</label>
+        <select id="ops_id" name="ops_id" class="select" required>
+            {% for ops in opss %}
+                <option value="{{ ops[0] }}">{{ ops[1] }}</option>
             {% endfor %}
         </select>
         <br>

@@ -24,6 +24,34 @@
                     <!-- Add more options as needed -->
                 </select>
                 <br>
+                <label for="creator_id">Creator ID:</label>
+                   <select id="creator_id" name="creator_id" class="select" required>
+                      {% for creator in creators %}
+                          <option value="{{ creator[0] }}">{{ creator[1] }}</option>
+                      {% endfor %}
+                   </select>
+                <br>
+                    <label for="editor_id">Editor ID:</label>
+                    <select id="editor_id" name="editor_id" class="select" required>
+                        {% for editor in editors %}
+                            <option value="{{ editor[0] }}">{{ editor[1] }}</option>
+                        {% endfor %}
+                    </select>
+                <br>
+                    <label for="manager_id">Manager ID:</label>
+                    <select id="manager_id" name="manager_id" class="select" required>
+                        {% for manager in managers %}
+                            <option value="{{ manager[0] }}">{{ manager[1] }}</option>
+                        {% endfor %}
+                    </select>
+                <br>
+                    <label for="ops_id">Ops ID:</label>
+                    <select id="ops_id" name="ops_id" class="select" required>
+                        {% for ops in opss %}
+                            <option value="{{ ops[0] }}">{{ ops[1] }}</option>
+                        {% endfor %}
+                    </select>
+                <br>
                 <input type="submit" value="Update Channel">
             </form>
             <p>{{ msg }}</p>

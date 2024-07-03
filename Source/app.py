@@ -272,7 +272,7 @@ def edit_channel(channel_id):
     # Fetch the channel details to pre-fill the form
     channel = vidschool.get_channel(channel_id)
 
-    if request.method == 'POST':                                               # Check if POST request with 'channel_name', 'url' and 'platform' in form data
+    if request.method == 'POST':                                                 # Check if POST request with 'channel_name', 'url' and 'platform' in form data
         channel_name = request.form.get('channel_name')                        # Get channel name from form data    
         url = request.form.get('url')                                          # Get URL from form data 
         platform = request.form.get('platform')                                # Get platform from form data
@@ -280,6 +280,7 @@ def edit_channel(channel_id):
         editor_id = request.form['editor_id']                               # Get editor from form data
         manager_id = request.form['manager_id']                             # Get manager from form data
         ops_id = request.form['ops_id']                                     # Get ops from form data
+        status = request.form.get('status')                                  # Get status from form data
         author = {                                                             # Author dictionary with user_id, user_email and user_type
             "user_id": session.get("user_id"),                                 # Get user id from session 
             "user_email": session.get("user_email"),                           # Get user email from session
@@ -287,7 +288,7 @@ def edit_channel(channel_id):
         }
 
         try:                                                                           # Try to edit channel with channel_id, channel_name, URL, and platform
-            vidschool.edit_channel(channel_id, channel_name, url, platform, creator_id, editor_id, manager_id, ops_id, author)   
+            vidschool.edit_channel(channel_id, channel_name, url, platform, creator_id, editor_id, manager_id, ops_id,status, author)   
             msg = 'Channel updated successfully!'                                      # Set success message
             return redirect(url_for('view_channels'))                                  # Redirect to view_channels page after editing channel
         except Exception as e:                                                         # Catch any exceptions and show error message

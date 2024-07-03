@@ -23,7 +23,7 @@
                     <option value="0" {% if channel[3] == 0 %}selected{% endif %}>0 - Youtube</option>
                     <!-- Add more options as needed -->
                 </select>
-                <br>
+                <br>   
                 <label for="creator_id">Creator ID:</label>
                    <select id="creator_id" name="creator_id" class="select" required>
                       {% for creator in creators %}
@@ -51,6 +51,14 @@
                             <option value="{{ ops[0] }}">{{ ops[1] }}</option>
                         {% endfor %}
                     </select>
+                <br>
+                <label for="status">Status:</label>
+                <select id="status" name="status" class="select" required>
+                    <option value="0" {% if channel[8] == 0 %}selected{% endif %}>Active</option>
+                    <option value="1" {% if channel[8] == 1 %}selected{% endif %}>Inactive</option>
+                    <option value="2" {% if channel[8] == 2 %}selected{% endif %}>To be deleted</option>
+                    <option value="3" {% if channel[8] == 3 %}selected{% endif %}>Deleted</option>
+                </select>
                 <br>
                 <input type="submit" value="Update Channel">
             </form>

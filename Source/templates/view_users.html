@@ -26,6 +26,9 @@
             <div class="header">
                 <h1 class="word">View Users</h1>
             </div>
+            {% if msg %}
+                <p>{{ msg }}</p>
+            {% endif %}
             {% if users %}
                 <table >
                     <thead>

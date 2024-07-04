@@ -1,6 +1,6 @@
 # Import necessary modules
-from extfun import VidSchool
-from flask import Flask, render_template, request, redirect, url_for, session
+from newextfun import VidSchool
+from flask import Flask, render_template, request, redirect, url_for, session,jsonify
 import envfile
 import userenum
 import platform_type
@@ -526,6 +526,19 @@ def view_videos_manager():
     
     except Exception as e:                                                              # Catch any exceptions and show error message
         return render_template('index.html', error=str(e))                              # Render index.html template with error message
+
+@app.route('/get_users_by_channel/<int:channel_id>')
+def get_users_by_channel(channel_id):
+    creators = vidschool.get_creators_by_channel(channel_id)
+    editors = vidschool.get_editors_by_channel(channel_id)
+    managers = vidschool.get_managers_by_channel(channel_id)
+    opss = vidschool.get_ops_by_channel(channel_id)
+    return jsonify({
+        'creators': creators,
+        'editors': editors,
+        'managers': managers,
+        'opss': opss
+    })
 
 # Main entry point of the application
 if __name__ == '__main__':

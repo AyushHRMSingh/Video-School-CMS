@@ -19,89 +19,77 @@
                 <input type="text" id="video_name" name="video_name" required>
                 <br>
                 <label for="channel_id">Channel ID:</label>
-                <select id="channel_id" name="channel_id" class="select" required onchange="fetchUsersByChannel()" >
+                <select id="channel_id" name="channel_id" class="select" required onchange="filterUsersByChannel()">
                     {% for channel in channels %}
-                        <option value="" selected disabled hidden>Choose here</option>
-                        <option value="{{ channel[0] }}">{{ channel[1] }}</option>
+                        <option value="{{ channel[0] }}" data-creator="{{ channel[4] }}" data-editor="{{ channel[5] }}" data-manager="{{ channel[6] }}" data-ops="{{ channel[7] }}">{{ channel[1] }}</option>
                     {% endfor %}
                 </select>
                 <br>
                 <label for="creator_id">Creator ID:</label>
                 <select id="creator_id" name="creator_id" class="select" required>
-                    <!-- Options will be populated by JavaScript -->
+                    {% for creator in creators %}
+                        <option value="{{ creator[0] }}">{{ creator[1] }}</option>
+                    {% endfor %}
                 </select>
                 <br>
                 <label for="editor_id">Editor ID:</label>
                 <select id="editor_id" name="editor_id" class="select" required>
-                    <!-- Options will be populated by JavaScript -->
+                    {% for editor in editors %}
+                        <option value="{{ editor[0] }}">{{ editor[1] }}</option>
+                    {% endfor %}
                 </select>
                 <br>
                 <label for="manager_id">Manager ID:</label>
                 <select id="manager_id" name="manager_id" class="select" required>
-                    <!-- Options will be populated by JavaScript -->
+                    {% for manager in managers %}
+                        <option value="{{ manager[0] }}">{{ manager[1] }}</option>
+                    {% endfor %}
                 </select>
                 <br>
                 <label for="ops_id">Ops ID:</label>
                 <select id="ops_id" name="ops_id" class="select" required>
-                    <!-- Options will be populated by JavaScript -->
+                    {% for ops in opss %}
+                        <option value="{{ ops[0] }}">{{ ops[1] }}</option>
+                    {% endfor %}
                 </select>
                 <br>
                 <button type="submit" class="submitbtn">Add Video</button>
             </form>
             
             <script>
-            function fetchUsersByChannel() {
-                var channelId = document.getElementById('channel_id').value;
+            function filterUsersByChannel() {
+                var channelSelect = document.getElementById('channel_id');
+                var selectedChannel = channelSelect.options[channelSelect.selectedIndex];
             
-                fetch(`/get_users_by_channel/${channelId}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        var creatorSelect = document.getElementById('creator_id');
-                        var editorSelect = document.getElementById('editor_id');
-                        var managerSelect = document.getElementById('manager_id');
-                        var opsSelect = document.getElementById('ops_id');
+                var creatorId = selectedChannel.getAttribute('data-creator');
+                var editorId = selectedChannel.getAttribute('data-editor');
+                var managerId = selectedChannel.getAttribute('data-manager');
+                var opsId = selectedChannel.getAttribute('data-ops');
             
-                        // Clear previous options
-                        creatorSelect.innerHTML = '';
-                        editorSelect.innerHTML = '';
-                        managerSelect.innerHTML = '';
-                        opsSelect.innerHTML = '';
-            
-                        // Populate creator options
-                        data.creators.forEach(function(creator) {
-                            var option = document.createElement('option');
-                            option.value = creator[0];
-                            option.text = creator[1];
-                            creatorSelect.add(option);
-                        });
-            
-                        // Populate editor options
-                        data.editors.forEach(function(editor) {
-                            var option = document.createElement('option');
-                            option.value = editor[0];
-                            option.text = editor[1];
-                            editorSelect.add(option);
-                        });
-            
-                        // Populate manager options
-                        data.managers.forEach(function(manager) {
-                            var option = document.createElement('option');
-                            option.value = manager[0];
-                            option.text = manager[1];
-                            managerSelect.add(option);
-                        });
-            
-                        // Populate ops options
-                        data.opss.forEach(function(ops) {
-                            var option = document.createElement('option');
-                            option.value = ops[0];
-                            option.text = ops[1];
-                            opsSelect.add(option);
-                        });
-                    })
-                    .catch(error => console.error('Error:', error));
+                filterSelectOptions('creator_id', creatorId);
+                filterSelectOptions('editor_id', editorId);
+                filterSelectOptions('manager_id', managerId);
+                filterSelectOptions('ops_id', opsId);
             }
+            
+            function filterSelectOptions(selectId, idToMatch) {
+                var selectElement = document.getElementById(selectId);
+                for (var i = 0; i < selectElement.options.length; i++) {
+                    var option = selectElement.options[i];
+                    if (option.value == idToMatch) {
+                        option.style.display = 'block';
+                        option.selected = true;
+                    } else {
+                        option.style.display = 'none';
+                    }
+                }
+            }
+            
+            document.addEventListener('DOMContentLoaded', function () {
+                filterUsersByChannel();  // Filter users on page load based on the default selected channel
+            });
             </script>
+            
             
         </div>
     </div>

@@ -167,4 +167,3 @@ data
 readcsv.py
 vsenv
 Server/
-Setup/envfile.py

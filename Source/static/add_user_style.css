@@ -15,7 +15,7 @@ select {
     width: 100%;
     padding: 8px;
     margin-top: 5px;
-    margin-bottom: 15px;
+    margin-bottom: 5px;
     border: 1px solid #ccc;
     border-radius: 4px;
     box-sizing: border-box;
@@ -56,6 +56,15 @@ select:focus {
 
 .add-user-container {
     width: 300px;
+    margin: 0 auto;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    background-color: #f9f9f9;
+}
+.edit_user-container {
+    width: 400px;
     margin: 0 auto;
     padding: 20px;
     border: 1px solid #ccc;

@@ -406,7 +406,7 @@ class VidSchool:
         # checks if user is admin
         if author['user_type'] == 0:
             # executes SQL command
-            sql = "INSERT INTO Channel (name, url ,platform, creator_id, editor_id, manager_id, ops_id, status) VALUES (%s, %s, %s, %s, %s, %s, %s, 1)"
+            sql = "INSERT INTO Channel (name, url ,platform, creator_id, editor_id, manager_id, ops_id, status) VALUES (%s, %s, %s, %s, %s, %s, %s, 0)"
             val = (channel_name, url, platform, creator_id, editor_id, manager_id, ops_id)
             self.cursor.execute(sql, val)
             self.dbconnect.commit()

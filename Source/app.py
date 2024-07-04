@@ -247,8 +247,8 @@ def add_channel():
 # Route for '/viewchannnel' to view all videos
 @app.route('/view_channels')
 def view_channels():
-    if 'loggedin' not in session or session.get('user_type') != 0:    # Check if user is logged in and is an admin
-        return redirect(url_for('login'))                             # Redirect to login page if user is not logged in or is not an admin
+    if 'loggedin' not in session or session.get('user_type') !=0:              # Check if user is logged in and is an admin or manager
+        return redirect(url_for('login'))                                      # Redirect to login page if user is not logged in or is not an admin
 
     try:
         channels = vidschool.get_channels()                                     # Get all channels

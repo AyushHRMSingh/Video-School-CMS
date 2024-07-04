@@ -6,6 +6,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='edit_channel_style.css') }}">
 </head>
 <body>
+    <a href="{{ url_for('view_channels') }}" class="btn">Back to Channels</a>
     <div class="edit-channel-container">
         <div class="border">
             <div class="header">
@@ -19,8 +20,8 @@
                 <input type="url" name="url" value="{{ channel[2] }}" required>
                 <br>
                 <label for="platform">Platform:</label>
-                <select name="platform" required>
-                    <option value="0" {% if channel[3] == 0 %}selected{% endif %}>0 - Youtube</option>
+                <select name="platform" class="select" required>
+                    <option value="0" {% if channel[3] == 0 %}selected{% endif %}>Youtube</option>
                     <!-- Add more options as needed -->
                 </select>
                 <br>   
@@ -60,10 +61,10 @@
                     <option value="3" {% if channel[8] == 3 %}selected{% endif %}>Deleted</option>
                 </select>
                 <br>
-                <input type="submit" value="Update Channel">
+                <input type="submit" value="Update Channel" class="btn">
             </form>
             <p>{{ msg }}</p>
-            <a href="{{ url_for('view_channels') }}" class="btn">Back to Channels</a>
+
         </div>
     </div>
 </body>

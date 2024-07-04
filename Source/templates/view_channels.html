@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <title>View Channels</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='view_channels_style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='view_videos_style.css') }}">
 </head>
 <body>
+    <a href="{{ url_for('index') }}" class="btn">Back to Dashboard</a>
     <div class="view-channels-container">
         <div class="border">
             <div class="header">
@@ -62,7 +63,7 @@
                     {% endfor %}
                 </tbody>
             </table>
-            <a href="{{ url_for('index') }}" class="btn">Back to Index</a>
+
         </div>
     </div>
 </body>

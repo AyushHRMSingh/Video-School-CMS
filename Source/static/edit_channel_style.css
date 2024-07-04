@@ -1,15 +1,65 @@
-.edit-channel-container {
-    margin: 0 auto;
-    max-width: 800px;
+/* General styles for the form */
+form {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
 }
-.edit-video-container {
-    margin: 0 auto;
-    max-width: 800px;
+
+label {
+    margin-top: 10px;
 }
-.border {
+
+.select {
+    width: 100%;
+    padding: 8px;
     border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+input[type="text"],
+input[type="url"] {
+    width: 100%;
+    padding: 8px;
+    margin-top: 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+input[type="submit"] {
+    width: 100%;
+    background-color: #4CAF50;
+    color: white;
+    padding: 14px 20px;
+    margin-top: 10px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+input[type="submit"]:hover {
+    background-color: #45a049;
+}
+
+.edit-channel-container {
+    width: 400px;
+    margin: 0 auto;
     padding: 20px;
+    border: 1px solid #ccc;
     border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    background-color: #f9f9f9;
+}
+
+.edit-video-container {
+    width: 400px;
+    margin: 0 auto;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    background-color: #f9f9f9;
 }
 
 .header {
@@ -17,54 +67,21 @@
     margin-bottom: 20px;
 }
 
-.word {
-    font-size: 24px;
-    font-weight: bold;
-}
-
-form {
-    display: flex;
-    flex-direction: column;
-}
-
-label {
-    margin-top: 10px;
-}
-
-input[type="text"],
-input[type="url"],
-select {
-    padding: 10px;
-    margin-top: 5px;
-    margin-bottom: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    width: 100%;
-}
-
-input[type="submit"] {
-    padding: 10px 20px;
-    background-color: #007BFF;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-}
-
-input[type="submit"]:hover {
-    background-color: #0056b3;
+.header h1 {
+    margin: 0;
 }
 
 .btn {
     display: inline-block;
-    padding: 10px 20px;
-    background-color: #007BFF;
-    color: white;
-    text-decoration: none;
-    border-radius: 5px;
     margin-top: 20px;
+    text-align: center;
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 4px;
+    text-decoration: none;
 }
 
 .btn:hover {
-    background-color: #0056b3;
+    background-color: #45a049;
 }

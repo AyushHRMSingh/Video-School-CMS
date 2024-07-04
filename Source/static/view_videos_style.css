@@ -2,7 +2,15 @@
     margin: 0 auto;
     max-width: 1100px;
 }
-
+.view-users-container{
+    margin: 0 auto;
+    max-width: 1100px;
+    
+}
+.view-channels-container{
+    margin: 0 auto;
+    max-width: 1100px;
+}
 .border {
     border: 1px solid #ccc;
     padding: 20px;
@@ -23,6 +31,7 @@ table {
     width: 100%;
     border-collapse: collapse;
     margin-bottom: 20px;
+    
 }
 
 th, td {
@@ -38,12 +47,12 @@ th {
 .btn {
     display: inline-block;
     padding: 10px 20px;
-    background-color: #007BFF;
+    background-color: #4CAF50;
     color: white;
     text-decoration: none;
     border-radius: 5px;
 }
 
 .btn:hover {
-    background-color: #0056b3;
+    background-color:  #4CAF50;
 }

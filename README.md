@@ -50,7 +50,7 @@ dbname = 'VIDEOSCHOOL'
     note: Replace <MySQL password> with your MySQL password and feel free to customize all aspects if you're modifiying the database schema or program
 8. To setup the database before use, run the sqlsetup.py file
 ```bash
-python ../Setup/sqlsetup.py
+python path/to/Video-School-CMS/Setup/sqlsetup.py
 ```
 9. To setup the server first run
 ```bash

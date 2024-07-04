@@ -295,7 +295,7 @@ class VidSchool:
         if set_message:
             log_data['data']['message'] = message
         self.log_action(3, log_data)
-        
+    
     # function to delete a video from the database
     def set_delete_video(self, video_id, author):
         # checks that user is higher than ops
@@ -323,6 +323,38 @@ class VidSchool:
         result = self.cursor.fetchall()
         return result
     
+    # functino to get videos assigned to a user
+    def get_videos_by_user(self, user_id, user_type):
+        # creator
+        if user_type == 4:
+            # executes SQL command
+            sql = "SELECT * FROM Video WHERE creator_id = %s"
+        # editor
+        elif user_type == 3:
+            # executes SQL command
+            sql = "SELECT * FROM Video WHERE editor_id = %s"
+        # operations
+        elif user_type == 2:
+            # executes SQL command
+            sql = "SELECT * FROM Video WHERE ops_id = %s"
+        # manager
+        elif user_type == 1:
+            # executes SQL command
+            sql = "SELECT * FROM Video WHERE manager_id = %s"
+        val = (user_id,)
+        self.cursor.execute(sql, val)
+        result = self.cursor.fetchall()
+        return result
+
+    # get videos by channel
+    def get_videos_by_channel(self, channel_id):
+        # executes SQL command
+        sql = "SELECT * FROM Video WHERE channel_id = %s"
+        val = (channel_id,)
+        self.cursor.execute(sql, val)
+        result = self.cursor.fetchall()
+        return result
+
     # get video by role
     def get_videos(self, author):
         # creator
@@ -395,6 +427,22 @@ class VidSchool:
                 }
             }
             self.log_action(2, log_data)
+
+    # function get user channels
+    def get_channels_by_user(self, user_id, user_type):
+        # check usertype and set sql command
+        if user_type == 4:
+            sql = "SELECT * FROM Channel WHERE creator_id = %s"
+        elif user_type == 3:
+            sql = "SELECT * FROM Channel WHERE editor_id = %s"
+        elif user_type == 2:
+            sql = "SELECT * FROM Channel WHERE ops_id = %s"
+        elif user_type == 1:
+            sql = "SELECT * FROM Channel WHERE manager_id = %s"
+        val = (user_id,)
+        self.cursor.execute(sql, val)
+        result = self.cursor.fetchall()
+        return result
 
     # function to delete a channel from the database
     def delete_channel(self, channel_id, author):

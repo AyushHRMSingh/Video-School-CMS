@@ -118,7 +118,7 @@ class VidSchool:
         return result
     
     # function to edit a user in the database
-    def edit_user(self, user_name, user_id, user_email, password, user_type, author):
+    def edit_user(self, user_name, user_id, user_email, user_type, status, author):
         # checks permissions
         if author['user_type'] == 0:
             # stores default values from DB
@@ -126,11 +126,11 @@ class VidSchool:
             # sets values to default if None
             user_name = user_name if user_name != None else defvalue[1]
             user_email = user_email if user_email != None else defvalue[2]
-            hashpass = self.hash_password(password) if password != None else defvalue[3]
             user_type = user_type if user_type != None else defvalue[4]
+            status = status if status != None else defvalue[5]
             # executes SQL command
-            sql = "UPDATE User SET name = %s, email = %s, password = %s, role = %s WHERE ID = %s"
-            val = (user_name, user_email, hashpass, user_type, user_id)
+            sql = "UPDATE User SET name = %s, email = %s, role = %s, status = %s WHERE ID = %s"
+            val = (user_name, user_email, user_type, status, user_id)
             self.cursor.execute(sql, val)
             self.dbconnect.commit()
             # Logging
@@ -151,12 +151,12 @@ class VidSchool:
 
     ### VIDEO FUNCTIONS
     # function to add a video to the database
-    def add_video(self, channel_id, video_name, creator_id, editor_id, manager_id, ops_id, author):
+    def add_video(self, channel_id, video_title, author):
         # checks user is higher permissions than ops
         if author['user_type'] < 2:
             # executes SQL command
-            sql = "INSERT INTO Video (name, channel_id, creator_id, editor_id, manager_id, ops_id, status) VALUES (%s, %s, %s, %s, %s, %s, 0)"
-            val = (video_name, channel_id, creator_id, editor_id, manager_id, ops_id)
+            sql = "INSERT INTO Video (name, channel_id, status) VALUES (%s, %s, 0)"
+            val = (video_title, channel_id)
             self.cursor.execute(sql, val)
             self.dbconnect.commit()
             # Logging
@@ -164,28 +164,21 @@ class VidSchool:
                 "action": "add_video",
                 "author_id": author['user_id'],
                 "data": {
-                    "video_name": video_name,
-                    "creator_id": creator_id,
-                    "editor_id": editor_id,
-                    "manager_id": manager_id,
-                    "ops_id": ops_id
+                    "video_title": video_title,
+                    "channel_id": channel_id,
                 }
             }
             self.log_action(3, log_data)
 
     # function to update a video in the database
-    def update_video(self, video_id, video_name, creator_id, editor_id, manager_id, ops_id, author):
+    def update_video(self, video_id, video_title, author):
         # stores values from DB as default
         defvalue = self.get_video(video_id)
         # if value is None, set to default value
-        video_name = video_name if video_name != None else defvalue[1]
-        creator_id = creator_id if creator_id != None else defvalue[2]
-        editor_id = editor_id if editor_id != None else defvalue[3]
-        manager_id = manager_id if manager_id != None else defvalue[4]
-        ops_id = ops_id if ops_id != None else defvalue[5]
+        video_title = video_title if video_title != None else defvalue[1]
         # executes SQL command
-        sql = "UPDATE Video SET name = %s, creator_id = %s, editor_id = %s, manager_id = %s, ops_id = %s WHERE ID = %s"
-        val = (video_name, creator_id, editor_id, manager_id, ops_id, video_id)
+        sql = "UPDATE Video SET name = %s WHERE ID = %s"
+        val = (video_title, video_id)
         self.cursor.execute(sql, val)
         self.dbconnect.commit()
         # Logging
@@ -194,10 +187,7 @@ class VidSchool:
             "author_id": author['user_id'],
             "data": {
                 "video_id": video_id,
-                "video_name": video_name,
-                "creator_id": creator_id,
-                "editor_id": editor_id,
-                "manager_id": manager_id,
+                "video_title": video_title,
             }
         }
         self.log_action(3, log_data)
@@ -323,28 +313,48 @@ class VidSchool:
         result = self.cursor.fetchall()
         return result
     
-    # functino to get videos assigned to a user
+    # function to get videos assigned to a user
+    # # REWORK IN PROGRESS
     def get_videos_by_user(self, user_id, user_type):
         # creator
         if user_type == 4:
             # executes SQL command
-            sql = "SELECT * FROM Video WHERE creator_id = %s"
+            sql = "SELECT ID FROM Channel WHERE creator_id = %s"
+            val = (user_id,)
+            self.cursor.execute(sql, val)
+            Channels = self.cursor.fetchall()
+            if Channels == []:
+                return False
         # editor
         elif user_type == 3:
             # executes SQL command
-            sql = "SELECT * FROM Video WHERE editor_id = %s"
+            sql = "SELECT ID FROM Channel WHERE editor_id = %s"
+            val = (user_id,)
+            self.cursor.execute(sql, val)
+            Channels = self.cursor.fetchall()
+            if Channels == []:
+                return False
         # operations
         elif user_type == 2:
             # executes SQL command
-            sql = "SELECT * FROM Video WHERE ops_id = %s"
-        # manager
-        elif user_type == 1:
-            # executes SQL command
-            sql = "SELECT * FROM Video WHERE manager_id = %s"
-        val = (user_id,)
-        self.cursor.execute(sql, val)
-        result = self.cursor.fetchall()
-        return result
+            sql = "SELECT ID FROM Channel WHERE ops_id = %s"
+            val = (user_id,)
+            self.cursor.execute(sql, val)
+            Channels = self.cursor.fetchall()
+            if Channels == []:
+                return False
+        else:
+            return {
+                "error": "INVALID USER TYPE"
+            }
+        Videos = []
+        for i in Channels:
+            sql = "SELECT * FROM Video WHERE channel_id = %s"
+            val = (i[0],)
+            self.cursor.execute(sql, val)
+            result = self.cursor.fetchall()
+            Videos.append(result)
+        return Videos
 
     # get videos by channel
     def get_videos_by_channel(self, channel_id):

@@ -1,6 +1,5 @@
 # VideoSchool Content Management System
-
-## Description
+<br>
 This is a content management system for a video school. It allows the company to manage employees, videos and channels. The system is build using Python Flask, MySQL, and Apache Web Server.
 
 ## Features
@@ -79,5 +78,7 @@ Functionalities pending :
 
 ## TroubleShooting
 1. if getting the error that port 80 is already taken run the command `sudo lsof -i :80` in the CLI to find the process id and then run `sudo kill <process id (PID)>` to kill the process and then rerun the server start command
+
 2. if you're getting the error about the server not being able to find modules while looking in the wrong environment reinstall mod_wsgi with the --no-cache option to ensure that the correct environment is being used
+
 3. if in the error logs that the server is unable to find app.py or wsgi.py make sure you run the server setup command from within the Source directory

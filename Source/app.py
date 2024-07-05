@@ -128,17 +128,17 @@ def edit_user(user_id):
     if request.method == 'POST':                                        # Check if POST request with 'user_email', 'password' and 'user_type' in form data
         user_name = request.form['user_name']                           # Get user name from form data
         user_email = request.form['user_email']                         # Get user email from form data
-        password = request.form['password']                             # Get password from form data
+   
         user_type = request.form['user_type']                           # Get user type from form data
-
+        status = request.form['status']                                 # Get user status from form data
         try:
-            vidschool.edit_user(user_name,user_id, user_email, password, user_type, author)     # Edit user with user_id, user_email, password and user_type
+            vidschool.edit_user(user_name,user_id, user_email, user_type,status, author)        # Edit user with user_id, user_email, password and user_type
             return redirect(url_for('view_users'))                                              # Redirect to view_users page after editing user
         except Exception as e:                                                                  # Catch any exceptions and show error message
             return f'Error: {str(e)}'                                                           # Show error message
     
-    user = vidschool.get_user(user_id)                                                # Get user with user_id
-    status=userenum.userstatus                                         # Get all user status from userenum module
+    user = vidschool.get_user(user_id)                                                 # Get user with user_id
+    status=userenum.userstatus                                                         # Get all user status from userenum module
     return render_template('edit_user.html', user=user,status=status)                               # Render edit_user.html template with user
 
 # Route for '/deleteuser' to delete a user with user_id

@@ -35,7 +35,12 @@
                         </select><br><br>
 
                 <label for="status">Status:</label>
-                <input type="text" id="status" name="status" value="{{ status[user[5]] }}" readonly><br><br>
+                <select name="status" required>
+                    <option disabled selected value> Choose a status </option>
+                    <option value="0">Active</option>
+                    <option value="1">Inactive</option>
+                </select>
+                <br><br>
                 <input type="submit" value="Update">
             </form>
         </div>

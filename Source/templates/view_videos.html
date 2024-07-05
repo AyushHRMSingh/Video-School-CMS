@@ -21,12 +21,12 @@
             <tr>
                 <th>ID</th>
                 <th>Video Name</th>
-                <th>Channel ID</th>
+                <th>Channel </th>
                 <th>URL</th>
-                <th>Creator ID</th>
-                <th>Editor ID</th>
-                <th>Manager ID</th>
-                <th>ops ID</th>
+                <th>Creator </th>
+                <th>Editor </th>
+                <th>Manager </th>
+                <th>Ops </th>
                 <th>Upload Date</th>
                 <th>Status</th>
                 <th>Edit</th>
@@ -38,7 +38,7 @@
             <tr>
                 <td>{{ video[0] }}</td>
                 <td>{{ video[1] }}</td>
-                <td>{{ video[2] }}</td>
+                <td>{{ channel_dict.get(video[2], 'Unknown') }}</td>
                 <td>{{ video[3] }}</td>
                 <td>{{ creator_dict.get(video[4], 'Unknown') }}</td>
                 <td>{{ editor_dict.get(video[5], 'Unknown') }}</td>   

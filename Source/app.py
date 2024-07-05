@@ -138,7 +138,8 @@ def edit_user(user_id):
             return f'Error: {str(e)}'                                                           # Show error message
     
     user = vidschool.get_user(user_id)                                                # Get user with user_id
-    return render_template('edit_user.html', user=user)                               # Render edit_user.html template with user
+    status=userenum.userstatus                                         # Get all user status from userenum module
+    return render_template('edit_user.html', user=user,status=status)                               # Render edit_user.html template with user
 
 # Route for '/deleteuser' to delete a user with user_id
 @app.route('/delete_user/<int:user_id>')
@@ -369,6 +370,8 @@ def view_videos():
     }
     
     try:                                                                                # Try to get all videos
+        channels = vidschool.get_channels()                                             # Get all channels
+        channel_dict = {channel[0]: channel[1] for channel in channels}                 # Create dictionary with channel id as key and channel name as value
         videos = vidschool.get_videos(author)                                           # Get all videos
         creators = vidschool.get_users_by_role(4)                                       # Get all creators
         creator_dict = {creator[0]: creator[1] for creator in creators}                 # Create dictionary with creator id as key and creator name as value
@@ -380,7 +383,7 @@ def view_videos():
         ops_dict = {ops[0]: ops[1] for ops in opss}                                     # Create dictionary with ops id as key and ops name as value
 
         # Render view_videos.html template with videos data and users data for each role
-        return render_template('view_videos.html', videos=videos,creator_dict=creator_dict,editor_dict=editor_dict,manager_dict=manager_dict,ops_dict=ops_dict)                       # Render view_videos.html template with videos
+        return render_template('view_videos.html', videos=videos,channel_dict=channel_dict,creator_dict=creator_dict,editor_dict=editor_dict,manager_dict=manager_dict,ops_dict=ops_dict)                       # Render view_videos.html template with videos
     
     except Exception as e:                                                              # Catch any exceptions and show error message
         return render_template('index.html', error=str(e))                              # Render index.html template with error message

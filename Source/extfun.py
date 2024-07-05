@@ -151,12 +151,12 @@ class VidSchool:
 
     ### VIDEO FUNCTIONS
     # function to add a video to the database
-    def add_video(self, channel_id, video_title, author):
+    def add_video(self, video_title, channel_id, shoot_timestamp, edit_timestamp, upload_timestamp, status, author):
         # checks user is higher permissions than ops
         if author['user_type'] < 2:
             # executes SQL command
-            sql = "INSERT INTO Video (name, channel_id, status) VALUES (%s, %s, 0)"
-            val = (video_title, channel_id)
+            sql = "INSERT INTO Video (title, channel_id, shoot_timestamp, edit_timestamp, upload_timestamp, status) VALUES (%s, %s, %s, %s, %s, %s)"
+            val = (video_title, channel_id, shoot_timestamp, edit_timestamp, upload_timestamp, status)
             self.cursor.execute(sql, val)
             self.dbconnect.commit()
             # Logging
@@ -166,18 +166,28 @@ class VidSchool:
                 "data": {
                     "video_title": video_title,
                     "channel_id": channel_id,
+                    "shoot_timestamp": shoot_timestamp,
+                    "edit_timestamp": edit_timestamp,
+                    "upload_timestamp": upload_timestamp,
+                    "status": status
                 }
             }
             self.log_action(3, log_data)
 
     # function to update a video in the database
-    def update_video(self, video_id, video_title, author):
+    def update_video(self, video_id, video_title, channel_id, shoot_timestamp, edit_timestamp, upload_timestamp, status, comment, author):
         # stores values from DB as default
         defvalue = self.get_video(video_id)
         # if value is None, set to default value
-        video_title = video_title if video_title != None else defvalue[1]
+        video_title = video_title if video_title != None else defvalue[2]
+        channel_id = channel_id if channel_id != None else defvalue[3]
+        shoot_timestamp = shoot_timestamp if shoot_timestamp != None else defvalue[4]
+        edit_timestamp = edit_timestamp if edit_timestamp != None else defvalue[5]
+        upload_timestamp = upload_timestamp if upload_timestamp != None else defvalue[6]
+        status = status if status != None else defvalue[7]
+        comment = comment if comment != None else defvalue[8]
         # executes SQL command
-        sql = "UPDATE Video SET name = %s WHERE ID = %s"
+        sql = "UPDATE Video SET title = %s,  WHERE ID = %s"
         val = (video_title, video_id)
         self.cursor.execute(sql, val)
         self.dbconnect.commit()
@@ -188,103 +198,50 @@ class VidSchool:
             "data": {
                 "video_id": video_id,
                 "video_title": video_title,
+                "channel_id": channel_id,
+                "shoot_timestamp": shoot_timestamp,
+                "edit_timestamp": edit_timestamp,
+                "upload_timestamp": upload_timestamp,
+                "status": status
             }
         }
         self.log_action(3, log_data)
 
     # function to set the status of a video
-    def set_video_status(self, video_id, status, author, message = None):
-        # checks if message is set
-        if message != None:
-            set_message = True
-        # checks differen usertypes to check if action is permitted
+    def set_video_status(self, video_id, status, author, comment = None):
+        # checks if comment is set
+        if comment == None:
+            comment = ''
+        # checks different usertypes to check if action is permitted
         # creator
         if author['user_type'] == 4:
-            if status == 1:
-                # executes SQL command
-                sql = "UPDATE Video SET status = 1 WHERE ID = %s"
-                val = (video_id,)
-                self.cursor.execute(sql, val)
-                self.dbconnect.commit()
-                # storing log data in var
-                log_data = {
-                    "action": "set_video_status",
-                    "author_id": author['user_id'],
-                    "data": {
-                        "video_id": video_id,
-                        "status": status
-                    }
-                }
-            else:
+            if status != 0 and status != 1:
                 return {
                     "error": "You do not have permission to set that status"
                 }
         # editor
         elif author['user_type'] == 3:
-            if status == 2 or status == 3:
-                # executes SQL command
-                sql = "UPDATE Video SET status = %s WHERE ID = %s"
-                val = (status, video_id)
-                self.cursor.execute(sql, val)
-                self.dbconnect.commit()
-                # storing log data in var
-                log_data = {
-                    "action": "set_video_status",
-                    "author_id": author['user_id'],
-                    "data": {
-                        "video_id": video_id,
-                        "status": status
-                    }
-                }
-            else:
+            if status != 1 and status != 2:
                 return {
                     "error": "You do not have permission to set that status"
                 }
         # operations
         elif author['user_type'] == 2:
-            if status == 2 or status == 4:
-                sql = "UPDATE Video SET status = %s WHERE ID = %s"
-                val = (status, video_id)
-                self.cursor.execute(sql, val)
-                self.dbconnect.commit()
-                # storing log data in var
-                log_data = {
-                    "action": "set_video_status",
-                    "author_id": author['user_id'],
-                    "data": {
-                        "video_id": video_id,
-                        "status": status
-                    }
-                }
-            else:
+            if status != 2 and status != 3:
                 return {
                     "error": "You do not have permission to set that status"
                 }
-        # manager and admin
         elif author['user_type'] == 1 or author['user_type'] == 0:
-            # executes SQL command
-            sql = "UPDATE Video SET status = %s WHERE ID = %s"
-            val = (status, video_id)
-            self.cursor.execute(sql, val)
-            self.dbconnect.commit()
-            # storing log data in var
-            log_data = {
-                "action": "set_video_status",
-                "author_id": author['user_id'],
-                "data": {
-                    "video_id": video_id,
-                    "status": status
-                }
-            }
+            print("Manager or Admin")
         else:
             # return if invalid author
             return {
                 "error": "INVALID AUTHOR"
             }
-        # if message is set, add message to log data
-        if set_message:
-            log_data['data']['message'] = message
-        self.log_action(3, log_data)
+        # executes SQL command
+        sql = "UPDATE Video SET status = %s and comment = %s WHERE ID = %s"
+        # executes SQL command
+        val = (status, comment, video_id,)
     
     # function to delete a video from the database
     def set_delete_video(self, video_id, author):

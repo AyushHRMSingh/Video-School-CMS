@@ -720,7 +720,7 @@ class VidSchool:
         # converts log_data to JSON
         log_data = json.dumps(log_data)
         # executes SQL command
-        sql = "INSERT INTO LogTable (log_type, log_date,log_data) VALUES (%s, %s, %s)"
+        sql = "INSERT INTO Log_Table (type, date, data) VALUES (%s, %s, %s)"
         val = (log_type, log_time, log_data)
         self.cursor.execute(sql, val)
         self.dbconnect.commit()

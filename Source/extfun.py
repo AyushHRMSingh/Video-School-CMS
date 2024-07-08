@@ -242,6 +242,17 @@ class VidSchool:
         sql = "UPDATE Video SET status = %s and comment = %s WHERE ID = %s"
         # executes SQL command
         val = (status, comment, video_id,)
+        self.cursor.execute(sql, val)
+        self.dbconnect.commit()
+        # Logging
+        log_data = {
+            "action": "set_video_status",
+            "author_id": author['user_id'],
+            "data": {
+                "video_id": video_id,
+                "status": status
+            }
+        }
     
     # function to delete a video from the database
     def set_delete_video(self, video_id, author):

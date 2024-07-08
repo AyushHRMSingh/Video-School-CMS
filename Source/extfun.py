@@ -239,7 +239,7 @@ class VidSchool:
                 "error": "INVALID AUTHOR"
             }
         # executes SQL command
-        sql = "UPDATE Video SET status = %s and comment = %s WHERE ID = %s"
+        sql = "UPDATE Video SET status = %s, comment = %s WHERE ID = %s"
         # executes SQL command
         val = (status, comment, video_id,)
         self.cursor.execute(sql, val)

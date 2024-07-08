@@ -29,7 +29,11 @@
                 <a href="{{ url_for('view_videos_manager') }}" class="btn">View Video</a>
                 
             {% endif %}
- 
+            
+            {% if session['user_type'] == 4 %}
+                <a href="{{ url_for('view_videos_creator') }}" class="btn">View Videos</a>
+            {% endif %}
+
             <a href="{{ url_for('logout') }}" class="btn">Logout</a>
         </div>
     </div>

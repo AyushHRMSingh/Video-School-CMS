@@ -16,6 +16,7 @@ label {
   margin-top: 10px;
 }
 
+input[type="datetime-local"],
 input[type="text"],
 input[type="url"] {
   width: 100%;

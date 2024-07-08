@@ -19,51 +19,65 @@
     <table>
         <thead>
             <tr>
-                <th>ID</th>
-                <th>Video Name</th>
+                <th>ID </th>
+                <th>Video Name </th>
                 <th>Channel </th>
-                <th>URL</th>
                 <th>Creator </th>
                 <th>Editor </th>
                 <th>Manager </th>
                 <th>Ops </th>
-                <th>Upload Date</th>
-                <th>Status</th>
+                <th>Shoot Date </th>
+                <th>Edit Date </th>
+                <th>Upload Date </th>
+                <th>Status </th>
+                <th>Comment </th>
+                {% if session['user_type'] == 0 %}
                 <th>Edit</th>
                 <th>Delete</th>
+                {% endif %}
+
             </tr>
         </thead>
         <tbody>
             {% for video in videos %}
             <tr>
                 <td>{{ video[0] }}</td>
-                <td>{{ video[1] }}</td>
-                <td>{{ channel_dict.get(video[2], 'Unknown') }}</td>
-                <td>{{ video[3] }}</td>
-                <td>{{ creator_dict.get(video[4], 'Unknown') }}</td>
-                <td>{{ editor_dict.get(video[5], 'Unknown') }}</td>   
-                <td>{{ manager_dict.get(video[6], 'Unknown') }}</td>
-                <td>{{ ops_dict.get(video[7], 'Unknown') }}</td>
-                <td>{{ video[8] }}</td>
+                <td>{{ video[2] }}</td>
+                <td>{{ channel_dict.get(video[3], 'Unknown') }}</td>
+
+                {% if session['user_type'] == 0 %}
+                <td>Creator</td>
+                <td>editor</td>
+                <td>manager</td>   
+                <td>ops</td>
+
+                <td class="shoot_timestamp"> {{ video[4] }}</td>
+                <td class="edit_timestamp">{{ video[5] }}</td>
+                <td class="upload_timestamp">{{ video[6] }}</td>
+                {% endif %}
+
                 <td>
                     <form action="{{ url_for('update_video_status', video_id=video[0]) }}" method="post">
                         <select name="status" onchange="this.form.submit()">
-                            <option value="0" {% if video[9] == 0 %}selected{% endif %}>To be created</option>
-                            <option value="1" {% if video[9] == 1 %}selected{% endif %}>Shot</option>
-                            <option value="2" {% if video[9] == 2 %}selected{% endif %}>Edited</option>
-                            <option value="3" {% if video[9] == 3 %}selected{% endif %}>To be Reshot</option>
-                            <option value="4" {% if video[9] == 4 %}selected{% endif %}>To be Re-edited</option>
-                            <option value="6" {% if video[9] == 6 %}selected{% endif %}>Uploaded</option>
-                            <option value="7" {% if video[9] == 7 %}selected{% endif %}>Deleted</option>
+                            <option value="0" {% if video[7] == 0 %}selected{% endif %}>To be created</option>
+                            <option value="1" {% if video[7] == 1 %}selected{% endif %}>Shot</option>
+                            <option value="2" {% if video[7] == 2 %}selected{% endif %}>Edited</option>
+                            <option value="3" {% if video[7] == 3 %}selected{% endif %}>To be Reshot</option>
+                            <option value="4" {% if video[7] == 4 %}selected{% endif %}>To be Re-edited</option>
+                            <option value="6" {% if video[7] == 6 %}selected{% endif %}>Uploaded</option>
+                            <option value="7" {% if video[7] == 7 %}selected{% endif %}>Deleted</option>
                         </select>
                     </form>
                 </td>
+                <td> {{ video[8] }}</td>
+                {% if session['user_type'] == 0 %}
                 <td>
                     <a href="{{ url_for('edit_video', video_id=video[0]) }}" class="btn">Edit</a>
                 </td>
                 <td>
                     <a href="{{ url_for('delete_video', video_id=video[0]) }}" class="btn">Delete</a>
                 </td>
+                {% endif %}
             </tr>
             {% endfor %}
         </tbody>
@@ -71,6 +85,27 @@
 
 </div>
 </div>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const updateTimestamps = (selector) => {
+            const elements = document.querySelectorAll(selector);
+            elements.forEach(function(element) {
+                const timestamp = parseInt(element.textContent);
+                if (isNaN(timestamp) || timestamp === 0) {
+                    element.textContent = "No date specified";
+                } else {
+                    const date = new Date(timestamp * 1000);
+                    element.textContent = date.toISOString().slice(0, 19).replace('T', ' ');
+                }
+            });
+        };
+
+        updateTimestamps('.shoot_timestamp');
+        updateTimestamps('.edit_timestamp');
+        updateTimestamps('.upload_timestamp');
+    });
+</script>
+</script>
 </body>
 </html>
 

@@ -685,7 +685,7 @@ class VidSchool:
     # get all logs
     def get_logs(self):
         # executes SQL command
-        sql = "SELECT * FROM LogTable"
+        sql = "SELECT * FROM Log_Table"
         self.cursor.execute(sql)
         result = self.cursor.fetchall()
         return result

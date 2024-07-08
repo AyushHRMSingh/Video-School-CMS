@@ -27,10 +27,7 @@
                 <th>ID </th>
                 <th>Video Name </th>
                 <th>Channel </th>
-                <th>Creator </th>
-                <th>Editor </th>
-                <th>Manager </th>
-                <th>Ops </th>
+               
                 <th>Shoot Date </th>
                 <th>Edit Date </th>
                 <th>Upload Date </th>
@@ -50,13 +47,8 @@
                 <td>{{ video[0] }}</td>
                 <td>{{ video[2] }}</td>
                 <td>{{ channel_dict.get(video[3], 'Unknown') }}</td>
-
+             
                 {% if session['user_type'] == 0 %}
-                <td>Creator</td>
-                <td>editor</td>
-                <td>manager</td>   
-                <td>ops</td>
-
                 <td class="shoot_timestamp"> {{ video[4] }}</td>
                 <td class="edit_timestamp">{{ video[5] }}</td>
                 <td class="upload_timestamp">{{ video[6] }}</td>

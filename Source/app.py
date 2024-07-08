@@ -373,17 +373,9 @@ def view_videos():
         channels = vidschool.get_channels()                                             # Get all channels
         channel_dict = {channel[0]: channel[1] for channel in channels}                 # Create dictionary with channel id as key and channel name as value
         videos = vidschool.get_videos(author)                                           # Get all videos
-        creators = vidschool.get_users_by_role(4)                                       # Get all creators
-        creator_dict = {creator[0]: creator[1] for creator in creators}                 # Create dictionary with creator id as key and creator name as value
-        editors = vidschool.get_users_by_role(3)                                        # Get all editors
-        editor_dict = {editor[0]: editor[1] for editor in editors}                      # Create dictionary with editor id as key and editor name as value
-        managers = vidschool.get_users_by_role(1)                                       # Get all managers
-        manager_dict = {manager[0]: manager[1] for manager in managers}                 # Create dictionary with manager id as key and manager name as value
-        opss = vidschool.get_users_by_role(2)                                           # Get all opss
-        ops_dict = {ops[0]: ops[1] for ops in opss}                                     # Create dictionary with ops id as key and ops name as value
         
         # Render view_videos.html template with videos data and users data for each role
-        return render_template('view_videos.html',channels=channels, videos=videos,channel_dict=channel_dict,creator_dict=creator_dict,editor_dict=editor_dict,manager_dict=manager_dict,ops_dict=ops_dict)                       # Render view_videos.html template with videos
+        return render_template('view_videos.html', videos=videos,channels=channels,channel_dict=channel_dict)                       # Render view_videos.html template with videos
     
     except Exception as e:                                                              # Catch any exceptions and show error message
         return render_template('index.html', error=str(e))                              # Render index.html template with error message

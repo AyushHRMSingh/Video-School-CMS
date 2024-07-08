@@ -47,12 +47,12 @@
                 <td>{{ video[0] }}</td>
                 <td>{{ video[2] }}</td>
                 <td>{{ channel_dict.get(video[3], 'Unknown') }}</td>
-             
-                {% if session['user_type'] == 0 %}
+
+                
                 <td class="shoot_timestamp"> {{ video[4] }}</td>
                 <td class="edit_timestamp">{{ video[5] }}</td>
                 <td class="upload_timestamp">{{ video[6] }}</td>
-                {% endif %}
+
                 
                 <td>  {% set status_dict = {
                     0: "TO BE CREATED",
@@ -139,7 +139,7 @@
                     </div>
                     <div class="form-group">
                         <label for="comment">Comment</label>
-                        <textarea name="comment" id="comment" class="form-control">Enter Comment:</textarea>
+                        <textarea name="comment" id="comment" class="form-control"></textarea>
                     </div>
                     <button type="submit" class="btn btn-primary">Submit</button>
                 </form>

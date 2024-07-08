@@ -547,6 +547,16 @@ def view_videos_creator():
     except Exception as e:                                                              # Catch any exceptions and show error message
         return render_template('index.html', error=str(e))                              # Render index.html template with error message
 
+# Custom Jinja2 filter for datetime formatting
+@app.template_filter('datetimeformat')
+def datetimeformat(value):
+    if value is None:
+        return ''
+    return datetime.fromtimestamp(value).strftime('%Y-%m-%dT%H:%M')
+
+# Register the filter
+app.jinja_env.filters['datetimeformat'] = datetimeformat
+
 # Main entry point of the application
 if __name__ == '__main__':
     vidschool.setupdb()                                            # Setup any necessary components from extfun module

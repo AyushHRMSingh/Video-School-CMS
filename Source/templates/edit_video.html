@@ -26,24 +26,23 @@
             <br>  
             <label for="status">Video Status:</label>
                 <select name="status" id="status" class="select" required>
-                    <option disabled selected value> Set Video Status </option>
-                    <option value="0" >To be created</option>
-                    <option value="1" >Shot</option>
-                    <option value="2" >Edited</option>
-                    <option value="3" >To be Reshot</option>
-                    <option value="4" >To be Re-edited</option>
-                    <option value="6" >Uploaded</option>
-                    <option value="7" >Deleted</option>
+                    <option value="0" {% if video[7] == 0 %}selected{% endif %}>To be created</option>
+                    <option value="1" {% if video[7] == 1 %}selected{% endif %}>Shot</option>
+                    <option value="2" {% if video[7] == 2 %}selected{% endif %}>Edited</option>
+                    <option value="3" {% if video[7] == 3 %}selected{% endif %}>To be Reshot</option>
+                    <option value="4" {% if video[7] == 4 %}selected{% endif %}>To be Re-edited</option>
+                    <option value="6" {% if video[7] == 6 %}selected{% endif %}>Uploaded</option>
+                    <option value="7" {% if video[7] == 7 %}selected{% endif %}>Deleted</option>
                 </select>
             <br>
             <label for="shoot_timestamp">Shoot Timestamp:</label>
-            <input type="datetime-local" id="shoot_timestamp" name="shoot_timestamp" >
+            <input type="datetime-local" id="shoot_timestamp" name="shoot_timestamp" value="{{ video[4]|datetimeformat }}">
             <br>
             <label for="edit_timestamp">Edit Timestamp:</label>
-            <input type="datetime-local" id="edit_timestamp" name="edit_timestamp" >
+            <input type="datetime-local" id="edit_timestamp" name="edit_timestamp" value="{{ video[5]|datetimeformat }}">
             <br>
             <label for="upload_timestamp">Upload Timestamp:</label>
-            <input type="datetime-local" id="upload_timestamp" name="upload_timestamp" >
+            <input type="datetime-local" id="upload_timestamp" name="upload_timestamp" value="{{ video[6]|datetimeformat }}">
             <br>
             <label for="comment">Comment</label>
             <textarea name="comment" id="comment" ></textarea>

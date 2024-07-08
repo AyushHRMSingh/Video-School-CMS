@@ -454,26 +454,28 @@ def delete_video(video_id):
 
 # Route for '/updatevideostatus' to update video status
 # Route for updating video status
-@app.route('/update_video_status/<int:video_id>', methods=['POST'])
-def update_video_status(video_id):
-    if 'loggedin' not in session:                                                       # Check if user is logged in
-        return redirect(url_for('login'))                                               # Redirect to login page if user is not logged in
+@app.route('/update_video_status', methods=['POST'])
+def update_video_status():
+    if 'loggedin' not in session:  # Check if user is logged in
+        return redirect(url_for('login'))  # Redirect to login page if user is not logged in
 
-    status = request.form['status']                                                     # Get new status from form data
-    author = {                                                                          # Author dictionary with user_id, user_email and user_type
-        "user_id": session.get("user_id"),                                              # Get user id from session
-        "user_email": session.get("user_email"),                                        # Get user email from session
-        "user_type": session.get("user_type"),                                          # Get user type from session
+    video_id = request.form['video_id']
+    status = request.form['status']  # Get new status from form data
+    comment = request.form['comment']
+    author = {  # Author dictionary with user_id, user_email and user_type
+        "user_id": session.get("user_id"),  # Get user id from session
+        "user_email": session.get("user_email"),  # Get user email from session
+        "user_type": session.get("user_type"),  # Get user type from session
     }
-   #temp comment
-    comment = None
-    try:                                                                                # Try to update video status with video_id and status
-        vidschool.set_video_status(video_id, int(status), author,comment)               # Update video status with video_id and status
-        msg = 'Video status updated successfully!'                                      # Set success message
-    except Exception as e:                                                              # Catch any exceptions and show error message
-        msg = f'Error: {str(e)}'                                                        # Show error message
 
-    return redirect(url_for('view_videos', msg=msg))                                    # Redirect back to view_videos page after updating
+    try:  # Try to update video status with video_id and status
+        vidschool.set_video_status(int(video_id), int(status), author, comment)  # Update video status with video_id and status
+        msg = 'Video status updated successfully!'  # Set success message
+    except Exception as e:  # Catch any exceptions and show error message
+        msg = f'Error: {str(e)}'  # Show error message
+
+    return redirect(url_for('view_videos', msg=msg))  # Redirect back to view_videos page after updating
+
 
 @app.route('/view_channels_manager')
 def view_channels_manager():

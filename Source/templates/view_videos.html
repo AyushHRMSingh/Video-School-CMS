@@ -5,9 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>View Videos</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='view_videos_style.css') }}">
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Include jQuery and Bootstrap JS -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
 </head>
 <body>
-    <a href="{{ url_for('index') }}" class="btn">Back to Dashboard</a>
+    <a href="{{ url_for('index') }}" class="btn btn-primary">Back to Dashboard</a>
     <div class="view-videos-container">
         <div class="border">
             <div class="header">
@@ -29,7 +34,8 @@
                 <th>Shoot Date </th>
                 <th>Edit Date </th>
                 <th>Upload Date </th>
-                <th>Status </th>
+                <th>Status</th>
+                <th> Update Status </th>
                 <th>Comment </th>
                 {% if session['user_type'] == 0 %}
                 <th>Edit</th>
@@ -55,19 +61,20 @@
                 <td class="edit_timestamp">{{ video[5] }}</td>
                 <td class="upload_timestamp">{{ video[6] }}</td>
                 {% endif %}
-
+                
+                <td>  {% set status_dict = {
+                    0: "TO BE CREATED",
+                    1: "SHOT",
+                    2: "EDITED",
+                    3: "TO BE RESHOT",
+                    4: "TO BE REDITED",
+                    6: "UPLOADED",
+                    7: "DELETED"
+                } %}
+                {{ status_dict[video[7]] }}
+                </td>
                 <td>
-                    <form action="{{ url_for('update_video_status', video_id=video[0]) }}" method="post">
-                        <select name="status" onchange="this.form.submit()">
-                            <option value="0" {% if video[7] == 0 %}selected{% endif %}>To be created</option>
-                            <option value="1" {% if video[7] == 1 %}selected{% endif %}>Shot</option>
-                            <option value="2" {% if video[7] == 2 %}selected{% endif %}>Edited</option>
-                            <option value="3" {% if video[7] == 3 %}selected{% endif %}>To be Reshot</option>
-                            <option value="4" {% if video[7] == 4 %}selected{% endif %}>To be Re-edited</option>
-                            <option value="6" {% if video[7] == 6 %}selected{% endif %}>Uploaded</option>
-                            <option value="7" {% if video[7] == 7 %}selected{% endif %}>Deleted</option>
-                        </select>
-                    </form>
+                    <button type="button" class="btn btn-primary" onclick="openModal('{{ video[0] }}',' {{ video[7] }}', '{{ video[8] }}')">Update Status</button>
                 </td>
                 <td> {{ video[8] }}</td>
                 {% if session['user_type'] == 0 %}
@@ -104,8 +111,50 @@
         updateTimestamps('.edit_timestamp');
         updateTimestamps('.upload_timestamp');
     });
+    // Function to open modal and set video_id in the form
+    function openModal(video_id, status, comment) {
+            document.getElementById('video_id').value = video_id;
+            document.getElementById('status').value = status;
+            document.getElementById('comment').value = comment || '';
+            $('#updateModal').modal('show');
+    }
 </script>
-</script>
+ <!-- Modal -->
+ <div class="modal fade" id="updateModal" tabindex="-1" role="dialog" aria-labelledby="updateModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="updateModalLabel">Update Video Status</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form action="{{ url_for('update_video_status') }}" method="post" id="updateStatusForm">
+                    <input type="hidden" name="video_id" id="video_id">
+                    <div class="form-group">
+                        <label for="status">Status</label>
+                        <select name="status" id="status" class="form-control">
+                            <option disabled selected value> Set Video Status </option>
+                            <option value="0">To be created</option>
+                            <option value="1">Shot</option>
+                            <option value="2">Edited</option>
+                            <option value="3">To be Reshot</option>
+                            <option value="4">To be Re-edited</option>
+                            <option value="6">Uploaded</option>
+                            <option value="7">Deleted</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="comment">Comment</label>
+                        <textarea name="comment" id="comment" class="form-control">Enter Comment:</textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 </body>
 </html>
 

@@ -390,29 +390,31 @@ def edit_video(video_id):
     msg = ''                                                                            # Initialize message to empty string
 
     video = vidschool.get_video(video_id)                                               # Get video with video_id
-    if request.method == 'POST':                                                        # Check if POST request with 'video_name', 'creator_id', 'editor_id', 'manager_id' and 'ops_id' in form data
-        video_name = request.form.get('video_name')                                     # Get video name from form data
-        creator_id = request.form.get('creator_id')                                     # Get creator id from form data
-        editor_id = request.form.get('editor_id')                                       # Get editor id from form data
-        manager_id = request.form.get('manager_id')                                     # Get manager id from form data
-        ops_id = request.form.get('ops_id')                                             # Get ops id from form data
+    if request.method == 'POST':                                                        # Check if POST request with 'video_name', 'creator_id', 'editor_id' and 'manager_id' in form data
+        video_title = request.form['video_name']                                         # Get video name from form data
+        channel_id = request.form['channel_id']                                         # Get channel id from form data
+        status = request.form['status']                                                 # Get video status from form data
+         # Convert datetime strings to Unix timestamps if provided, otherwise set to None
+        shoot_timestamp = request.form['shoot_timestamp']
+        shoot_timestamp = int(datetime.strptime(shoot_timestamp, '%Y-%m-%dT%H:%M').timestamp()) if shoot_timestamp else None
         
-
+        edit_timestamp = request.form['edit_timestamp']
+        edit_timestamp = int(datetime.strptime(edit_timestamp, '%Y-%m-%dT%H:%M').timestamp()) if edit_timestamp else None
+        
+        upload_timestamp = request.form['upload_timestamp']
+        upload_timestamp = int(datetime.strptime(upload_timestamp, '%Y-%m-%dT%H:%M').timestamp()) if upload_timestamp else None
+        comment=request.form['comment']
         author = {                                                                      # Author dictionary with user_id, user_email and user_type
             "user_id": session.get("user_id"),                                          # Get user id from session
             "user_email": session.get("user_email"),                                    # Get user email from session
             "user_type": session.get("user_type"),                                      # Get user type from session
         }
 
-        # Try to update video with video_id, video_name, creator_id, editor_id, manager_id,ops_id
-        try:              
-            # Call external function to update video with video_id, video_name, creator_id, editor_id, manager_id,ops_id                                                                                         
-            vidschool.update_video(video_id, video_name, creator_id, editor_id, manager_id, ops_id, author)   
-
-            msg = 'Video updated successfully!'                                                                    # Set success message
-        except Exception as e:                                                                                     # Catch any exceptions and show error message
-            msg = f'Error: {str(e)}'                                                                               # Show error message
-
+        try:                                                                                                      # Try to add video with video_name, creator_id, editor_id, manager_id,oops_id
+            vidschool.update_video(video_id=video_id,video_title=video_title,channel_id=channel_id,shoot_timestamp=shoot_timestamp,edit_timestamp=edit_timestamp,upload_timestamp=upload_timestamp,status=status,comment=comment,author=author)                                                  
+            msg = 'Video updated successfully!'                                                                     # Set message
+        except Exception as e:                                                                                    # Catch any exceptions and show error message
+            msg = f'Error: {str(e)}'                                                                              # Show error message
     # Fetch users for each role
     creators = vidschool.get_users_by_role(4)                                                                     # Get all creators
     editors = vidschool.get_users_by_role(3)                                                                      # Get all editors

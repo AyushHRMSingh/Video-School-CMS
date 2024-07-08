@@ -15,7 +15,7 @@ form {
 label {
   margin-top: 10px;
 }
-
+textarea,
 input[type="datetime-local"],
 input[type="text"],
 input[type="url"] {
@@ -42,7 +42,7 @@ input[type="submit"]:hover {
   background-color: #45a049;
 }
 
-.add-channel-container {
+.add-video-container {
   width: 400px;
   margin: 0 auto;
   padding: 20px;

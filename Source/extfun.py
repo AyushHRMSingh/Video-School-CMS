@@ -187,8 +187,13 @@ class VidSchool:
         status = status if status != None else defvalue[7]
         comment = comment if comment != None else defvalue[8]
         # executes SQL command
-        sql = "UPDATE Video SET title = %s,  WHERE ID = %s"
-        val = (video_title, video_id)
+       # executes SQL command
+        sql = """
+            UPDATE Video 
+            SET title = %s, channel_id = %s, shoot_timestamp = %s, edit_timestamp = %s, upload_timestamp = %s, status = %s, comment = %s 
+            WHERE id = %s
+        """
+        val = (video_title, channel_id, shoot_timestamp, edit_timestamp, upload_timestamp, status, comment, video_id)
         self.cursor.execute(sql, val)
         self.dbconnect.commit()
         # Logging

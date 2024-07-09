@@ -1,6 +1,7 @@
 # Import necessary modules
 from extfun import VidSchool
 from flask import Flask, render_template, request, redirect, url_for, session
+import flask
 import envfile
 import userenum
 import platform_type
@@ -9,7 +10,13 @@ host = envfile.host                                    # Get host from envfile
 username = envfile.dbuser                              # Get username from envfile
 password = envfile.dbpass                              # Get password from envfile
 dbname = envfile.dbname                                # Get dbname from envfile
-
+import google.oauth2.credentials
+import google_auth_oauthlib.flow
+from googleapiclient.discovery import build
+import requests
+# set the environment variable for the google api testing
+import os
+os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 # Initialize Flask application
 app = Flask(__name__)
 
@@ -213,7 +220,7 @@ def add_channel():
     if 'loggedin' not in session or session.get('user_type') != 0:    # Check if user is logged in and is an admin
         return redirect(url_for('login'))                             # Redirect to login page if user is not logged in or is not an admin
     msg = ''
-
+    
     # Check if POST request with 'channel_name', 'url' and 'platform' in form data
     if request.method == 'POST' and 'channel_name' in request.form and 'url' in request.form and 'platform' in request.form: 
         channel_name = request.form['channel_name']                   # Get channel name from form data
@@ -594,7 +601,100 @@ def datetimeformat(value):
 # Register the filter
 app.jinja_env.filters['datetimeformat'] = datetimeformat
 
+@app.route('/view_channel_details/<int:channel_id>')
+def view_channel_details(channel_id):
+    if 'loggedin' not in session:
+        return redirect(url_for('login'))
+    msg = ''
+    try:
+        channel = vidschool.get_channel(channel_id)
+        return render_template('view_channel_details.html', channel=channel)
+    except Exception as e:
+        msg = f'Error: {str(e)}'
+        return render_template('index.html', msg=msg)
+
+#youtube api implementation
+CLIENT_SECRETS_FILE = "client_secrets.json"
+SCOPES = ['https://www.googleapis.com/auth/youtube.readonly',
+          'https://www.googleapis.com/auth/yt-analytics.readonly',
+          'https://www.googleapis.com/auth/yt-analytics-monetary.readonly',
+          'https://www.googleapis.com/auth/userinfo.profile'
+          ]  
+API_SERVICE_NAME1 = 'youtubeAnalytics'
+API_VERSION1 = 'v2'
+METRICS = [
+    "views",
+    "redViews",
+    "comments",
+    "likes",
+    "dislikes",
+    "videosAddedToPlaylists",
+    "videosRemovedFromPlaylists",
+    "shares",
+    "estimatedMinutesWatched",
+    "estimatedRedMinutesWatched",
+    "averageViewDuration",
+    "averageViewPercentage",
+    "annotationClickThroughRate",
+    "annotationCloseRate",
+    "annotationImpressions",
+    "annotationClickableImpressions",
+    "annotationClosableImpressions",
+    "annotationClicks",
+    "annotationCloses",
+    "cardClickRate",
+    "cardTeaserClickRate",
+    "cardImpressions",
+    "cardTeaserImpressions",
+    "cardClicks",
+    "cardTeaserClicks",
+    "subscribersGained",
+    "subscribersLost"
+]
+
+# Oauth page 1
+@app.route('/oauth')
+def oauth():
+    flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
+        CLIENT_SECRETS_FILE, scopes=SCOPES)
+    flow.redirect_uri = flask.url_for('oauth2callback', _external=True)
+    auth_url,state = flow.authorization_url(
+        access_type='offline',
+        include_granted_scopes='true')
+    flask.session['state'] = state
+    
+    return flask.redirect(auth_url)
+
+# Oauth page 2
+@app.route('/oauth2callback')
+def oauth2callback():
+    state = flask.session['state']
+    flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
+      CLIENT_SECRETS_FILE, scopes=SCOPES, state=state)
+    flow.redirect_uri = flask.url_for('oauth2callback', _external=True)
+    auth_response = flask.request.url
+    flow.fetch_token(authorization_response=auth_response)
+    
+    credentials = flow.credentials
+    youtube = build('youtube', 'v3', credentials=credentials)
+    request = youtube.channels().list(
+        part="snippet",
+        mine=True
+    )
+    response = request.execute()
+    if response['items']:
+        channel_name = response['items'][0]['snippet']['title']
+    else:
+        channel_name = "No channel found"
+    flask.session['channel_name'] = channel_name  # Store channel name in session
+    flask.session['credentials'] = credentials.to_json()
+    print(flask.session['credentials'])
+    return flask.redirect(flask.url_for("add_channel"))
+
+# Set account for use
+
+
 # Main entry point of the application
 if __name__ == '__main__':
     vidschool.setupdb()                                            # Setup any necessary components from extfun module
-    app.run(debug=True)                                            # Run the Flask application in debug mode
+    app.run(debug=True, port=8080,host='localhost')                                            # Run the Flask application in debug mode

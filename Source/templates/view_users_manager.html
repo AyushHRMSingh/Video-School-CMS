@@ -38,8 +38,6 @@
                             <th>Email</th>                   
                             <th>Role</th>
                             <th>Status</th>
-                            <th>Edit</th>
-                            <th>Delete</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -50,10 +48,7 @@
                                 <td>{{ user[2] }}</td>
                                 <td>{{ roles[user[4]] }}</td>
                                 <td>{{ status[user[5]] }}</td>
-                                <td>
-                                    <a href="{{ url_for('edit_user', user_id=user[0]) }}" class="btn">Edit</a>
-                                </td>
-                                <td><button onclick="confirmDeletion('{{ user[0] }}')" class="btn">Delete</button></td>
+                               
                             </tr>
                         {% endfor %}
                     </tbody>

@@ -203,7 +203,7 @@ def add_video():
         except Exception as e:                                                                                    # Catch any exceptions and show error message
             msg = f'Error: {str(e)}'                                                                              # Show error message
     
-    channels=vidschool.get_channels()                                                                              # Get all channels
+    channels = vidschool.get_channels                                                                             # Get all channels
     # Render add_video.html template with current message and users data for each role 
     return render_template('add_video.html', msg=msg,channels=channels)                                             # Render add_video.html template with current message
 
@@ -501,6 +501,43 @@ def view_channels_manager():
     # Render view_channels.html template with channels data
     return render_template('view_channels.html', channels=channels,platform_id=platform_id,creator_dict=creator_dict,editor_dict=editor_dict,manager_dict=manager_dict,ops_dict=ops_dict, msg='')
 
+# Route for '/addvideo_manager', handles both GET and POST requests
+@app.route('/add_video_manager', methods=['GET', 'POST'])
+def add_video_manager():
+    if 'loggedin' not in session or session.get('user_type') not in [0, 1]:            # Check if user is logged in and is an admin or manager
+        return redirect(url_for('login'))                                              # Redirect to login page if user is not logged in or is not an admin or manager
+    
+    msg = ''                                                                            # Initialize message to empty string
+    if request.method == 'POST':                                                        # Check if POST request with 'video_name', 'creator_id', 'editor_id' and 'manager_id' in form data
+        video_title = request.form['video_name']                                         # Get video name from form data
+        channel_id = request.form['channel_id']                                         # Get channel id from form data
+        status = request.form['status']                                                 # Get video status from form data
+         # Convert datetime strings to Unix timestamps if provided, otherwise set to None
+        shoot_timestamp = request.form['shoot_timestamp']
+        shoot_timestamp = int(datetime.strptime(shoot_timestamp, '%Y-%m-%dT%H:%M').timestamp()) if shoot_timestamp else None
+        
+        edit_timestamp = request.form['edit_timestamp']
+        edit_timestamp = int(datetime.strptime(edit_timestamp, '%Y-%m-%dT%H:%M').timestamp()) if edit_timestamp else None
+        
+        upload_timestamp = request.form['upload_timestamp']
+        upload_timestamp = int(datetime.strptime(upload_timestamp, '%Y-%m-%dT%H:%M').timestamp()) if upload_timestamp else None
+        author = {                                                                      # Author dictionary with user_id, user_email and user_type
+            "user_id": session.get("user_id"),                                          # Get user id from session
+            "user_email": session.get("user_email"),                                    # Get user email from session
+            "user_type": session.get("user_type"),                                      # Get user type from session
+        }
+
+        try:                                                                                                      # Try to add video with video_name, creator_id, editor_id, manager_id,oops_id
+            vidschool.add_video(video_title=video_title,channel_id=channel_id,shoot_timestamp=shoot_timestamp,edit_timestamp=edit_timestamp,upload_timestamp=upload_timestamp,status=status,author=author)                                                  
+            msg = 'Video added successfully!'                                                                     # Set message
+        except Exception as e:                                                                                    # Catch any exceptions and show error message
+            msg = f'Error: {str(e)}'                                                                              # Show error message
+    user_id = session['user_id']                                           # Get the logged-in user's ID
+    user_type = session['user_type']                                       # Get the logged-in user's type
+    channels = vidschool.get_channels_by_user(user_id,user_type)                                                                             # Get all channels
+    # Render add_video.html template with current message and users data for each role 
+    return render_template('add_video_manager.html', msg=msg,channels=channels)                                             # Render add_video.html template with current message
+
 @app.route('/view_videos_manager')
 def view_videos_manager():
     if 'loggedin' not in session or session.get('user_type') != 1:             # Check if user is logged in and is an admin or manager
@@ -512,16 +549,18 @@ def view_videos_manager():
             "user_email": session.get("user_email"),                                         # Get user email from session
             "user_type": session.get("user_type"),                                           # Get user type from session
             }
-            channels = vidschool.get_channels()                                             # Get all channels
+            
+            channels = vidschool.get_channels()                                              # Get all channels
             channel_dict = {channel[0]: channel[1] for channel in channels}                 # Create dictionary with channel id as key and channel name as value
             videos = vidschool.get_videos(author)                                           # Get all videos
             
             # Render view_videos.html template with videos data and users data for each role
-            return render_template('view_videos.html', videos=videos,channels=channels,channel_dict=channel_dict)                       # Render view_videos.html template with videos
+            return render_template('view_videos_manager.html', videos=videos,channels=channels,channel_dict=channel_dict)                       # Render view_videos.html template with videos
             
             
     except Exception as e:                                                              # Catch any exceptions and show error message
         return render_template('index.html', error=str(e))                              # Render index.html template with error message
+
 
 
 @app.route('/view_videos_creator')
@@ -542,6 +581,8 @@ def view_videos_creator():
     
     except Exception as e:                                                              # Catch any exceptions and show error message
         return render_template('index.html', error=str(e))                              # Render index.html template with error message
+
+
 
 # Custom Jinja2 filter for datetime formatting
 @app.template_filter('datetimeformat')

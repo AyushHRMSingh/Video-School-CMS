@@ -23,9 +23,11 @@
                 <a href="{{ url_for('add_video') }}" class="btn">Add Video</a>
                 <a href="{{ url_for('view_videos') }}" class="btn">View Videos</a>
             {% endif %}
-
+ 
             {% if session['user_type'] == 1 %}
+
                 <a href="{{ url_for('view_channels_manager') }}" class="btn">View Channels</a>
+                <a href="{{ url_for('add_video_manager') }}" class="btn">Add Video</a>
                 <a href="{{ url_for('view_videos_manager') }}" class="btn">View Video</a>
                 
             {% endif %}

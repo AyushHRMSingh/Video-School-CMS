@@ -325,6 +325,13 @@ class VidSchool:
             Videos.append(result)
         return Videos
 
+    def get_credentials(self, channel_id):
+        sql = "SELECT token FROM Channel WHERE ID = %s"
+        val = (channel_id,)
+        self.cursor.execute(sql, val)
+        result = self.cursor.fetchone()
+        return result
+
     def set_video_uploaded(self, video_id, url,author):
         if author['user_type'] <= 2:
             sql = "UPDATE Video SET status = 3, url = %s WHERE ID = %s"

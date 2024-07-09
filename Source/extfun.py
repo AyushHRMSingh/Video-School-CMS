@@ -188,11 +188,7 @@ class VidSchool:
         comment = comment if comment != None else defvalue[8]
         # executes SQL command
        # executes SQL command
-        sql = """
-            UPDATE Video 
-            SET title = %s, channel_id = %s, shoot_timestamp = %s, edit_timestamp = %s, upload_timestamp = %s, status = %s, comment = %s 
-            WHERE id = %s
-        """
+        sql = "UPDATE Video SET title = %s, channel_id = %s, shoot_timestamp = %s, edit_timestamp = %s, upload_timestamp = %s, status = %s, comment = %s WHERE id = %s"
         val = (video_title, channel_id, shoot_timestamp, edit_timestamp, upload_timestamp, status, comment, video_id)
         self.cursor.execute(sql, val)
         self.dbconnect.commit()
@@ -329,6 +325,70 @@ class VidSchool:
             Videos.append(result)
         return Videos
 
+    def set_video_uploaded(self, video_id, url,author):
+        if author['user_type'] <= 2:
+            sql = "UPDATE Video SET status = 3, url = %s WHERE ID = %s"
+            val = (url, video_id)
+            self.cursor.execute(sql, val)
+            self.dbconnect.commit()
+            log_data = {
+                "action":"upload video",
+                "author_id": author['user_id'],
+                "data": {
+                    "video_id": video_id,
+                    "url": url
+                }
+            }
+            self.log_action(3, log_data)
+        else:
+            return {
+                "error": "You do not have permission to upload videos"
+            }
+
+    def get_relevant_videos(self, user_id,user_type):
+        if user_type == 4:
+            sql = "SELECT * FROM Channel WHERE creator_id = %s"
+            val = (user_id,)
+            self.cursor.execute(sql, val)
+            Channels = self.cursor.fetchall()
+            if Channels == []:
+                return False
+            video = []
+            for I in Channels:
+                sql = "SELECT * FROM Video WHERE channel_id = %s AND (status = 0 OR status = 3)"
+                val = (I[0],)
+                self.cursor.execute(sql, val)
+                result = self.cursor.fetchall()
+                video.append(result)
+        elif user_type == 3:
+            sql = "SELECT * FROM Channel WHERE editor_id = %s"
+            val = (user_id,)
+            self.cursor.execute(sql, val)
+            Channels = self.cursor.fetchall()
+            if Channels == []:
+                return False
+            video = []
+            for I in Channels:
+                sql = "SELECT * FROM Video WHERE channel_id = %s AND (status = 1 OR status = 4)"
+                val = (I[0],)
+                self.cursor.execute(sql, val)
+                result = self.cursor.fetchall()
+                video.append(result)
+        elif user_type == 2:
+            sql = "SELECT * FROM Channel WHERE ops_id = %s"
+            val = (user_id,)
+            self.cursor.execute(sql, val)
+            Channels = self.cursor.fetchall()
+            if Channels == []:
+                return False
+            video = []
+            for I in Channels:
+                sql = "SELECT * FROM Video WHERE channel_id = %s AND status = 2"
+                val = (I[0],)
+                self.cursor.execute(sql, val)
+                result = self.cursor.fetchall()
+                video.append(result)
+
     # get videos by channel
     def get_videos_by_channel(self, channel_id):
         # executes SQL command
@@ -385,17 +445,17 @@ class VidSchool:
 
     ### CHANNEL FUNCTIONS
     # # TO BE REPLACED FOR GOOGLE INTEGRATION
-    def add_channel(self, channel_name, url, platform, creator_id, editor_id, manager_id, ops_id, author):
+    def add_channel(self, channel_name, platform, creator_id, editor_id, manager_id, ops_id, author):
         # checks if user is admin
         if author['user_type'] == 0:
             # executes SQL command
-            sql = "INSERT INTO Channel (name, url ,platform, creator_id, editor_id, manager_id, ops_id, status) VALUES (%s, %s, %s, %s, %s, %s, %s, 0)"
-            val = (channel_name, url, platform, creator_id, editor_id, manager_id, ops_id)
+            sql = "INSERT INTO Channel (name ,platform, creator_id, editor_id, manager_id, ops_id, status) VALUES (%s, %s, %s, %s, %s, %s, %s, 0)"
+            val = (channel_name, platform, creator_id, editor_id, manager_id, ops_id)
             self.cursor.execute(sql, val)
             self.dbconnect.commit()
             # gets channel ID after adding
-            sql = "SELECT ID FROM Channel WHERE name = %s AND url = %s AND platform = %s"
-            val = (channel_name, url, platform)
+            sql = "SELECT ID FROM Channel WHERE name = %s AND AND platform = %s"
+            val = (channel_name, platform)
             self.cursor.execute(sql, val)
             channel = self.cursor.fetchone()
             channel_id = channel[0]
@@ -446,15 +506,41 @@ class VidSchool:
             }
             self.log_action(2, log_data)
 
+    def get_credentials(self, channel_id):
+        sql = "SELECT token FROM Channel WHERE ID = %s"
+        val = (channel_id,)
+        self.cursor.execute(sql, val)
+        result = self.cursor.fetchone()
+        return result
+
+    def link_channel(self, channel_id, token, author):
+        if author['user_type'] == 0:
+            jsontoken = json.dumps(token)
+            sql = "INSERT INTO Channel (token) VALUES (%s) WHERE ID = %s"
+            val = (jsontoken, channel_id)
+            self.cursor.execute(sql, val)
+            self.dbconnect.commit()
+            log_data = {
+                "action": "link_channel",
+                "author_id": author['user_id'],
+                "data": {
+                    "channel_id": channel_id,
+                    "token": token
+                }
+            }
+        else:
+            return {
+                "error": "You do not have permission to link channels"
+            }
+
     # function to edit a channel in the database
-    def edit_channel(self, channel_id, channel_name, url, platform, creator_id, editor_id, manager_id, ops_id, status, author):
+    def edit_channel(self, channel_id, channel_name, platform, creator_id, editor_id, manager_id, ops_id, status, author):
         # checks if user is admin
         if author['user_type'] == 0:
             # stores default values from DB
             defvalue = self.get_channel(channel_id)
             # sets values to default if None
             channel_name = channel_name if channel_name != None else defvalue[1]
-            url = url if url != None else defvalue[2]
             platform = platform if platform != None else defvalue[3]
             creator_id = creator_id if creator_id != None else defvalue[4]
             editor_id = editor_id if editor_id != None else defvalue[5]
@@ -462,8 +548,8 @@ class VidSchool:
             ops_id = ops_id if ops_id != None else defvalue[7]
             status = status if status != None else defvalue[8]
             # executes SQL command
-            sql = "UPDATE Channel SET name = %s, url=%s, platform = %s, creator_id = %s, editor_id = %s, manager_id = %s, ops_id = %s, status = %s WHERE ID = %s"
-            val = (channel_name, url, platform, creator_id, editor_id, manager_id, ops_id, status, channel_id)
+            sql = "UPDATE Channel SET name = %s, platform = %s, creator_id = %s, editor_id = %s, manager_id = %s, ops_id = %s, status = %s WHERE ID = %s"
+            val = (channel_name, platform, creator_id, editor_id, manager_id, ops_id, status, channel_id)
             self.cursor.execute(sql, val)
             self.dbconnect.commit()
             # logging

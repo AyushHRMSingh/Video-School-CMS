@@ -165,3 +165,5 @@ vsenv
 envfile.py
 Server/
 client_secrets.json
+
+uploaded.csv

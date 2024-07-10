@@ -428,9 +428,11 @@ def edit_video(video_id):
     # Fetch users for each role
     
     channels = vidschool.get_channels()                                                                           # Get all channels
- 
+    author= {
+        "user_type": session.get("user_type")
+    }
     # Render edit_video.html template with video and users data for each role
-    return render_template('edit_video.html', video=video,channels=channels, msg=msg)                                                # Render edit_video.html template with video and message
+    return render_template('edit_video.html', video=video,channels=channels, msg=msg,author=author)                                                # Render edit_video.html template with video and message
 
 # Route for '/deletevideo' to delete a video with video_id
 # Route for deleting a video

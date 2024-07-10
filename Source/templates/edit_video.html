@@ -7,7 +7,12 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='add_video_style.css') }}">
 </head>
 <body>
-    <a href="{{ url_for('view_videos') }}" class="btn">Back to View Videos</a>
+    {% if session['user_type'] == 0 %}
+    <a href="{{ url_for('view_videos') }}" class="btn">Back to View </a>
+    {% endif %}
+    {% if session['user_type'] == 1 %}
+        <a href="{{ url_for('view_videos_manager') }}" class="btn">Back to View videos</a>
+    {% endif %}
     <div class="add-video-container">
         <div class="border">
             <div class="header">

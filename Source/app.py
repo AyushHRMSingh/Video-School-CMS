@@ -216,7 +216,8 @@ def add_video():
     if request.method == 'POST':                                                        # Check if POST request with 'video_name', 'creator_id', 'editor_id' and 'manager_id' in form data
         video_title = request.form['video_name']                                         # Get video name from form data
         channel_id = request.form['channel_id']                                         # Get channel id from form data
-        status = request.form['status']                                                 # Get video status from form data
+        url = request.form['url']                                                        # Get URL from form data
+        
          # Convert datetime strings to Unix timestamps if provided, otherwise set to None
         shoot_timestamp = request.form['shoot_timestamp']
         shoot_timestamp = int(datetime.strptime(shoot_timestamp, '%Y-%m-%dT%H:%M').timestamp()) if shoot_timestamp else None
@@ -233,7 +234,7 @@ def add_video():
         }
 
         try:                                                                                                      # Try to add video with video_name, creator_id, editor_id, manager_id,oops_id
-            vidschool.add_video(video_title=video_title,channel_id=channel_id,shoot_timestamp=shoot_timestamp,edit_timestamp=edit_timestamp,upload_timestamp=upload_timestamp,status=status,author=author)                                                  
+            vidschool.add_video(video_title=video_title,url=url,channel_id=channel_id,shoot_timestamp=shoot_timestamp,edit_timestamp=edit_timestamp,upload_timestamp=upload_timestamp,author=author)                                                  
             msg = 'Video added successfully!'                                                                     # Set message
         except Exception as e:                                                                                    # Catch any exceptions and show error message
             msg = f'Error: {str(e)}'                                                                              # Show error message

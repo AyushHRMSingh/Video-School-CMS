@@ -1,46 +1,49 @@
-from extfun import VidSchool
-from datetime import datetime
-import apifunc
+from external_function import VidSchool
+from datetime import datetime, date
+import api_functions as api_functions
 import requests
 
-def get_main(vobj:VidSchool, channel_name):
+def get_main(channel_name, channel_id):
     # get cred for data
-    credential = vobj.get_token()
-    data = credential['credentials']
-    # get access token
-    response = requests.post("https://oauth2.googleapis.com/token", data=data)
-    access_token = response.json().get('access_token')
-    data['access_token'] = access_token
+    data = VidSchool.get_credentials(channel_id=channel_id)
+    if data == None:
+        return None
+    print(data)
     # get total no. subscriptions, views and watchtime
-    uploadsid = apifunc.youtubedata(
+    uploadsid = api_functions.youtubedata(
         'youtube',
         'v3',
-        credentials=data,
-        type='playlistItems',
-        part='contentDetails',
-        forUsername=channel_name,
+        data,
+        type='channel',
+        part='snippet, contentDetails',
+        mine=True,
+        # mine=True,
     )
+    print(uploadsid)
     uploadsid = uploadsid['items'][0]['contentDetails']['relatedPlaylists']['uploads']
     today = datetime.now().strftime('%Y-%m-%d')
-    stata = apifunc.youtubedata(
+    stata = api_functions.youtubedata(
         'youtubeAnalytics', 
         'v2',
         credentials=data, 
         ids='channel==MINE',
         startDate='1990-01-01',
+        metrics='subscribersGained,views,estimatedMinutesWatched',
         endDate=today,
     )
+    print("stata done")
     # get total no. of videos
-    statb = apifunc.youtubedata(
+    statb = api_functions.youtubedata(
         'youtube',
         'v3',
         credentials=data,
-        type="channel",
+        type="playlistItem",
         part='snippet',
         playlistId=uploadsid,
     )
+    print("statb done")
     statb = statb['pageInfo']['totalResults']
-    statc1 = apifunc.youtubedata(
+    statc1 = api_functions.youtubedata(
         'youtubeAnalytics',
         'v2',
         credentials=data,
@@ -52,16 +55,17 @@ def get_main(vobj:VidSchool, channel_name):
         maxResults=10,
         sort='-views',
     )
+    print("statc1 done")
     top10vidlist = []
     for i in range(0,len(statc1['rows'])):
         top10vidlist.append(statc1['rows'][i][0])
-    statc2 = apifunc.youtubedata(
+    statc2 = api_functions.youtubedata(
         'youtube',
         'v3',
         credentials=data,
-        type="channel",
+        type="video",
         part='snippet',
-        id=top10vidlist,
+        id=",".join(top10vidlist),
     )
     statcfinal = []
     for i in range(0,len(statc1['rows'])):
@@ -69,18 +73,28 @@ def get_main(vobj:VidSchool, channel_name):
             "name": statc2['items'][i]['snippet']['title'],
             "views": statc1['rows'][i][1],
         })
-    statd1 = apifunc.youtubedata(
+    print("statc2 done")
+    # last_month = str(str(datetime.now().year-1)+'-'+str(datetime.now().month)+'-01')
+    # todayd = str(datetime.now().year)+'-'+str(datetime.now().month-1)+'-01'
+    statd1 = api_functions.youtubedata(
         'youtubeAnalytics',
         'v2',
         credentials=data,
         dimensions='month',
         ids='channel==MINE',
         metrics='views,estimatedMinutesWatched',
-        startDate=(datetime.now().year-1)+'-'+datetime.now().month+'-01',
-        endDate=datetime.now().year+'-'+datetime.now().month+'-01',
+        startDate= date.today().replace(year=date.today().year-1,day=1).isoformat(),
+        endDate=date.today().replace(day=1).isoformat(),
     )
+    statdfinal = statd1['rows']
+    print("statd1 done")
     return {
-        "section_a":stata,
+        "section_a":{
+            "subscribers": stata['rows'][0][0],
+            "views": stata['rows'][0][1],
+            "watchtime": stata['rows'][0][2]/60,
+        },
         "section_b":statb,
         "section_c":statcfinal,
+        "section_d":statdfinal,
     }

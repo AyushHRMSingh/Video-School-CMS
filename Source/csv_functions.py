@@ -1,7 +1,7 @@
 import time
 import flask
 import csv
-from extfun import VidSchool
+from external_function import VidSchool
 import datetime
 import calendar
 

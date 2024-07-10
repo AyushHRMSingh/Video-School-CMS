@@ -47,14 +47,13 @@
                             <td>{{ platform_id[channel[2]] }}</td>
                             <td>{{ creator_dict.get(channel[3], 'Unknown') }}</td>                            
                             <td>{{ editor_dict.get(channel[4], 'Unknown') }}</td>
-
                             {% if session['user_type'] == 0 %} 
                                 <td>{{ manager_dict.get(channel[5], 'Unknown') }}</td>
                             {% endif %}
 
                             <td>{{ ops_dict.get(channel[6], 'Unknown') }}</td>
                             <td>
-                                <a href="{{ url_for('view_channel_details', channel_id=channel[0]) }}" class="btn">View</a>
+                                <a href="/view_channels/channel/{{ channel[0] }}" class="btn">View</a>
                             {% if session['user_type'] == 0 %} 
                             <td>
                                 <form method="POST" action="{{ url_for('update_channel_status', channel_id=channel[0]) }}">

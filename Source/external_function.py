@@ -1,11 +1,15 @@
+import ast
 import json
 import bcrypt
 import mysql.connector
 import time
+import api_functions as api_functions
+import extrafunc
 
 class VidSchool:
     # constructor function
     def __init__(self, dbhost, dbusername, dbpassword, dbname):
+        print("Object initialized NOW")
         self.dbconnect = mysql.connector.connect(
             host = dbhost,
             user = dbusername,
@@ -19,6 +23,8 @@ class VidSchool:
         print("Connected to database")
         if self.dbconnect.is_connected():
             self.setupdb()
+        VidSchool.credentialpool = {}
+        VidSchool.start_credential_pool(self)
     
     # destructor function
     def __del__(self):
@@ -39,6 +45,51 @@ class VidSchool:
             self.cursor.execute(command)
             self.dbconnect.commit()
         print("Setup complete")
+
+    @staticmethod
+    def start_credential_pool(self):
+        sql = "SELECT * FROM Channel WHERE JSON_LENGTH(tokens) > 0;"
+        self.cursor.execute(sql)
+        result = self.cursor.fetchall()
+        # add credentials to credential pool
+        if result == []:
+            print("No channels found")
+            return False
+        for i in result:
+            cred = [i[8]]
+            cred = ast.literal_eval(cred[0])
+            VidSchool.credentialpool[i[0]] = cred
+        print("Credential pool started")
+
+        # # Refresh all access tokens
+        for i in VidSchool.credentialpool:
+            oldcred = VidSchool.credentialpool[i]
+            # oldcred = ast.literal_eval(oldcred)
+            VidSchool.credentialpool[i] = api_functions.refresh_token(oldcred)
+        print("Credential pool refreshed")
+
+    # def refresh_credential_pool(self):
+    #     for i in VidSchool.credentialpool:
+    #         VidSchool.credentialpool[i] = apifunc.refresh_token(VidSchool.credentialpool[i])
+
+    @staticmethod
+    def check_credential_pool():
+        for i in VidSchool.credentialpool:
+            if VidSchool.credentialpool[i][1] > time.time():
+                cred = VidSchool.credentialpool[i][0]
+                # cred = ast.literal_eval(cred)
+                VidSchool.credentialpool[i] = api_functions.refresh_token(cred)
+        return True
+
+    @staticmethod
+    def get_credentials(channel_id):
+        VidSchool.check_credential_pool()
+        if channel_id not in VidSchool.credentialpool:
+            print("Channel not found")
+            return False
+        # cred = ast.literal_eval(VidSchool.credentialpool[channel_id][0])
+        cred = VidSchool.credentialpool[channel_id][0]
+        return cred
 
     ### USER FUNCTIONS
     # function to add a user to the database ONLY FOR ADMIN
@@ -339,15 +390,8 @@ class VidSchool:
             self.cursor.execute(sql, val)
             result = self.cursor.fetchall()
             if result != []:
-                Videos.append(result)
+                Videos+=result
         return Videos
-
-    def get_credentials(self, channel_id):
-        sql = "SELECT token FROM Channel WHERE ID = %s"
-        val = (channel_id,)
-        self.cursor.execute(sql, val)
-        result = self.cursor.fetchone()
-        return result
 
     def set_video_uploaded(self, video_id, url,author):
         if author['user_type'] <= 2:
@@ -529,29 +573,29 @@ class VidSchool:
             }
             self.log_action(2, log_data)
 
-    def get_credentials(self, channel_id):
-        sql = "SELECT token FROM Channel WHERE ID = %s"
-        val = (channel_id,)
-        self.cursor.execute(sql, val)
-        result = self.cursor.fetchone()
-        return result
-
     def link_channel(self, channel_id, token, author):
         if author['user_type'] == 0:
-            
+            try:
             # print(jsontoken)
-            sql = "INSERT INTO Channel (token) VALUES (%s) WHERE ID = %s"
-            val = (token, channel_id)
-            self.cursor.execute(sql, val)
-            self.dbconnect.commit()
-            log_data = {
-                "action": "link_channel",
-                "author_id": author['user_id'],
-                "data": {
-                    "channel_id": channel_id,
-                    "token": token
+                print("Linking channel")
+                sql = "UPDATE Channel SET tokens = %s WHERE id=%s"
+                val = (token, channel_id)
+                self.cursor.execute(sql, val)
+                self.dbconnect.commit()
+                log_data = {
+                    "action": "link_channel",
+                    "author_id": author['user_id'],
+                    "data": {
+                        "channel_id": channel_id,
+                    }
                 }
-            }
+                self.log_action(2, log_data)
+                VidSchool.start_credential_pool(self)
+            except Exception as e:
+                print(e)
+                return {
+                    "error": str(e)
+                }
         else:
             return {
                 "error": "You do not have permission to link channels"

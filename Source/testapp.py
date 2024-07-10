@@ -1,7 +1,7 @@
 # Import necessary modules
 import extrafunc
-import csvfunc
-from extfun import VidSchool
+import csv_functions as csv_functions
+from external_function import VidSchool
 from flask import Flask, render_template, request, redirect, url_for, session
 import flask
 import envfile
@@ -34,7 +34,7 @@ vidschool = VidSchool(host, username, password, dbname)
 
 @app.route('/view_videos/csv', methods=['GET', 'POST'])
 def csvhandler():
-    return csvfunc.rendercsv(request, vidschool)
+    return csv_functions.rendercsv(request, vidschool)
 
 @app.route('/view_videos/csv/addcsv', methods=['POST'])
 def addcsv():
@@ -43,7 +43,7 @@ def addcsv():
         "user_email": session.get("user_email"),                   # Get user email from session
         "user_type": session.get("user_type"),                     # Get user type from session
     }
-    return csvfunc.csv2sql(request, vidschool, author)
+    return csv_functions.csv2sql(request, vidschool, author)
 
 @app.route('/')
 @app.route('/login', methods=['GET', 'POST'])                      

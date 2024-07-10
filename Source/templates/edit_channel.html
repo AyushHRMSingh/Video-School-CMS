@@ -16,12 +16,9 @@
                 <label for="channel_name">Channel Name:</label>
                 <input type="text" name="channel_name" value="{{ channel[1] }}" required>
                 <br>
-                <label for="url">URL:</label>
-                <input type="url" name="url" value="{{ channel[2] }}" required>
-                <br>
                 <label for="platform">Platform:</label>
                 <select name="platform" class="select" required>
-                    <option value="0" {% if channel[3] == 0 %}selected{% endif %}>Youtube</option>
+                    <option value="0" {% if channel[2] == 0 %}selected{% endif %}>Youtube</option>
                     <!-- Add more options as needed -->
                 </select>
                 <br>   
@@ -55,10 +52,10 @@
                 <br>
                 <label for="status">Status:</label>
                 <select id="status" name="status" class="select" required>
-                    <option value="0" {% if channel[8] == 0 %}selected{% endif %}>Active</option>
-                    <option value="1" {% if channel[8] == 1 %}selected{% endif %}>Inactive</option>
-                    <option value="2" {% if channel[8] == 2 %}selected{% endif %}>To be deleted</option>
-                    <option value="3" {% if channel[8] == 3 %}selected{% endif %}>Deleted</option>
+                    <option value="0" {% if channel[7] == 0 %}selected{% endif %}>Active</option>
+                    <option value="1" {% if channel[7] == 1 %}selected{% endif %}>Inactive</option>
+                    <option value="2" {% if channel[7] == 2 %}selected{% endif %}>To be deleted</option>
+                    <option value="3" {% if channel[7] == 3 %}selected{% endif %}>Deleted</option>
                 </select>
                 <br>
                 <input type="submit" value="Update Channel" class="btn">

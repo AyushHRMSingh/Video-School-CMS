@@ -33,11 +33,11 @@
             <label for="shoot_timestamp">Shoot Timestamp:</label>
             <input type="datetime-local" id="shoot_timestamp" name="shoot_timestamp" value="{{ video[4]|datetimeformat }}">
             <br>
-            <label for="edit_timestamp">Edit Timestamp:</label>
-            <input type="datetime-local" id="edit_timestamp" name="edit_timestamp" value="{{ video[5]|datetimeformat }}">
+            <label for="edit_timestamp">Edit Timestamp: (readonly)</label>
+            <input type="datetime-local" id="edit_timestamp" name="edit_timestamp" value="{{ video[5]|datetimeformat }}" readonly>
             <br>
-            <label for="upload_timestamp">Upload Timestamp:</label>
-            <input type="datetime-local" id="upload_timestamp" name="upload_timestamp" value="{{ video[6]|datetimeformat }}">
+            <label for="upload_timestamp">Upload Timestamp: (readonly)</label>
+            <input type="datetime-local" id="upload_timestamp" name="upload_timestamp" value="{{ video[6]|datetimeformat }}" readonly>
             <br>
             <label for="comment">Comment</label>
             <textarea name="comment" id="comment" ></textarea>

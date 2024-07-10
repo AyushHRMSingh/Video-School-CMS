@@ -692,9 +692,11 @@ def view_videos_creator():
             "user_email": session.get("user_email"),                                         # Get user email from session
             "user_type": session.get("user_type"),                                           # Get user type from session
             }
+        user_id = session['user_id']                                           # Get the logged-in user's ID
+        user_type = session['user_type']                                       # Get the logged-in user's type
         # Fetch videos managed by the logged-in user
         videos = vidschool.get_videos(author=author)                      
-        channels=vidschool.get_channels()                                            # Get all channels
+        channels=vidschool.get_channels_by_user(user_id,user_type)                                            # Get all channels
         channel_dict = {channel[0]: channel[1] for channel in channels}              # Create dictionary with channel id as key and channel name as value
         
     

@@ -43,7 +43,7 @@
             <tr>
                 <td>{{ video[0] }}</td>
                 <td>{{ video[2] }}</td>
-                <td>{{ channel_dict.get(video[3], 'Unknown') }}</td>
+                <td class="channel">{{ channel_dict.get(video[3], 'Unknown') }}</td>
 
                 
                 <td class="shoot_timestamp"> {{ video[4] }}</td>
@@ -102,6 +102,19 @@
             document.getElementById('comment').value = comment || '';
             $('#updateModal').modal('show');
     }
+    window.onload = function() {
+    function handleChannelDisplay(channelCell) {
+  const channelValue = channelCell.textContent.trim(); // Get the channel text content
+
+  if (channelValue.toLowerCase() === 'unknown') {
+    channelCell.closest('tr').remove();// Remove the entire <td> cell if channel is 'Unknown' (case-insensitive)
+  }
+}
+
+// Call the function for each channel cell element
+const channelCells = document.querySelectorAll('.channel'); // Assuming a class for channel cells
+channelCells.forEach(handleChannelDisplay);
+};
 </script>
  <!-- Modal -->
  <div class="modal fade" id="updateModal" tabindex="-1" role="dialog" aria-labelledby="updateModalLabel" aria-hidden="true">

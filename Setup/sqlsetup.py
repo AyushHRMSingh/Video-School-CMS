@@ -22,8 +22,18 @@ sqlcommands = [
     "CREATE TABLE User (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255) NOT NULL,email VARCHAR(255) UNIQUE NOT NULL, password VARCHAR(255) NOT NULL, role TINYINT NOT NULL DEFAULT 0, status TINYINT NOT NULL DEFAULT 0)",
     # add default admin user
     f"INSERT INTO User (name, email, password, role, status) VALUES ('root user','root@root.com', '{hash_password('root')}', 0, 0)",
+    ## DEBUGGING ONLY
+    f"INSERT INTO User (name, email, password, role, status) VALUES ('manager user','manager@root.com', '{hash_password('root')}', 1, 0)",
+    f"INSERT INTO User (name, email, password, role, status) VALUES ('ops user','ops@root.com', '{hash_password('root')}', 2, 0)",
+    f"INSERT INTO User (name, email, password, role, status) VALUES ('editor user','editor@root.com', '{hash_password('root')}', 3, 0)",
+    f"INSERT INTO User (name, email, password, role, status) VALUES ('creator user','creator@root.com', '{hash_password('root')}', 4, 0)",
     # create channel table if it doesn't exists
     "CREATE TABLE Channel (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255) UNIQUE NOT NULL, platform TINYINT NOT NULL DEFAULT 0, creator_id INT, editor_id INT, manager_id INT, ops_id INT, status TINYINT NOT NULL DEFAULT 0, tokens JSON NOT NULL DEFAULT ('{}'))",
+
+    # add two test channels
+    ## DEBUGGING ONLY
+    "INSERT INTO Channel (name, platform, creator_id, editor_id, manager_id, ops_id, status) VALUES ('testchannel1', 0, 5, 4, 2, 3, 0)",
+    "INSERT INTO Channel (name, platform, creator_id, editor_id, manager_id, ops_id, status) VALUES ('testchannel2', 0, 5, 4, 2, 3, 0)",
     # create video table if it doesn't exists
     ## ADD URL TO VIDEO TABLE
     "CREATE TABLE Video (id INT AUTO_INCREMENT PRIMARY KEY, old_id VARCHAR(6) UNIQUE, title VARCHAR(255) UNIQUE NOT NULL, url VARCHAR(255),channel_id INT NOT NULL, shoot_timestamp INT, edit_timestamp INT, upload_timestamp INT, status TINYINT NOT NULL DEFAULT 0, comment LONGTEXT DEFAULT NULL)",
@@ -42,4 +52,4 @@ def mainB():
         print("Executing command: ", command)
         cursor.execute(command)
 
-mainB()
+# mainB()

@@ -174,6 +174,22 @@ class VidSchool:
             }
             self.log_action(3, log_data)
 
+    def add_videos_bulk(self, videos, channel_id, author):
+        if author['user_type'] == 0:
+            for video in videos:
+                sql = "INSERT INTO Video (old_id, title, url, channel_id, shoot_timestamp, edit_timestamp, upload_timestamp, status, comment) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)"
+                val = (video[0], video[1], video[2], channel_id, video[3], video[4], video[5], video[6], video[7])
+                self.cursor.execute(sql, val)
+                self.dbconnect.commit()
+            log_data = {
+                "action": "add_videos_bulk",
+                "author_id": author['user_id'],
+                "data": {
+                    "numebr_of_videos": len(videos)-1,
+                    "channel_id": channel_id
+                }
+            }
+
     # function to update a video in the database
     def update_video(self, video_id, video_title, channel_id, shoot_timestamp, edit_timestamp, upload_timestamp, status, comment, author):
         if author['user_type'] <= 2 or author['user_type'] == 4:

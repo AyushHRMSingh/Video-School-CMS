@@ -426,14 +426,11 @@ def edit_video(video_id):
         except Exception as e:                                                                                    # Catch any exceptions and show error message
             msg = f'Error: {str(e)}'                                                                              # Show error message
     # Fetch users for each role
-    creators = vidschool.get_users_by_role(4)                                                                     # Get all creators
-    editors = vidschool.get_users_by_role(3)                                                                      # Get all editors
-    managers = vidschool.get_users_by_role(1)                                                                     # Get all managers
-    opss = vidschool.get_users_by_role(2)                                                                         # Get all opss
+    
     channels = vidschool.get_channels()                                                                           # Get all channels
  
     # Render edit_video.html template with video and users data for each role
-    return render_template('edit_video.html', video=video,creators=creators,editors=editors,managers=managers,opss=opss,channels=channels, msg=msg)                                                # Render edit_video.html template with video and message
+    return render_template('edit_video.html', video=video,channels=channels, msg=msg)                                                # Render edit_video.html template with video and message
 
 # Route for '/deletevideo' to delete a video with video_id
 # Route for deleting a video
@@ -738,15 +735,11 @@ def edit_video_creator(video_id):
             msg = 'Video updated successfully!'                                                                     # Set message
         except Exception as e:                                                                                    # Catch any exceptions and show error message
             msg = f'Error: {str(e)}'                                                                              # Show error message
-    # Fetch users for each role
-    creators = vidschool.get_users_by_role(4)                                                                     # Get all creators
-    editors = vidschool.get_users_by_role(3)                                                                      # Get all editors
-    managers = vidschool.get_users_by_role(1)                                                                     # Get all managers
-    opss = vidschool.get_users_by_role(2)                                                                         # Get all opss
+
     channels = vidschool.get_channels()                                                                           # Get all channels
  
     # Render edit_video.html template with video and users data for each role
-    return render_template('edit_video_creator.html', video=video,creators=creators,editors=editors,managers=managers,opss=opss,channels=channels, msg=msg)                                                # Render edit_video.html template with video and message
+    return render_template('edit_video_creator.html', video=video,channels=channels, msg=msg)                                                # Render edit_video.html template with video and message
 
 
 # Custom Jinja2 filter for datetime formatting

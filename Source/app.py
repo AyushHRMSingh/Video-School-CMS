@@ -237,7 +237,7 @@ def add_video():
             vidschool.add_video(video_title=video_title,url=url,channel_id=channel_id,shoot_timestamp=shoot_timestamp,edit_timestamp=edit_timestamp,upload_timestamp=upload_timestamp,author=author)                                                  
             msg = 'Video added successfully!'                                                                     # Set message
         except Exception as e:                                                                                    # Catch any exceptions and show error message
-            msg = f'Error: {str(e)}'                                                                              # Show error message
+            msg = f'Error: {str(e)}'                                                                                # Show error message
     
     channels = vidschool.get_channels()                                                                             # Get all channels
     # Render add_video.html template with current message and users data for each role 

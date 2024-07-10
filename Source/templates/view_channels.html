@@ -20,7 +20,7 @@
                     <tr>
                         <th>ID</th>
                         <th>Name</th>
-                        <th>URL</th>
+
                         <th>Platform</th>
                         <th>Creator </th>
                         <th>Editor </th>
@@ -43,26 +43,26 @@
                         <tr>
                             <td>{{ channel[0] }}</td>
                             <td>{{ channel[1] }}</td>
-                            <td>{{ channel[2] }}</td>
-                            <td>{{ platform_id[channel[3]] }}</td>
-                            <td>{{ creator_dict.get(channel[4], 'Unknown') }}</td>                            
-                            <td>{{ editor_dict.get(channel[5], 'Unknown') }}</td>
+
+                            <td>{{ platform_id[channel[2]] }}</td>
+                            <td>{{ creator_dict.get(channel[3], 'Unknown') }}</td>                            
+                            <td>{{ editor_dict.get(channel[4], 'Unknown') }}</td>
 
                             {% if session['user_type'] == 0 %} 
-                                <td>{{ manager_dict.get(channel[6], 'Unknown') }}</td>
+                                <td>{{ manager_dict.get(channel[5], 'Unknown') }}</td>
                             {% endif %}
 
-                            <td>{{ ops_dict.get(channel[7], 'Unknown') }}</td>
+                            <td>{{ ops_dict.get(channel[6], 'Unknown') }}</td>
                             <td>
                                 <a href="{{ url_for('view_channel_details', channel_id=channel[0]) }}" class="btn">View</a>
                             {% if session['user_type'] == 0 %} 
                             <td>
                                 <form method="POST" action="{{ url_for('update_channel_status', channel_id=channel[0]) }}">
                                     <select name="status" onchange="this.form.submit()">
-                                        <option value="0" {% if channel[8] == 0 %}selected{% endif %}>Active</option>
-                                        <option value="1" {% if channel[8] == 1 %}selected{% endif %}>Inactive</option>
-                                        <option value="2" {% if channel[8] == 2 %}selected{% endif %}>To be deleted</option>
-                                        <option value="3" {% if channel[8] == 3 %}selected{% endif %}>Deleted</option>
+                                        <option value="0" {% if channel[7] == 0 %}selected{% endif %}>Active</option>
+                                        <option value="1" {% if channel[7] == 1 %}selected{% endif %}>Inactive</option>
+                                        <option value="2" {% if channel[7] == 2 %}selected{% endif %}>To be deleted</option>
+                                        <option value="3" {% if channel[7] == 3 %}selected{% endif %}>Deleted</option>
                                     </select>
                                 </form>
                             </td>

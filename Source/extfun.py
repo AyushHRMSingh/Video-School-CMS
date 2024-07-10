@@ -170,7 +170,6 @@ class VidSchool:
                     "shoot_timestamp": shoot_timestamp,
                     "edit_timestamp": edit_timestamp,
                     "upload_timestamp": upload_timestamp,
-                    "status": status
                 }
             }
             self.log_action(3, log_data)

@@ -431,6 +431,7 @@ def edit_video(video_id):
         status = request.form['status']                                                 # Get video status from form data
          # Convert datetime strings to Unix timestamps if provided, otherwise set to None
         shoot_timestamp = request.form['shoot_timestamp']
+        print(f"Received shoot_timestamp: {shoot_timestamp}")
         shoot_timestamp = int(datetime.strptime(shoot_timestamp, '%Y-%m-%dT%H:%M').timestamp()) if shoot_timestamp else None
         
         edit_timestamp = request.form['edit_timestamp']

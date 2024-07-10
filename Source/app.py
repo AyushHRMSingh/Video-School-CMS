@@ -210,7 +210,7 @@ def add_video():
         except Exception as e:                                                                                    # Catch any exceptions and show error message
             msg = f'Error: {str(e)}'                                                                              # Show error message
     
-    channels = vidschool.get_channels                                                                             # Get all channels
+    channels = vidschool.get_channels()                                                                             # Get all channels
     # Render add_video.html template with current message and users data for each role 
     return render_template('add_video.html', msg=msg,channels=channels)                                             # Render add_video.html template with current message
 
@@ -589,6 +589,61 @@ def view_users_manager():
         return render_template('index.html', msg=msg)                                   # Render index.html template with error message
     
     return render_template('view_users_manager.html', channels=channels,creator_dict=creator_dict,editor_dict=editor_dict,ops_dict=ops_dict,msg=msg)
+
+@app.route('/view_videos_editor')
+def view_videos_editor():
+    if 'loggedin' not in session or session.get('user_type') != 3:             # Check if user is logged in and is an admin or manager
+        return redirect(url_for('login'))                                      # Redirect to login page if user is not logged in or is not an admin
+    msg = ''
+    try:                                                                               
+        
+        author = {                                                                           # Author dictionary with user_id, user_email and user_type
+            "user_id": session.get("user_id"),                                               # Get user id from session
+            "user_email": session.get("user_email"),                                         # Get user email from session
+            "user_type": session.get("user_type"),                                           # Get user type from session
+            }
+        # Fetch videos managed by the logged-in user
+        videos = vidschool.get_videos(author=author)                      
+        channels=vidschool.get_channels()                                            # Get all channels
+        channel_dict = {channel[0]: channel[1] for channel in channels}              # Create dictionary with channel id as key and channel name as value
+        
+    
+    except Exception as e:                                                              # Catch any exceptions and show error message
+        msg = f'Error: {str(e)}'                                                        # Show error message
+        return render_template('index.html', msg=msg)                              # Render index.html template with error message
+
+    return render_template('view_videos_editor.html', videos=videos,channel_dict=channel_dict,msg=msg)                       # Render view_videos.html template with videos
+
+@app.route('/view_channels_editor')
+def view_channels_editor():
+    if 'loggedin' not in session or session.get('user_type') != 3:             # Check if user is logged in and is an admin or manager
+        return redirect(url_for('login'))                                      # Redirect to login page if user is not logged in or is not an admin
+
+    try:
+        user_id = session['user_id']                                           # Get the logged-in user's ID
+        user_type = session['user_type']                                       # Get the logged-in user's type
+  
+        # Fetch channels managed by the logged-in user
+        channels = vidschool.get_channels_by_user(user_id, user_type)         
+        platform_id = platform_type.platform_names                              # Get all platform types from platform_type modulele
+        creators = vidschool.get_users_by_role(4)                               # Get all creators
+        creator_dict = {creator[0]: creator[1] for creator in creators}         # Create dictionary with creator id as key and creator name as value
+        editors = vidschool.get_users_by_role(3)                                # Get all editors
+        editor_dict = {editor[0]: editor[1] for editor in editors}              # Create dictionary with editor id as key and editor name as value
+        managers = vidschool.get_users_by_role(1)                               # Get all managers
+        manager_dict = {manager[0]: manager[1] for manager in managers}         # Create dictionary with manager id as key and manager name as value
+        opss = vidschool.get_users_by_role(2)                                   # Get all opss
+        ops_dict = {ops[0]: ops[1] for ops in opss}                             # Create dictionary with ops id as key and ops name as value
+    except Exception as e:                                                      # Catch any exceptions and show error message
+        channels = []                                                           # Set channels to empty list
+        msg = f'Error: {str(e)}'                                                # Show error message
+
+        # Render view_channels.html template with channels data and error message
+        return render_template('view_channels_editor.html', channels=channels, msg=msg)
+
+    # Render view_channels.html template with channels data
+    return render_template('view_channels_editor.html', channels=channels,platform_id=platform_id,creator_dict=creator_dict,editor_dict=editor_dict,manager_dict=manager_dict,ops_dict=ops_dict, msg='')
+
 
 @app.route('/view_videos_creator')
 def view_videos_creator():

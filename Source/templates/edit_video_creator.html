@@ -7,18 +7,13 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='add_video_style.css') }}">
 </head>
 <body>
-    {% if session['user_type'] == 0 %}
-    <a href="{{ url_for('view_videos') }}" class="btn">Back to View </a>
-    {% endif %}
-    {% if session['user_type'] == 1 %}
-        <a href="{{ url_for('view_videos_manager') }}" class="btn">Back to View videos</a>
-    {% endif %}
+    <a href="{{ url_for('view_videos_creator') }}" class="btn">Back to View Videos</a>
     <div class="add-video-container">
         <div class="border">
             <div class="header">
                 <h1 class="word">Edit Video</h1>
             </div>
-        <form action="{{ url_for('edit_video', video_id=video[0]) }}" method="post">
+        <form action="{{ url_for('edit_video_creator', video_id=video[0]) }}" method="post">
             <label for="video_name">Video Name:</label>
             <input type="text" id="video_name" name="video_name" value="{{ video[2] }}" required>
             <br>
@@ -33,21 +28,16 @@
                 <select name="status" id="status" class="select" required>
                     <option value="0" {% if video[7] == 0 %}selected{% endif %}>To be created</option>
                     <option value="1" {% if video[7] == 1 %}selected{% endif %}>Shot</option>
-                    <option value="2" {% if video[7] == 2 %}selected{% endif %}>Edited</option>
-                    <option value="3" {% if video[7] == 3 %}selected{% endif %}>To be Reshot</option>
-                    <option value="4" {% if video[7] == 4 %}selected{% endif %}>To be Re-edited</option>
-                    <option value="6" {% if video[7] == 6 %}selected{% endif %}>Uploaded</option>
-                    <option value="7" {% if video[7] == 7 %}selected{% endif %}>Deleted</option>
                 </select>
             <br>
             <label for="shoot_timestamp">Shoot Timestamp:</label>
             <input type="datetime-local" id="shoot_timestamp" name="shoot_timestamp" value="{{ video[4]|datetimeformat }}">
             <br>
-            <label for="edit_timestamp">Edit Timestamp:</label>
-            <input type="datetime-local" id="edit_timestamp" name="edit_timestamp" value="{{ video[5]|datetimeformat }}">
+            <label for="edit_timestamp">Edit Timestamp: (readonly)</label>
+            <input type="datetime-local" id="edit_timestamp" name="edit_timestamp" value="{{ video[5]|datetimeformat }}" readonly>
             <br>
-            <label for="upload_timestamp">Upload Timestamp:</label>
-            <input type="datetime-local" id="upload_timestamp" name="upload_timestamp" value="{{ video[6]|datetimeformat }}">
+            <label for="upload_timestamp">Upload Timestamp: (readonly)</label>
+            <input type="datetime-local" id="upload_timestamp" name="upload_timestamp" value="{{ video[6]|datetimeformat }}" readonly>
             <br>
             <label for="comment">Comment</label>
             <textarea name="comment" id="comment" ></textarea>

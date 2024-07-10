@@ -568,7 +568,27 @@ def view_videos_manager():
     except Exception as e:                                                              # Catch any exceptions and show error message
         return render_template('index.html', error=str(e))                              # Render index.html template with error message
 
-
+@app.route('/view_users_manager')
+def view_users_manager():
+    msg = ''                                                                            # Initialize message to empty string
+    if 'loggedin' not in session or session.get('user_type') != 1:                    # Check if user is logged in and is an admin
+        return redirect(url_for('login'))                                             # Redirect to login page if user is not logged in or is not an admin
+    try:                                                                                # Try to get all users
+        user_id = session['user_id']                                           # Get the logged-in user's ID
+        user_type = session['user_type']                                       # Get the logged-in user's type
+        channels=vidschool.get_channels_by_user(user_id=user_id,user_type=user_type)                                            # Get all channels
+        creators = vidschool.get_users_by_role(4)                               # Get all creators
+        creator_dict = {creator[0]: creator[1] for creator in creators}         # Create dictionary with creator id as key and creator name as value
+        editors = vidschool.get_users_by_role(3)                                # Get all editors
+        editor_dict = {editor[0]: editor[1] for editor in editors}              # Create dictionary with editor id as key and editor name as value
+        opss = vidschool.get_users_by_role(2)                                   # Get all opss
+        ops_dict = {ops[0]: ops[1] for ops in opss}
+           # Render view_users.html template with users
+    except Exception as e:                                                              # Catch any exceptions and show error message
+        msg = f'Error: {str(e)}'                                                        # Show error message
+        return render_template('index.html', msg=msg)                                   # Render index.html template with error message
+    
+    return render_template('view_users_manager.html', channels=channels,creator_dict=creator_dict,editor_dict=editor_dict,ops_dict=ops_dict,msg=msg)
 
 @app.route('/view_videos_creator')
 def view_videos_creator():
@@ -691,7 +711,7 @@ def oauth2callback():
     print(flask.session['credentials'])
     return flask.redirect(flask.url_for("add_channel"))
 
-# Set account for use
+
 
 
 # Main entry point of the application

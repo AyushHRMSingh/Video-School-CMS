@@ -686,21 +686,67 @@ def add_video_creator():
 def view_videos_creator():
     if 'loggedin' not in session or session.get('user_type') != 4:             # Check if user is logged in and is an admin or manager
         return redirect(url_for('login'))                                      # Redirect to login page if user is not logged in or is not an admin
-    
-    try:                                                                               
-        user_id = session['user_id']                                           # Get the logged-in user's ID
-        user_type = session['user_type']                                       # Get the logged-in user's type
-
+    msg = ''
+    try:                                                                                       
+        author = {                                                                           # Author dictionary with user_id, user_email and user_type
+            "user_id": session.get("user_id"),                                               # Get user id from session
+            "user_email": session.get("user_email"),                                         # Get user email from session
+            "user_type": session.get("user_type"),                                           # Get user type from session
+            }
         # Fetch videos managed by the logged-in user
-        videos = vidschool.get_videos_by_user(user_id,user_type)                        
+        videos = vidschool.get_videos(author=author)                      
         channels=vidschool.get_channels()                                            # Get all channels
         channel_dict = {channel[0]: channel[1] for channel in channels}              # Create dictionary with channel id as key and channel name as value
-        # Render view_videos.html template with videos data and users data for each role
-        return render_template('view_videos.html', videos=videos,channel_dict=channel_dict)                       # Render view_videos.html template with videos
+        
     
     except Exception as e:                                                              # Catch any exceptions and show error message
-        return render_template('index.html', error=str(e))                              # Render index.html template with error message
+        msg = f'Error: {str(e)}'                                                        # Show error message
+        return render_template('index.html', msg=msg)                              # Render index.html template with error message
 
+    return render_template('view_videos_creator.html', videos=videos,channel_dict=channel_dict,msg=msg)                       # Render view_videos.html template with videos
+
+@app.route('/edit_video_creator/<int:video_id>', methods=['GET', 'POST'])
+def edit_video_creator(video_id):
+    if 'loggedin' not in session:                                                       # Check if user is logged in
+        return redirect(url_for('login'))                                               # Redirect to login page if user is not logged in
+
+    msg = ''                                                                            # Initialize message to empty string
+
+    video = vidschool.get_video(video_id)                                               # Get video with video_id
+    if request.method == 'POST':                                                        # Check if POST request with 'video_name', 'creator_id', 'editor_id' and 'manager_id' in form data
+        video_title = request.form['video_name']                                         # Get video name from form data
+        channel_id = request.form['channel_id']                                         # Get channel id from form data
+        status = request.form['status']                                                 # Get video status from form data
+         # Convert datetime strings to Unix timestamps if provided, otherwise set to None
+        shoot_timestamp = request.form['shoot_timestamp']
+        shoot_timestamp = int(datetime.strptime(shoot_timestamp, '%Y-%m-%dT%H:%M').timestamp()) if shoot_timestamp else None
+        
+        edit_timestamp = request.form['edit_timestamp']
+        edit_timestamp = int(datetime.strptime(edit_timestamp, '%Y-%m-%dT%H:%M').timestamp()) if edit_timestamp else None
+        
+        upload_timestamp = request.form['upload_timestamp']
+        upload_timestamp = int(datetime.strptime(upload_timestamp, '%Y-%m-%dT%H:%M').timestamp()) if upload_timestamp else None
+        comment=request.form['comment']
+        author = {                                                                      # Author dictionary with user_id, user_email and user_type
+            "user_id": session.get("user_id"),                                          # Get user id from session
+            "user_email": session.get("user_email"),                                    # Get user email from session
+            "user_type": session.get("user_type"),                                      # Get user type from session
+        }
+
+        try:                                                                                                      # Try to add video with video_name, creator_id, editor_id, manager_id,oops_id
+            vidschool.update_video(video_id=video_id,video_title=video_title,channel_id=channel_id,shoot_timestamp=shoot_timestamp,edit_timestamp=edit_timestamp,upload_timestamp=upload_timestamp,status=status,comment=comment,author=author)                                                  
+            msg = 'Video updated successfully!'                                                                     # Set message
+        except Exception as e:                                                                                    # Catch any exceptions and show error message
+            msg = f'Error: {str(e)}'                                                                              # Show error message
+    # Fetch users for each role
+    creators = vidschool.get_users_by_role(4)                                                                     # Get all creators
+    editors = vidschool.get_users_by_role(3)                                                                      # Get all editors
+    managers = vidschool.get_users_by_role(1)                                                                     # Get all managers
+    opss = vidschool.get_users_by_role(2)                                                                         # Get all opss
+    channels = vidschool.get_channels()                                                                           # Get all channels
+ 
+    # Render edit_video.html template with video and users data for each role
+    return render_template('edit_video_creator.html', video=video,creators=creators,editors=editors,managers=managers,opss=opss,channels=channels, msg=msg)                                                # Render edit_video.html template with video and message
 
 
 # Custom Jinja2 filter for datetime formatting

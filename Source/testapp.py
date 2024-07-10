@@ -228,9 +228,9 @@ def add_video():
         except Exception as e:                                                                                    # Catch any exceptions and show error message
             msg = f'Error: {str(e)}'                                                                              # Show error message
     
-    channels = vidschool.get_channels                                                                             # Get all channels
+    channels = vidschool.get_channels()                                                                             # Get all channels
     # Render add_video.html template with current message and users data for each role 
-    return render_template('add_video.html', msg=msg,channels=channels)                                             # Render add_video.html template with current message
+    return render_template('add_video.html', msg=msg, channels=channels)                                             # Render add_video.html template with current message
 
 # Route for '/viewchannnel' to view all videos
 @app.route('/add_channel', methods=['GET', 'POST'])
@@ -253,23 +253,26 @@ def add_channel():
             "user_email": session.get("user_email"),                  # Get user email from session
             "user_type": session.get("user_type"),                    # Get user type from session
         }
-
         try:
-            vidschool.add_channel(channel_name, url, platform, creator_id, editor_id, manager_id, ops_id, author)  # Add channel with channel_name, URL,platform, creator_id, editor_id, manager_id, ops_id
+            channel_id = vidschool.add_channel(channel_name, url, platform, creator_id, editor_id, manager_id, ops_id, author)  # Add channel with channel_name, URL,platform, creator_id, editor_id, manager_id, ops_id
+            if 'addcredentials' in flask.session:
+                vidschool.link_channel(channel_id, flask.session['addcredentials'], author)
             msg = 'Channel added successfully!'                                                                    # Set success message
-
         except Exception as e:                                          # Catch any exceptions and show error message
             msg = f'Error: {str(e)}'                                    # Show error message
 
     # Fetch users for each role
+    if "channel_name" in flask.session:
+        channel_name = flask.session['channel_name']
+    else:
+        channel_name = ''
     creators = vidschool.get_users_by_role(4)                                                                     # Get all creators
     editors = vidschool.get_users_by_role(3)                                                                      # Get all editors
     managers = vidschool.get_users_by_role(1)                                                                     # Get all managers
-    opss = vidschool.get_users_by_role(2)                                                                         # Get all opss
-    channels = vidschool.get_channels()                                                                           # Get all channels
+    ops = vidschool.get_users_by_role(2)                                                                     # Get all channels
 
     # Render add_channel.html template with current message and users data for each role
-    return render_template('add_channel.html', msg=msg, creators=creators, editors=editors, managers=managers, opss=opss, channels=channels)            
+    return render_template('add_channel.html', msg=msg, creators=creators, editors=editors, managers=managers, ops=ops, channel=channel_name)            
 
 # Route for '/viewchannnel' to view all videos
 @app.route('/view_channels')
@@ -632,7 +635,7 @@ def view_channel_details(channel_id):
         return render_template('index.html', msg=msg)
 
 #youtube api implementation
-CLIENT_SECRETS_FILE = "client_secrets.json"
+CLIENT_SECRETS_FILE = "Source/client_secrets.json"
 SCOPES = ['https://www.googleapis.com/auth/youtube.readonly',
           'https://www.googleapis.com/auth/yt-analytics.readonly',
           'https://www.googleapis.com/auth/yt-analytics-monetary.readonly',
@@ -673,6 +676,7 @@ METRICS = [
 # Oauth page 1
 @app.route('/oauth')
 def oauth():
+    flask.session['return_url'] = flask.request.referrer
     flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
         CLIENT_SECRETS_FILE, scopes=SCOPES)
     flow.redirect_uri = flask.url_for('oauth2callback', _external=True)
@@ -680,7 +684,6 @@ def oauth():
         access_type='offline',
         include_granted_scopes='true')
     flask.session['state'] = state
-    
     return flask.redirect(auth_url)
 
 # Oauth page 2
@@ -705,9 +708,10 @@ def oauth2callback():
     else:
         channel_name = "No channel found"
     flask.session['channel_name'] = channel_name  # Store channel name in session
-    flask.session['credentials'] = credentials.to_json()
-    print(flask.session['credentials'])
-    return flask.redirect(flask.url_for("add_channel"))
+    flask.session['addcredentials'] = credentials.to_json()
+    # print(flask.session['acdredentials'])
+    # return flask.session['credentials']
+    return flask.redirect(flask.session['return_url'])
 
 # Set account for use
 

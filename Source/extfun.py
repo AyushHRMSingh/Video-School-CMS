@@ -153,7 +153,7 @@ class VidSchool:
     # function to add a video to the database
     def add_video(self, video_title, channel_id, shoot_timestamp, edit_timestamp, upload_timestamp, status, author):
         # checks user is higher permissions than ops
-        if author['user_type'] < 2:
+        if author['user_type'] <= 2 or author['user_type'] == 4:
             # executes SQL command
             sql = "INSERT INTO Video (title, channel_id, shoot_timestamp, edit_timestamp, upload_timestamp, status) VALUES (%s, %s, %s, %s, %s, %s)"
             val = (video_title, channel_id, shoot_timestamp, edit_timestamp, upload_timestamp, status)
@@ -176,37 +176,38 @@ class VidSchool:
 
     # function to update a video in the database
     def update_video(self, video_id, video_title, channel_id, shoot_timestamp, edit_timestamp, upload_timestamp, status, comment, author):
-        # stores values from DB as default
-        defvalue = self.get_video(video_id)
-        # if value is None, set to default value
-        video_title = video_title if video_title != None else defvalue[2]
-        channel_id = channel_id if channel_id != None else defvalue[3]
-        shoot_timestamp = shoot_timestamp if shoot_timestamp != None else defvalue[4]
-        edit_timestamp = edit_timestamp if edit_timestamp != None else defvalue[5]
-        upload_timestamp = upload_timestamp if upload_timestamp != None else defvalue[6]
-        status = status if status != None else defvalue[7]
-        comment = comment if comment != None else defvalue[8]
+        if author['user_type'] <= 2 or author['user_type'] == 4:
+            # stores values from DB as default
+            defvalue = self.get_video(video_id)
+            # if value is None, set to default value
+            video_title = video_title if video_title != None else defvalue[2]
+            channel_id = channel_id if channel_id != None else defvalue[3]
+            shoot_timestamp = shoot_timestamp if shoot_timestamp != None else defvalue[4]
+            edit_timestamp = edit_timestamp if edit_timestamp != None else defvalue[5]
+            upload_timestamp = upload_timestamp if upload_timestamp != None else defvalue[6]
+            status = status if status != None else defvalue[7]
+            comment = comment if comment != None else defvalue[8]
+            # executes SQL command
         # executes SQL command
-       # executes SQL command
-        sql = "UPDATE Video SET title = %s, channel_id = %s, shoot_timestamp = %s, edit_timestamp = %s, upload_timestamp = %s, status = %s, comment = %s WHERE id = %s"
-        val = (video_title, channel_id, shoot_timestamp, edit_timestamp, upload_timestamp, status, comment, video_id)
-        self.cursor.execute(sql, val)
-        self.dbconnect.commit()
-        # Logging
-        log_data = {
-            "action": "update_video",
-            "author_id": author['user_id'],
-            "data": {
-                "video_id": video_id,
-                "video_title": video_title,
-                "channel_id": channel_id,
-                "shoot_timestamp": shoot_timestamp,
-                "edit_timestamp": edit_timestamp,
-                "upload_timestamp": upload_timestamp,
-                "status": status
+            sql = "UPDATE Video SET title = %s, channel_id = %s, shoot_timestamp = %s, edit_timestamp = %s, upload_timestamp = %s, status = %s, comment = %s WHERE id = %s"
+            val = (video_title, channel_id, shoot_timestamp, edit_timestamp, upload_timestamp, status, comment, video_id)
+            self.cursor.execute(sql, val)
+            self.dbconnect.commit()
+            # Logging
+            log_data = {
+                "action": "update_video",
+                "author_id": author['user_id'],
+                "data": {
+                    "video_id": video_id,
+                    "video_title": video_title,
+                    "channel_id": channel_id,
+                    "shoot_timestamp": shoot_timestamp,
+                    "edit_timestamp": edit_timestamp,
+                    "upload_timestamp": upload_timestamp,
+                    "status": status
+                }
             }
-        }
-        self.log_action(3, log_data)
+            self.log_action(3, log_data)
 
     # function to set the status of a video
     def set_video_status(self, video_id, status, author, comment = None):
@@ -283,7 +284,6 @@ class VidSchool:
         return result
     
     # function to get videos assigned to a user
-    # # REWORK IN PROGRESS
     def get_videos_by_user(self, user_id, user_type):
         # creator
         if user_type == 4:
@@ -449,9 +449,7 @@ class VidSchool:
         result = self.cursor.fetchone()
         return result
     
-
     ### CHANNEL FUNCTIONS
-    # # TO BE REPLACED FOR GOOGLE INTEGRATION
     def add_channel(self, channel_name, platform, creator_id, editor_id, manager_id, ops_id, author):
         # checks if user is admin
         if author['user_type'] == 0:

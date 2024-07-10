@@ -745,6 +745,43 @@ def edit_video_creator(video_id):
     # Render edit_video.html template with video and users data for each role
     return render_template('edit_video_creator.html', video=video,channels=channels, msg=msg)                                                # Render edit_video.html template with video and message
 
+@app.route('/add_video_ops', methods=['GET', 'POST'])
+def add_video_ops():
+    if 'loggedin' not in session or session.get('user_type') != 2 :            
+        return redirect(url_for('login'))                                              # Redirect to login page if user is not logged in or is not an admin or manager
+    
+    msg = ''                                                                            # Initialize message to empty string
+    if request.method == 'POST':                                                        # Check if POST request with 'video_name', 'creator_id', 'editor_id' and 'manager_id' in form data
+        video_title = request.form['video_name']                                         # Get video name from form data
+        channel_id = request.form['channel_id']                                         # Get channel id from form data
+        status = request.form['status']                                                 # Get video status from form data
+         # Convert datetime strings to Unix timestamps if provided, otherwise set to None
+        shoot_timestamp = request.form['shoot_timestamp']
+        shoot_timestamp = int(datetime.strptime(shoot_timestamp, '%Y-%m-%dT%H:%M').timestamp()) if shoot_timestamp else None
+        
+        edit_timestamp = request.form['edit_timestamp']
+        edit_timestamp = int(datetime.strptime(edit_timestamp, '%Y-%m-%dT%H:%M').timestamp()) if edit_timestamp else None
+        
+        upload_timestamp = request.form['upload_timestamp']
+        upload_timestamp = int(datetime.strptime(upload_timestamp, '%Y-%m-%dT%H:%M').timestamp()) if upload_timestamp else None
+        author = {                                                                      # Author dictionary with user_id, user_email and user_type
+            "user_id": session.get("user_id"),                                          # Get user id from session
+            "user_email": session.get("user_email"),                                    # Get user email from session
+            "user_type": session.get("user_type"),                                      # Get user type from session
+        }
+
+        try:                                                                                                      # Try to add video with video_name, creator_id, editor_id, manager_id,oops_id
+            vidschool.add_video(video_title=video_title,channel_id=channel_id,shoot_timestamp=shoot_timestamp,edit_timestamp=edit_timestamp,upload_timestamp=upload_timestamp,status=status,author=author)                                                  
+            msg = 'Video added successfully!'                                                                     # Set message
+        except Exception as e:                                                                                    # Catch any exceptions and show error message
+            msg = f'Error: {str(e)}'                                                                              # Show error message
+    user_id = session['user_id']                                           # Get the logged-in user's ID
+    user_type = session['user_type']                                       # Get the logged-in user's type
+    channels = vidschool.get_channels_by_user(user_id,user_type)                                                                             # Get all channels
+    # Render add_video.html template with current message and users data for each role 
+    return render_template('add_video_ops.html', msg=msg,channels=channels)
+
+
 
 # Custom Jinja2 filter for datetime formatting
 @app.template_filter('datetimeformat')

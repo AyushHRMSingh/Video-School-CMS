@@ -151,12 +151,12 @@ class VidSchool:
 
     ### VIDEO FUNCTIONS
     # function to add a video to the database
-    def add_video(self, video_title, url, channel_id, shoot_timestamp, edit_timestamp, upload_timestamp, status, author):
+    def add_video(self, video_title, url, channel_id, shoot_timestamp, edit_timestamp, upload_timestamp, author):
         # checks user is higher permissions than ops
         if author['user_type'] <= 2 or author['user_type'] == 4:
             # executes SQL command
-            sql = "INSERT INTO Video (title, url, channel_id, shoot_timestamp, edit_timestamp, upload_timestamp, status) VALUES (%s, %s, %s, %s, %s, %s)"
-            val = (video_title, url, channel_id, shoot_timestamp, edit_timestamp, upload_timestamp, status)
+            sql = "INSERT INTO Video (title, url, channel_id, shoot_timestamp, edit_timestamp, upload_timestamp, status) VALUES (%s, %s, %s, %s, %s, %s, 0)"
+            val = (video_title, url, channel_id, shoot_timestamp, edit_timestamp, upload_timestamp)
             self.cursor.execute(sql, val)
             self.dbconnect.commit()
             # Logging
@@ -339,7 +339,8 @@ class VidSchool:
             val = (i[0],)
             self.cursor.execute(sql, val)
             result = self.cursor.fetchall()
-            Videos.append(result)
+            if result != []:
+                Videos.append(result)
         return Videos
 
     def get_credentials(self, channel_id):

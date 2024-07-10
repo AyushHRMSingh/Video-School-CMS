@@ -1,4 +1,6 @@
 # Import necessary modules
+import extrafunc
+import csvfunc
 from extfun import VidSchool
 from flask import Flask, render_template, request, redirect, url_for, session
 import flask
@@ -22,6 +24,29 @@ os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 
 # Initialize Flask application
 app = Flask(__name__)
+app.config['UPLOAD_FOLDER'] = "Data"
+ALLOWED_EXTENSIONS = {'csv'}
+
+# Set a secret key for session management
+app.secret_key = 'your secret key'
+
+# Initialize VidSchool object with database connection parameters
+vidschool = VidSchool(host, username, password, dbname)
+
+# Route for '/' and '/login', handles both GET and POST requests
+
+@app.route('/view_videos/csv', methods=['GET', 'POST'])
+def csvhandler():
+    return csvfunc.rendercsv(request, vidschool)
+
+@app.route('/view_videos/csv/addcsv', methods=['POST'])
+def addcsv():
+    author = {                                                     # Author dictionary with user_id, user_email and user_type
+        "user_id": session.get("user_id"),                         # Get user id from session
+        "user_email": session.get("user_email"),                   # Get user email from session
+        "user_type": session.get("user_type"),                     # Get user type from session
+    }
+    return csvfunc.csv2sql(request, vidschool, author)
 
 
 # Set a secret key for session management
@@ -225,9 +250,8 @@ def add_channel():
     msg = ''
     
     # Check if POST request with 'channel_name', 'url' and 'platform' in form data
-    if request.method == 'POST' and 'channel_name' in request.form and 'url' in request.form and 'platform' in request.form: 
-        channel_name = request.form['channel_name']                   # Get channel name from form data
-        url = request.form['url']                                     # Get URL from form data
+    if request.method == 'POST' and 'channel' in request.form and 'platform' in request.form: 
+        channel_name = request.form['channel']                   # Get channel name from form data                             # Get URL from form data
         platform = request.form['platform']                           # Get platform from form data
         creator_id = request.form['creator_id']                       # Get creator from form data
         editor_id = request.form['editor_id']                         # Get editor from form data
@@ -240,7 +264,7 @@ def add_channel():
         }
 
         try:
-            vidschool.add_channel(channel_name, url, platform, creator_id, editor_id, manager_id, ops_id, author)  # Add channel with channel_name, URL,platform, creator_id, editor_id, manager_id, ops_id
+            vidschool.add_channel(channel_name, platform, creator_id, editor_id, manager_id, ops_id, author)  # Add channel with channel_name, URL,platform, creator_id, editor_id, manager_id, ops_id
             msg = 'Channel added successfully!'                                                                    # Set success message
 
         except Exception as e:                                          # Catch any exceptions and show error message

@@ -1,4 +1,5 @@
 # Import necessary modules
+import extrafunc
 import csvfunc
 from extfun import VidSchool
 from flask import Flask, render_template, request, redirect, url_for, session
@@ -237,10 +238,11 @@ def add_channel():
         return redirect(url_for('login'))                             # Redirect to login page if user is not logged in or is not an admin
     msg = ''
     
-    # Check if POST request with 'channel_name', 'url' and 'platform' in form data
-    if request.method == 'POST' and 'channel_name' in request.form and 'url' in request.form and 'platform' in request.form: 
-        channel_name = request.form['channel_name']                   # Get channel name from form data
-        url = request.form['url']                                     # Get URL from form data
+    # Check if POST request with 'channel_name' and 'platform' in form data
+    if request.method == 'POST': 
+        print(request.form)
+    #     print("trying")
+        channel_name = request.form['channel']                   # Get channel name from form data
         platform = request.form['platform']                           # Get platform from form data
         creator_id = request.form['creator_id']                       # Get creator from form data
         editor_id = request.form['editor_id']                         # Get editor from form data
@@ -251,13 +253,15 @@ def add_channel():
             "user_email": session.get("user_email"),                  # Get user email from session
             "user_type": session.get("user_type"),                    # Get user type from session
         }
+        print("Got this far")
         try:
-            channel_id = vidschool.add_channel(channel_name, url, platform, creator_id, editor_id, manager_id, ops_id, author)  # Add channel with channel_name, URL,platform, creator_id, editor_id, manager_id, ops_id
+            channel_id = vidschool.add_channel(channel_name, platform, creator_id, editor_id, manager_id, ops_id, author)  # Add channel with channel_name, URL,platform, creator_id, editor_id, manager_id, ops_id
             if 'addcredentials' in flask.session:
-                vidschool.link_channel(channel_id, flask.session['addcredentials'], author)
+                print(flask.session['addcredentials'])
+                # vidschool.link_channel(channel_id, flask.session['addcredentials'], author)
                 flask.session.pop('addcredentials')
-                flask.session['channel_name'] = [channel_id, channel_name]
-            msg = 'Channel added successfully!'                                                                    # Set success message
+                flask.session.pop("channel_name")
+            flask.redirect(flask.url_for("view_channels"))                                                          # Set success message
         except Exception as e:                                          # Catch any exceptions and show error message
             msg = f'Error: {str(e)}'                                    # Show error message
 
@@ -270,10 +274,10 @@ def add_channel():
     creators = vidschool.get_users_by_role(4)                                                                     # Get all creators
     editors = vidschool.get_users_by_role(3)                                                                      # Get all editors
     managers = vidschool.get_users_by_role(1)                                                                     # Get all managers
-    ops = vidschool.get_users_by_role(2)                                                                     # Get all channels
+    opss = vidschool.get_users_by_role(2)                                                                     # Get all channels
 
     # Render add_channel.html template with current message and users data for each role
-    return render_template('add_channel.html', msg=msg, creators=creators, editors=editors, managers=managers, ops=ops, channel=channel_name)            
+    return render_template('add_channel.html', msg=msg, creators=creators, editors=editors, managers=managers, opss=opss, channel=channel_name)            
 
 # Route for '/viewchannnel' to view all videos
 @app.route('/view_channels')
@@ -709,7 +713,7 @@ def oauth2callback():
     else:
         channel_name = "No channel found"
     flask.session['channel_name'] = channel_name  # Store channel name in session
-    flask.session['addcredentials'] = credentials.to_json()
+    flask.session['addcredentials'] = extrafunc.credtodict(credentials)
     # print(flask.session['acdredentials'])
     # return flask.session['credentials']
     return flask.redirect(flask.session['return_url'])

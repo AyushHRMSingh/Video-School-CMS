@@ -538,9 +538,10 @@ class VidSchool:
 
     def link_channel(self, channel_id, token, author):
         if author['user_type'] == 0:
-            jsontoken = json.dumps(token)
+            
+            # print(jsontoken)
             sql = "INSERT INTO Channel (token) VALUES (%s) WHERE ID = %s"
-            val = (jsontoken, channel_id)
+            val = (token, channel_id)
             self.cursor.execute(sql, val)
             self.dbconnect.commit()
             log_data = {

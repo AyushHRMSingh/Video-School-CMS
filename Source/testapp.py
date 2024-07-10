@@ -23,8 +23,6 @@ app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = "Data"
 ALLOWED_EXTENSIONS = {'csv'}
 
-
-
 # Set a secret key for session management
 app.secret_key = 'your secret key'
 
@@ -257,6 +255,8 @@ def add_channel():
             channel_id = vidschool.add_channel(channel_name, url, platform, creator_id, editor_id, manager_id, ops_id, author)  # Add channel with channel_name, URL,platform, creator_id, editor_id, manager_id, ops_id
             if 'addcredentials' in flask.session:
                 vidschool.link_channel(channel_id, flask.session['addcredentials'], author)
+                flask.session.pop('addcredentials')
+                flask.session['channel_name'] = [channel_id, channel_name]
             msg = 'Channel added successfully!'                                                                    # Set success message
         except Exception as e:                                          # Catch any exceptions and show error message
             msg = f'Error: {str(e)}'                                    # Show error message
@@ -264,6 +264,7 @@ def add_channel():
     # Fetch users for each role
     if "channel_name" in flask.session:
         channel_name = flask.session['channel_name']
+        print(channel_name," found")
     else:
         channel_name = ''
     creators = vidschool.get_users_by_role(4)                                                                     # Get all creators

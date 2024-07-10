@@ -471,12 +471,12 @@ class VidSchool:
         # checks if user is admin
         if author['user_type'] == 0:
             # executes SQL command
-            sql = "INSERT INTO Channel (name ,platform, creator_id, editor_id, manager_id, ops_id, status) VALUES (%s, %s, %s, %s, %s, %s, %s, 0)"
+            sql = "INSERT INTO Channel (name ,platform, creator_id, editor_id, manager_id, ops_id, status) VALUES (%s, %s, %s, %s, %s, %s, 0)"
             val = (channel_name, platform, creator_id, editor_id, manager_id, ops_id)
             self.cursor.execute(sql, val)
             self.dbconnect.commit()
             # gets channel ID after adding
-            sql = "SELECT ID FROM Channel WHERE name = %s AND AND platform = %s"
+            sql = "SELECT ID FROM Channel WHERE name = %s AND platform = %s"
             val = (channel_name, platform)
             self.cursor.execute(sql, val)
             channel = self.cursor.fetchone()

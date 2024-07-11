@@ -202,12 +202,14 @@ class VidSchool:
 
     ### VIDEO FUNCTIONS
     # function to add a video to the database
-    def add_video(self, video_title, url, channel_id, shoot_timestamp, edit_timestamp, upload_timestamp, author):
+    def add_video(self, request, author):
         # checks user is higher permissions than ops
+        video_title = request['video_title']
+        channel_id = request['channel_id']
         if author['user_type'] <= 2 or author['user_type'] == 4:
             # executes SQL command
-            sql = "INSERT INTO Video (title, url, channel_id, shoot_timestamp, edit_timestamp, upload_timestamp, status) VALUES (%s, %s, %s, %s, %s, %s, 0)"
-            val = (video_title, url, channel_id, shoot_timestamp, edit_timestamp, upload_timestamp)
+            sql = "INSERT INTO Video (title, channel_id, status) VALUES (%s, %s, 0)"
+            val = (video_title, channel_id,)
             self.cursor.execute(sql, val)
             self.dbconnect.commit()
             # Logging
@@ -216,14 +218,15 @@ class VidSchool:
                 "author_id": author['user_id'],
                 "data": {
                     "video_title": video_title,
-                    "url": url,
                     "channel_id": channel_id,
-                    "shoot_timestamp": shoot_timestamp,
-                    "edit_timestamp": edit_timestamp,
-                    "upload_timestamp": upload_timestamp,
                 }
             }
             self.log_action(3, log_data)
+            return True
+        else:
+            return {
+                "error": "You do not have permission to add videos"
+            }
 
     def add_videos_bulk(self, videos, channel_id, author):
         if author['user_type'] == 0:
@@ -242,22 +245,33 @@ class VidSchool:
             }
 
     # function to update a video in the database
-    def update_video(self, video_id, video_title, channel_id, shoot_timestamp, edit_timestamp, upload_timestamp, status, comment, author):
+    def update_video(self, request, author):
         if author['user_type'] <= 2 or author['user_type'] == 4:
             # stores values from DB as default
+            video_id = int(request['video_id']) 
+            video_title = request['video_title']
+            video_url = request['video_url']
+            channel_id = int(request['channel_id'])
+            shoot_timestamp = request['shoot_timestamp']
+            edit_timestamp = request['edit_timestamp']
+            upload_timestamp = request['upload_timestamp']
+            status = int(request['status'])
+            comment = request['comment']
+            
             defvalue = self.get_video(video_id)
             # if value is None, set to default value
-            video_title = video_title if video_title != None else defvalue[2]
-            channel_id = channel_id if channel_id != None else defvalue[3]
-            shoot_timestamp = shoot_timestamp if shoot_timestamp != None else defvalue[4]
-            edit_timestamp = edit_timestamp if edit_timestamp != None else defvalue[5]
-            upload_timestamp = upload_timestamp if upload_timestamp != None else defvalue[6]
-            status = status if status != None else defvalue[7]
-            comment = comment if comment != None else defvalue[8]
+            video_title = video_title if video_title != '' else defvalue[2]
+            video_url = video_url if video_url != '' else defvalue[3]
+            channel_id = channel_id if channel_id != '' else defvalue[3]
+            shoot_timestamp = shoot_timestamp if shoot_timestamp != '' else defvalue[4]
+            edit_timestamp = edit_timestamp if edit_timestamp != '' else defvalue[5]
+            upload_timestamp = upload_timestamp if upload_timestamp != '' else defvalue[6]
+            status = status if status != '' else defvalue[7]
+            comment = comment if comment != '' else defvalue[8]
             # executes SQL command
         # executes SQL command
-            sql = "UPDATE Video SET title = %s, channel_id = %s, shoot_timestamp = %s, edit_timestamp = %s, upload_timestamp = %s, status = %s, comment = %s WHERE id = %s"
-            val = (video_title, channel_id, shoot_timestamp, edit_timestamp, upload_timestamp, status, comment, video_id)
+            sql = "UPDATE Video SET title = %s, url = %s,channel_id = %s, shoot_timestamp = %s, edit_timestamp = %s, upload_timestamp = %s, status = %s, comment = %s WHERE id = %s"
+            val = (video_title, video_url, channel_id, shoot_timestamp, edit_timestamp, upload_timestamp, status, comment, video_id)
             self.cursor.execute(sql, val)
             self.dbconnect.commit()
             # Logging
@@ -275,28 +289,37 @@ class VidSchool:
                 }
             }
             self.log_action(3, log_data)
+            return True
+        else:
+            return {
+                "error": "You do not have permission to update this video"
+            }
 
     # function to set the status of a video
-    def set_video_status(self, video_id, status, author, comment = None):
+    def set_video_status(self, request, author):
+        video_id = int(request['video_id'])
+        status = int(request["status"])
+        comment = request['comment']
         # checks if comment is set
-        if comment == None:
-            comment = ''
+        if comment == '':
+            comment = None
         # checks different usertypes to check if action is permitted
         # creator
+        print(author['user_type']," : ",status)
         if author['user_type'] == 4:
-            if status != 0 and status != 1:
+            if status != 1:
                 return {
                     "error": "You do not have permission to set that status"
                 }
         # editor
         elif author['user_type'] == 3:
-            if status != 1 and status != 2:
+            if status != 2:
                 return {
                     "error": "You do not have permission to set that status"
                 }
         # operations
         elif author['user_type'] == 2:
-            if status != 2 and status != 3:
+            if status != 3:
                 return {
                     "error": "You do not have permission to set that status"
                 }
@@ -322,11 +345,13 @@ class VidSchool:
                 "status": status
             }
         }
+        self.log_action(3, log_data)
+        return True
     
     # function to delete a video from the database
     def set_delete_video(self, video_id, author):
         # checks that user is higher than ops
-        if author['user_type'] <2:
+        if author['user_type'] <=2:
             # executes SQL command
             sql = "UPDATE Video SET status = 7 WHERE ID = %s"
             val = (video_id,)
@@ -341,7 +366,11 @@ class VidSchool:
                 }
             }
             self.log_action(3, log_data)
-
+            return True
+        else:
+            return {
+                "error": "You do not have permission to delete this video"
+            }
     # function to get all videos from the database
     def get_videos(self):
         # executes SQL command

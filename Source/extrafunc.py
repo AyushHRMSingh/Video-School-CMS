@@ -10,12 +10,10 @@ def credtodict(cred):
     }
 
 # function to turn response object to array/dictionary
-def formatresa(res):
-    print(res)
-    newres = []
-    for i in range(0,len(res['columnHeaders'])):
-        newres.append({
-            'metric': res['columnHeaders'][i]['name'],
-            'data': res['rows'][0][i]
-        })
-    return newres
+def format_string(stringa):
+    for i in stringa:
+        # if detects special character that conflicts with javascript or any other syntax such as singlequote, doublequote, etc use \ to have it be ignored
+        if i == "'":
+            stringa = stringa.replace(i, "\'")
+        if i == "\\":
+            stringa = stringa.replace(i, "\\\\")

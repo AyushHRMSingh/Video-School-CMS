@@ -281,12 +281,12 @@ class VidSchool:
             # if value is None, set to default value
             video_title = video_title if video_title != '' else defvalue[2]
             video_url = video_url if video_url != '' else defvalue[3]
-            channel_id = channel_id if channel_id != '' else defvalue[3]
-            shoot_timestamp = shoot_timestamp if shoot_timestamp != '' else defvalue[4]
-            edit_timestamp = edit_timestamp if edit_timestamp != '' else defvalue[5]
-            upload_timestamp = upload_timestamp if upload_timestamp != '' else defvalue[6]
-            status = status if status != '' else defvalue[7]
-            comment = comment if comment != '' else defvalue[8]
+            channel_id = channel_id if channel_id != '' else defvalue[4]
+            shoot_timestamp = shoot_timestamp if shoot_timestamp != '' else defvalue[5]
+            edit_timestamp = edit_timestamp if edit_timestamp != '' else defvalue[6]
+            upload_timestamp = upload_timestamp if upload_timestamp != '' else defvalue[7]
+            status = status if status != '' else defvalue[8]
+            comment = comment if comment != '' else defvalue[9]
             # executes SQL command
         # executes SQL command
             sql = "UPDATE Video SET title = %s, url = %s,channel_id = %s, shoot_timestamp = %s, edit_timestamp = %s, upload_timestamp = %s, status = %s, comment = %s WHERE id = %s"
@@ -323,7 +323,7 @@ class VidSchool:
         if comment == '':
             comment = None
         # checks different usertypes to check if action is permitted
-        # creator
+        # creatorx
         print(author['user_type']," : ",status)
         if author['user_type'] == 4:
             if status != 1:

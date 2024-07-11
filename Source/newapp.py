@@ -4,16 +4,16 @@ import extrafunc
 import csv_functions
 import stat_functions
 from external_function import VidSchool
-from flask import Flask, render_template, request, redirect, url_for, session
+from flask import Flask, render_template, request, redirect, url_for, session, send_from_directory
 import flask
 import envfile
 import userenum
 import platform_type
 from datetime import datetime
-host = envfile.host                                    # Get host from envfile
-username = envfile.dbuser                              # Get username from envfile
-password = envfile.dbpass                              # Get password from envfile
-dbname = envfile.dbname                                # Get dbname from envfile
+host = envfile.host
+username = envfile.dbuser
+password = envfile.dbpass
+dbname = envfile.dbname
 import google_auth_oauthlib.flow
 from googleapiclient.discovery import build
 # set the environment variable for the google api testing
@@ -34,11 +34,16 @@ app = Flask(__name__)
 app.secret_key = 'your secret key'
 app.config['UPLOAD_FOLDER'] = "Data"
 ALLOWED_EXTENSIONS = {'csv'}
+app.secret_key = 'your secret key'
+
 # Initialize VidSchool object with database connection parameters
 vidschool = VidSchool(host, username, password, dbname)
 
 # Set a secret key for session management
-app.secret_key = 'your secret key'
+
+@app.route('/favicon.ico')
+def favicon():
+    return send_from_directory(os.path.join(app.root_path, 'static'),'favicon.ico', mimetype='image/vnd.microsoft.icon')
 
 @app.route('/')
 def base():
@@ -102,7 +107,7 @@ def view_channel(channel_id):
             channels[5] : vidschool.get_user(channels[5])[1],
             channels[6] : vidschool.get_user(channels[6])[1]
         }
-        return render_template('view_channel.html', sessionvar=session,channel=channels, videos=videos, users=users)
+        return render_template('view_channel.html', sessionvar=session,channel=channels, videos=videos, users=users, strfunc=extrafunc.format_string)
     else:
         return redirect(url_for('login'))
 

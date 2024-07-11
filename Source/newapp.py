@@ -95,15 +95,12 @@ def dashboard():
 def view_channel(channel_id):
     if session.get('loggedin'):
         channels = vidschool.get_channel(channel_id)
-        # print(channels)
         videos = vidschool.get_videos_by_channel(channel_id)
-        # print(videos)
         users = {
             channels[3] : vidschool.get_user(channels[3])[1],
             channels[4] : vidschool.get_user(channels[4])[1],
             channels[5] : vidschool.get_user(channels[5])[1],
             channels[6] : vidschool.get_user(channels[6])[1]
-            
         }
         return render_template('view_channel.html', sessionvar=session,channel=channels, videos=videos, users=users)
     else:
@@ -132,7 +129,6 @@ def delete_video(video_id):
             'user_type': session['user_type']
         }
         result = vidschool.set_delete_video(video_id=video_id, author=author)
-        print("result: ", result)
         if result!=True:
             return result
         return flask.redirect(request.referrer)
@@ -143,7 +139,6 @@ def delete_video(video_id):
 def edit_video(video_id):
     if session.get('loggedin'):
         if request.method == 'POST':
-            print(request.form.to_dict())
             author = {
                 'user_id': session['user_id'],
                 'user_type': session['user_type']
@@ -176,6 +171,123 @@ def add_video(channel_id):
         return render_template('add_video.html', sessionvar=session, channel_id=channel_id)
     else:
         return redirect(url_for('login'))
+
+@app.route('/users')
+def view_users():
+    if session.get('loggedin'):
+        if session['user_type'] == 0:
+            author = {
+                'user_id': session['user_id'],
+                'user_type': session['user_type']
+            }
+            users = vidschool.get_users(author=author)
+            roles = userenum.roletype
+            status = userenum.userstatus
+            return render_template('view_user.html', users=users, roles=roles, status=status)
+        else:
+            return "You are not authorized to view this page"
+    else:
+        return redirect(url_for('login'))
+
+@app.route('/users/edit/<int:user_id>', methods=['GET', 'POST'])
+def edit_user(user_id):
+    if session.get('loggedin'):
+        if session['user_type'] == 0:
+            if request.method == 'POST':
+                author = {
+                    'user_id': session['user_id'],
+                    'user_type': session['user_type']
+                }
+                print(request.form.to_dict())
+                result = vidschool.edit_user(request.form.to_dict(), author)
+                if result!=True:
+                    return result
+                return redirect(url_for('view_users'))
+            user = vidschool.get_user(user_id)
+            return render_template('edit_user.html', user=user)
+        else:
+            return "You are not authorized to view sthis page"
+    else:
+        return redirect(url_for('login'))
+
+@app.route('/users/delete/<int:user_id>')
+def delete_user(user_id):
+    if session.get('loggedin'):
+        if session['user_type'] == 0:
+            author = {
+                'user_id': session['user_id'],
+                'user_type': session['user_type']
+            }
+            result = vidschool.delete_user(user_id, author)
+            if result!=True:
+                return result
+            elif result == True:
+                return redirect(url_for('view_users'))
+        else:
+            return "You are not authorized to view this page"
+
+@app.route('/users/add', methods=['GET', 'POST'])
+def add_user():
+    if session.get('loggedin'):
+        if session['user_type'] == 0:
+            if request.method == 'POST':
+                author = {
+                    'user_id': session['user_id'],
+                    'user_type': session['user_type']
+                }
+                result = vidschool.add_user(request.form.to_dict(), author)
+                if result!=True:
+                    return render_template('add_user.html', msg=result)
+                else:
+                    return render_template('add_user.html', msg="User added Successfully")
+            return render_template('add_user.html')
+        else:
+            return "You are not authorized to view this page"
+    else:
+        return redirect(url_for('login'))
+
+# Oauth page 1
+@app.route('/oauth')
+def oauth():
+    flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
+        CLIENT_SECRETS_FILE, scopes=SCOPES)
+    flow.redirect_uri = flask.url_for('oauth2callback', _external=True)
+    auth_url,state = flow.authorization_url(
+        access_type='offline',
+        include_granted_scopes='true')
+    session['state'] = state
+    session['return_url'] = request.referrer
+    return flask.redirect(auth_url)
+
+# Oauth page 2
+@app.route('/oauth2callback')
+def oauth2callback():
+    state = session['state']
+    flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
+      CLIENT_SECRETS_FILE, scopes=SCOPES, state=state)
+    flow.redirect_uri = flask.url_for('oauth2callback', _external=True)
+    auth_response = flask.request.url
+    flow.fetch_token(authorization_response=auth_response)
+    
+    credentials = flow.credentials
+    youtube = build('youtube', 'v3', credentials=credentials)
+    request = youtube.channels().list(
+        part="snippet",
+        mine=True
+    )
+    response = request.execute()
+    if response['items']:
+        channel_name = response['items'][0]['snippet']['title']
+    else:
+        channel_name = "No channel found"
+    
+    # store channels name and credentials in session
+    session['channel_name'] = channel_name
+    session['addcredentials'] = extrafunc.credtodict(credentials)
+    print(session['addcredentials'])
+    return_url = session['return_url']
+    session.pop('return_url')
+    return flask.redirect(return_url)
 
 # Main entry point of the application
 if __name__ == '__main__':

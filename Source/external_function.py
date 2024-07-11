@@ -93,10 +93,14 @@ class VidSchool:
 
     ### USER FUNCTIONS
     # function to add a user to the database ONLY FOR ADMIN
-    def add_user(self, user_name,user_email, password, user_type, author):
+    def add_user(self,request, author):
         # checks permission
         if author['user_type'] == 0:
             # hash password
+            user_name = request['user_name']
+            user_email = request['user_email']
+            password = request['password']
+            user_type = request['user_type']
             hashpass = self.hash_password(password)
             # executes SQL command
             sql = "INSERT INTO User (name, email, password, role, status) VALUES (%s, %s, %s, %s, 0)"
@@ -116,11 +120,17 @@ class VidSchool:
                 }
             }
             self.log_action(1, log_data)
+            return True
+        else:
+            return "You do not have permission to add users"
 
     # sets user to INACTIVE
     def delete_user( self, user_id, author):
         # checks permissions
         if author['user_type'] == 0:
+            user = self.get_user(user_id)
+            if user[4] == 0:
+                return "You cannot delete the admin user"
             # executes SQL command
             sql = "UPDATE User SET status = 1 WHERE ID = %s"
             val = (user_id,)
@@ -135,6 +145,9 @@ class VidSchool:
                 }
             }
             self.log_action(1, log_data)
+            return True
+        else:
+            return "You do not have permission to delete this user"
 
     # function to get all users in the database
     def get_users(self, author):
@@ -146,9 +159,7 @@ class VidSchool:
             result = self.cursor.fetchall()
             return result
         else:
-            return {
-                "error": "You do not have permission to view this data"
-            }
+            return "You do not have permission to view this data"
     
     def get_users_by_role(self, user_type):
         # checks permissions
@@ -169,16 +180,23 @@ class VidSchool:
         return result
     
     # function to edit a user in the database
-    def edit_user(self, user_name, user_id, user_email, user_type, status, author):
+    def edit_user(self, request, author):
         # checks permissions
         if author['user_type'] == 0:
             # stores default values from DB
+            user_id = int(request['user_id'])
+            if user_id == 0:
+                return "You cannot edit the admin user"
+            user_name = request['user_name']
+            user_email = request['user_email']
+            user_type = int(request['user_type'])
+            status = int(request['status'])
             defvalue = self.get_user(user_id)
             # sets values to default if None
-            user_name = user_name if user_name != None else defvalue[1]
-            user_email = user_email if user_email != None else defvalue[2]
-            user_type = user_type if user_type != None else defvalue[4]
-            status = status if status != None else defvalue[5]
+            user_name = user_name if user_name != "" else defvalue[1]
+            user_email = user_email if user_email != "" else defvalue[2]
+            user_type = user_type if user_type != "" else defvalue[4]
+            status = status if status != "" else defvalue[5]
             # executes SQL command
             sql = "UPDATE User SET name = %s, email = %s, role = %s, status = %s WHERE ID = %s"
             val = (user_name, user_email, user_type, status, user_id)
@@ -195,6 +213,7 @@ class VidSchool:
                 }
             }
             self.log_action(1, log_data)
+            return True
         else:
             return {
                 "error": "You do not have permission to edit this user"
@@ -737,98 +756,6 @@ class VidSchool:
                 "user_id": user_id,
                 "channel_id": channel_id,
                 "user_type": user_type
-            }
-        }
-        self.log_action(2, log_data)
-
-    def assign_creator_to_channel(self, user_id, channel_id, author):
-        sql = "SELECT * FROM Channel WHERE ID = %s"
-        val = (channel_id,)
-        self.cursor.execute(sql, val)
-        result = self.cursor.fetchone()
-        if result == None:
-            return {
-                "error": "Channel does not exist"
-            }
-        sql = "UPDATE Channel SET creator_id = %s WHERE ID = %s"
-        val = (user_id, channel_id)
-        self.cursor.execute(sql, val)
-        self.dbconnect.commit()
-        log_data = {
-            "action": "assign_creator_to_channel",
-            "author_id": author['user_id'],
-            "data": {
-                "user_id": user_id,
-                "channel_id": channel_id
-            }
-        }
-        self.log_action(2, log_data)
-
-    def assign_editor_to_channel(self, user_id, channel_id, author):
-        sql = "SELECT * FROM Channel WHERE ID = %s"
-        val = (channel_id,)
-        self.cursor.execute(sql, val)
-        result = self.cursor.fetchone()
-        if result == None:
-            return {
-                "error": "Channel does not exist"
-            }
-        sql = "UPDATE Channel SET editor_id = %s WHERE ID = %s"
-        val = (user_id, channel_id)
-        self.cursor.execute(sql, val)
-        self.dbconnect.commit()
-        log_data = {
-            "action": "assign_editor_to_channel",
-            "author_id": author['user_id'],
-            "data": {
-                "user_id": user_id,
-                "channel_id": channel_id
-            }
-        }
-        self.log_action(2, log_data)
-
-    def assign_manager_to_channel(self, user_id, channel_id, author):
-        sql = "SELECT * FROM Channel WHERE ID = %s"
-        val = (channel_id,)
-        self.cursor.execute(sql, val)
-        result = self.cursor.fetchone()
-        if result == None:
-            return {
-                "error": "Channel does not exist"
-            }
-        sql = "UPDATE Channel SET manager_id = %s WHERE ID = %s"
-        val = (user_id, channel_id)
-        self.cursor.execute(sql, val)
-        self.dbconnect.commit()
-        log_data = {
-            "action": "assign_manager_to_channel",
-            "author_id": author['user_id'],
-            "data": {
-                "user_id": user_id,
-                "channel_id": channel_id
-            }
-        }
-        self.log_action(2, log_data)
-
-    def assign_ops_to_channel(self, user_id, channel_id, author):
-        sql = "SELECT * FROM Channel WHERE ID = %s"
-        val = (channel_id,)
-        self.cursor.execute(sql, val)
-        result = self.cursor.fetchone()
-        if result == None:
-            return {
-                "error": "Channel does not exist"
-            }
-        sql = "UPDATE Channel SET ops_id = %s WHERE ID = %s"
-        val = (user_id, channel_id)
-        self.cursor.execute(sql, val)
-        self.dbconnect.commit()
-        log_data = {
-            "action": "assign_ops_to_channel",
-            "author_id": author['user_id'],
-            "data": {
-                "user_id": user_id,
-                "channel_id": channel_id
             }
         }
         self.log_action(2, log_data)

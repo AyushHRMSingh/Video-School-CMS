@@ -16,6 +16,17 @@
     })
 </script>
 <body>
+    <nav class="navbar navbar-dark bg-dark">
+        <div class="container-fluid">
+            <span class="navbar-brand mb-0 h1">Video School CMS</span>
+            <a class="d-flex btn btn-outline-light" href="{{ url_for('logout') }}">Logout</a>
+        </div>
+    </nav>
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{url_for('dashboard')}}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('view_channel',channel_id=video[4]) }}">Users</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Edit Video</li>
+    </ol>
     <a href="{{ url_for('view_channel',channel_id=video[4]) }}" class="btn">Back to Channel View</a>
     <div class="container">
         <h1>Edit Video</h1>

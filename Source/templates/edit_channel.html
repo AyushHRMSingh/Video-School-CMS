@@ -82,11 +82,11 @@
             </div>
             {% if channel[8] == "{}" %}
                 <div class="mb-3">
-                    <a class="btn btn-secondary" href="">Link Channel</a>
+                    <a class="btn btn-secondary" href="{{ url_for('oauth') }}">Link Channel</a>
                 </div>
             {% else %}
                 <div class="mb-3">
-                    <a class="btn btn-secondary" href="">Unlink Channel</a>
+                    <a class="btn btn-secondary" href="{{ url_for('unlink_channel', channel_id=channel[0]) }}">Unlink Channel</a>
                 </div>
             {% endif %}
             <button type="submit" class="btn btn-primary">Submit</button>

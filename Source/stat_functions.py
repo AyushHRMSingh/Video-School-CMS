@@ -10,39 +10,30 @@ def get_main(channel_name, channel_id):
         return None
     print(data)
     # get total no. subscriptions, views and watchtime
-    uploadsid = api_functions.youtubedata(
+    stata = api_functions.youtubedata(
         'youtube',
         'v3',
         data,
         type='channel',
-        part='snippet, contentDetails',
+        part='snippet,contentDetails,statistics',
         mine=True,
         # mine=True,
     )
-    print(uploadsid)
-    uploadsid = uploadsid['items'][0]['contentDetails']['relatedPlaylists']['uploads']
+    print(stata)
+    uploadsid = stata['items'][0]['contentDetails']['relatedPlaylists']['uploads']
     today = datetime.now().strftime('%Y-%m-%d')
-    stata = api_functions.youtubedata(
-        'youtubeAnalytics', 
+    # get total watch time for whole life
+    statb = api_functions.youtubedata(
+        'youtubeAnalytics',
         'v2',
-        credentials=data, 
+        credentials=data,
         ids='channel==MINE',
         startDate='1990-01-01',
-        metrics='subscribersGained,views,estimatedMinutesWatched',
         endDate=today,
-    )
-    print("stata done")
-    # get total no. of videos
-    statb = api_functions.youtubedata(
-        'youtube',
-        'v3',
-        credentials=data,
-        type="playlistItem",
-        part='snippet',
-        playlistId=uploadsid,
+        metrics='estimatedMinutesWatched',
     )
     print("statb done")
-    statb = statb['pageInfo']['totalResults']
+    statb = statb['rows'][0][0]
     statc1 = api_functions.youtubedata(
         'youtubeAnalytics',
         'v2',
@@ -90,9 +81,9 @@ def get_main(channel_name, channel_id):
     print("statd1 done")
     return {
         "section_a":{
-            "subscribers": stata['rows'][0][0],
-            "views": stata['rows'][0][1],
-            "watchtime": stata['rows'][0][2]/60,
+            'subscribers': stata['items'][0]['statistics']['subscriberCount'],
+            'views': stata['items'][0]['statistics']['viewCount'],
+            'totalvideos': stata['items'][0]['statistics']['videoCount'],
         },
         "section_b":statb,
         "section_c":statcfinal,

@@ -55,7 +55,7 @@ class VidSchool:
         if result == []:
             print("No channels found")
             return False
-        for i in result:
+        for i in list(result):
             cred = [i[8]]
             cred = ast.literal_eval(cred[0])
             VidSchool.credentialpool[i[0]] = cred
@@ -656,15 +656,12 @@ class VidSchool:
                 }
                 self.log_action(2, log_data)
                 VidSchool.start_credential_pool(self)
+                return True
             except Exception as e:
                 print(e)
-                return {
-                    "error": str(e)
-                }
+                return str(e)
         else:
-            return {
-                "error": "You do not have permission to link channels"
-            }
+            return "You do not have permission to link channels"
 
     def unlink_channel(self, channel_id, author):
         if author['user_type'] == 0:
@@ -682,11 +679,10 @@ class VidSchool:
                 }
                 self.log_action(2, log_data)
                 VidSchool.start_credential_pool(self)
+                return True
             except Exception as e:
                 print(e)
-                return {
-                    "error": str(e)
-                }
+                return str(e)
         else:
             return "You do not have permission to unlink channels"
 

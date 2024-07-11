@@ -20,12 +20,52 @@ from googleapiclient.discovery import build
 import os
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 
-
+#youtube api implementation
+CLIENT_SECRETS_FILE = "Source/client_secrets.json"
+SCOPES = ['https://www.googleapis.com/auth/youtube.readonly',
+          'https://www.googleapis.com/auth/yt-analytics.readonly',
+          'https://www.googleapis.com/auth/yt-analytics-monetary.readonly',
+          'https://www.googleapis.com/auth/userinfo.profile'
+          ]  
+API_SERVICE_NAME1 = 'youtubeAnalytics'
+API_VERSION1 = 'v2'
+METRICS = [
+    "views",
+    "redViews",
+    "comments",
+    "likes",
+    "dislikes",
+    "videosAddedToPlaylists",
+    "videosRemovedFromPlaylists",
+    "shares",
+    "estimatedMinutesWatched",
+    "estimatedRedMinutesWatched",
+    "averageViewDuration",
+    "averageViewPercentage",
+    "annotationClickThroughRate",
+    "annotationCloseRate",
+    "annotationImpressions",
+    "annotationClickableImpressions",
+    "annotationClosableImpressions",
+    "annotationClicks",
+    "annotationCloses",
+    "cardClickRate",
+    "cardTeaserClickRate",
+    "cardImpressions",
+    "cardTeaserImpressions",
+    "cardClicks",
+    "cardTeaserClicks",
+    "subscribersGained",
+    "subscribersLost"
+]
 
 # Initialize Flask application
 app = Flask(__name__)
+app.secret_key = 'your secret key'
 app.config['UPLOAD_FOLDER'] = "Data"
 ALLOWED_EXTENSIONS = {'csv'}
+# Initialize VidSchool object with database connection parameters
+vidschool = VidSchool(host, username, password, dbname)
 
 # Set a secret key for session management
 app.secret_key = 'your secret key'
@@ -50,10 +90,8 @@ def addcsv():
 
 
 # Set a secret key for session management
-app.secret_key = 'your secret key'
 
-# Initialize VidSchool object with database connection parameters
-vidschool = VidSchool(host, username, password, dbname)
+
 
 # Route for '/' and '/login', handles both GET and POST requests
 @app.route('/')
@@ -453,12 +491,54 @@ def view_videos():
             for vid in finalvidlist:
                 channel = vidschool.get_channel(vid[4])
                 channels[channel[0]] = channel[1]
-                # channels.append({channel[0]:channel[1]})
             return render_template('view_videos_creator.html', videos=finalvidlist, channels=channels,msg=msg)
         except Exception as e:
             msg = f'Error: {str(e)}'
             return render_template('index.html', msg=msg)
-
+    # editor
+    elif author['user_type'] == 3:
+        if 'loggedin' not in session or session.get('user_type') != 3:             # Check if user is logged in and is an admin or manager
+            return redirect(url_for('login'))                                      # Redirect to login page if user is not logged in or is not an admin
+        msg = ''
+        try:                                                                               
+            author = {                                                                           # Author dictionary with user_id, user_email and user_type
+                "user_id": session.get("user_id"),                                               # Get user id from session
+                "user_email": session.get("user_email"),                                         # Get user email from session
+                "user_type": session.get("user_type"),                                           # Get user type from session
+                }
+            # Fetch videos managed by the logged-in user
+            videos = vidschool.get_videos(author=author)                      
+            channels=vidschool.get_channels()                                            # Get all channels
+            channel_dict = {channel[0]: channel[1] for channel in channels}              # Create dictionary with channel id as key and channel name as value
+            
+        
+        except Exception as e:                                                              # Catch any exceptions and show error message
+            msg = f'Error: {str(e)}'                                                        # Show error message
+            return render_template('index.html', msg=msg)                              # Render index.html template with error message
+        return render_template('view_videos_editor.html', videos=videos,channel_dict=channel_dict,msg=msg)
+    # manager
+    elif author['user_type'] == 1:
+        if 'loggedin' not in session or session.get('user_type') != 1:             # Check if user is logged in and is an admin or manager
+            return redirect(url_for('login'))                                      # Redirect to login page if user is not logged in or is not an admin
+        try:
+            user_id = author['user_id']
+            user_type = author['user_type']
+            print("starting stuff")
+            video = vidschool.get_videos_by_user(user_id, user_type)
+            print(video)
+            finalvidlist = list(video)
+            channels = {}
+            for vid in finalvidlist:
+                channel = vidschool.get_channel(vid[4])
+                channels[channel[0]] = channel[1]
+            # Render view_videos.html template with videos data and users data for each role
+            print("rendering")
+            print(finalvidlist)
+            print(channels)
+            # return "Manager"
+            return render_template('view_videos_manager.html', videos=finalvidlist,channels=channels)
+        except Exception as e:                                                              # Catch any exceptions and show error message
+            return render_template('index.html', error=str(e))   
 
 # Route for '/editvideo' to edit a video with video_id
 # Route for editing a video
@@ -618,28 +698,28 @@ def add_video_manager():
     # Render add_video.html template with current message and users data for each role 
     return render_template('add_video_manager.html', msg=msg,channels=channels)                                             # Render add_video.html template with current message
 
-@app.route('/view_videos_manager')
-def view_videos_manager():
-    if 'loggedin' not in session or session.get('user_type') != 1:             # Check if user is logged in and is an admin or manager
-        return redirect(url_for('login'))                                      # Redirect to login page if user is not logged in or is not an admin
+# @app.route('/view_videos_manager')
+# def view_videos_manager():
+#     if 'loggedin' not in session or session.get('user_type') != 1:             # Check if user is logged in and is an admin or manager
+#         return redirect(url_for('login'))                                      # Redirect to login page if user is not logged in or is not an admin
     
-    try:                                                                               
-            author = {                                                                           # Author dictionary with user_id, user_email and user_type
-            "user_id": session.get("user_id"),                                               # Get user id from session
-            "user_email": session.get("user_email"),                                         # Get user email from session
-            "user_type": session.get("user_type"),                                           # Get user type from session
-            }
+#     try:                                                                               
+#             author = {                                                                           # Author dictionary with user_id, user_email and user_type
+#             "user_id": session.get("user_id"),                                               # Get user id from session
+#             "user_email": session.get("user_email"),                                         # Get user email from session
+#             "user_type": session.get("user_type"),                                           # Get user type from session
+#             }
             
-            channels = vidschool.get_channels()                                              # Get all channels
-            channel_dict = {channel[0]: channel[1] for channel in channels}                 # Create dictionary with channel id as key and channel name as value
-            videos = vidschool.get_videos(author)                                           # Get all videos
+#             channels = vidschool.get_channels()                                              # Get all channels
+#             channel_dict = {channel[0]: channel[1] for channel in channels}                 # Create dictionary with channel id as key and channel name as value
+#             videos = vidschool.get_videos(author)                                           # Get all videos
             
-            # Render view_videos.html template with videos data and users data for each role
-            return render_template('view_videos_manager.html', videos=videos,channels=channels,channel_dict=channel_dict)                       # Render view_videos.html template with videos
+#             # Render view_videos.html template with videos data and users data for each role
+#             return render_template('view_videos_manager.html', videos=videos,channels=channels,channel_dict=channel_dict)                       # Render view_videos.html template with videos
             
             
-    except Exception as e:                                                              # Catch any exceptions and show error message
-        return render_template('index.html', error=str(e))                              # Render index.html template with error message
+#     except Exception as e:                                                              # Catch any exceptions and show error message
+#         return render_template('index.html', error=str(e))                              # Render index.html template with error message
 
 @app.route('/view_users_manager')
 def view_users_manager():
@@ -668,8 +748,7 @@ def view_videos_editor():
     if 'loggedin' not in session or session.get('user_type') != 3:             # Check if user is logged in and is an admin or manager
         return redirect(url_for('login'))                                      # Redirect to login page if user is not logged in or is not an admin
     msg = ''
-    try:                                                                               
-        
+    try:                                                                                   
         author = {                                                                           # Author dictionary with user_id, user_email and user_type
             "user_id": session.get("user_id"),                                               # Get user id from session
             "user_email": session.get("user_email"),                                         # Get user email from session
@@ -679,12 +758,9 @@ def view_videos_editor():
         videos = vidschool.get_videos(author=author)                      
         channels=vidschool.get_channels()                                            # Get all channels
         channel_dict = {channel[0]: channel[1] for channel in channels}              # Create dictionary with channel id as key and channel name as value
-        
-    
     except Exception as e:                                                              # Catch any exceptions and show error message
         msg = f'Error: {str(e)}'                                                        # Show error message
         return render_template('index.html', msg=msg)                              # Render index.html template with error message
-
     return render_template('view_videos_editor.html', videos=videos,channel_dict=channel_dict,msg=msg)                       # Render view_videos.html template with videos
 
 @app.route('/view_channels_editor')
@@ -876,44 +952,7 @@ def view_channel_details(channel_id):
         msg = f'Error: {str(e)}'
         return render_template('index.html', msg=msg)
 
-#youtube api implementation
-CLIENT_SECRETS_FILE = "Source/client_secrets.json"
-SCOPES = ['https://www.googleapis.com/auth/youtube.readonly',
-          'https://www.googleapis.com/auth/yt-analytics.readonly',
-          'https://www.googleapis.com/auth/yt-analytics-monetary.readonly',
-          'https://www.googleapis.com/auth/userinfo.profile'
-          ]  
-API_SERVICE_NAME1 = 'youtubeAnalytics'
-API_VERSION1 = 'v2'
-METRICS = [
-    "views",
-    "redViews",
-    "comments",
-    "likes",
-    "dislikes",
-    "videosAddedToPlaylists",
-    "videosRemovedFromPlaylists",
-    "shares",
-    "estimatedMinutesWatched",
-    "estimatedRedMinutesWatched",
-    "averageViewDuration",
-    "averageViewPercentage",
-    "annotationClickThroughRate",
-    "annotationCloseRate",
-    "annotationImpressions",
-    "annotationClickableImpressions",
-    "annotationClosableImpressions",
-    "annotationClicks",
-    "annotationCloses",
-    "cardClickRate",
-    "cardTeaserClickRate",
-    "cardImpressions",
-    "cardTeaserImpressions",
-    "cardClicks",
-    "cardTeaserClicks",
-    "subscribersGained",
-    "subscribersLost"
-]
+
 
 # Oauth page 1
 @app.route('/oauth')

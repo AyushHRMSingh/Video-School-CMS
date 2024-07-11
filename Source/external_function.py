@@ -379,6 +379,16 @@ class VidSchool:
             Channels = self.cursor.fetchall()
             if Channels == []:
                 return False
+        elif user_type == 1:
+            # executes SQL command
+            sql = "SELECT ID FROM Channel WHERE manager_id = %s"
+            val = (user_id,)
+            self.cursor.execute(sql, val)
+            Channels = self.cursor.fetchall()
+            if Channels == []:
+                return False
+            print("channels:-")
+            print(Channels)
         else:
             return {
                 "error": "INVALID USER TYPE"

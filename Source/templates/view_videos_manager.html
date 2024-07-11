@@ -27,15 +27,14 @@
             <tr>
                 <th>ID </th>
                 <th>Video Name </th>
+                <th>URL</th>
                 <th>Channel </th>
-               
                 <th>Shoot Date </th>
                 <th>Edit Date </th>
                 <th>Upload Date </th>
                 <th>Status</th>
                 <th> Update Status </th>
                 <th>Comment </th>
-
                 <th>Edit</th>
                 <th>Delete</th>
 
@@ -47,14 +46,11 @@
             <tr>
                 <td>{{ video[0] }}</td>
                 <td>{{ video[2] }}</td>
-                <td>{{ channel_dict.get(video[3], 'Unknown') }}</td>
-
-                
-                <td class="shoot_timestamp"> {{ video[4] }}</td>
-                <td class="edit_timestamp">{{ video[5] }}</td>
-                <td class="upload_timestamp">{{ video[6] }}</td>
-
-                
+                <td>{{ video[3] }}</td>
+                <td>{{ channels[video[4]] }}</td>                
+                <td class="shoot_timestamp"> {{ video[5] }}</td>
+                <td class="edit_timestamp">{{ video[6] }}</td>
+                <td class="upload_timestamp">{{ video[7] }}</td>
                 <td>  {% set status_dict = {
                     0: "TO BE CREATED",
                     1: "SHOT",
@@ -64,12 +60,12 @@
                     6: "UPLOADED",
                     7: "DELETED"
                 } %}
-                {{ status_dict[video[7]] }}
+                {{ status_dict[video[8]] }}
                 </td>
                 <td>
-                    <button type="button" class="btn btn-primary" onclick="openModal('{{ video[0] }}',' {{ video[7] }}', '{{ video[8] }}')">Update Status</button>
+                    <button type="button" class="btn btn-primary" onclick="openModal('{{ video[0] }}',' {{ video[8] }}', '{{ video[9] }}')">Update Status</button>
                 </td>
-                <td> {{ video[8] }}</td>
+                <td> {{ video[9] }}</td>
             
                 <td>
                     <a href="{{ url_for('edit_video', video_id=video[0]) }}" class="btn">Edit</a>

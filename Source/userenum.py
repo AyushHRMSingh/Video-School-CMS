@@ -1,12 +1,12 @@
 roletype = {
-    0: "ADMIN",
-    1: "MANAGER",
-    2: "OPERATIONS",
-    3: "EDITOR",
-    4: "CREATOR",   
+    0: "Admin",
+    1: "Manager",
+    2: "Ops",
+    3: "Editor",
+    4: "Creator",   
 }
 
 userstatus = {
-    0: "ACTIVE",
-    1: "INACTIVE",
+    0: "Active",
+    1: "Inactive",
 }

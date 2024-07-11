@@ -569,8 +569,13 @@ class VidSchool:
         return result
     
     ### CHANNEL FUNCTIONS
-    def add_channel(self, channel_name, platform, creator_id, editor_id, manager_id, ops_id, author):
-        # checks if user is admin
+    def add_channel(self, request, author):
+        channel_name = request['channel_name']
+        platform = request['platform']
+        creator_id = request['creator_id']
+        editor_id = request['editor_id']
+        manager_id = request['manager_id']
+        ops_id = request['ops_id']
         if author['user_type'] == 0:
             # executes SQL command
             sql = "INSERT INTO Channel (name ,platform, creator_id, editor_id, manager_id, ops_id, status) VALUES (%s, %s, %s, %s, %s, %s, 0)"
@@ -595,6 +600,8 @@ class VidSchool:
             }
             self.log_action(2, log_data)
             return channel_id
+        else:
+            return "You do not have permission to add channels"
 
     # function get user channels
     def get_channels_by_user(self, user_id, user_type):
@@ -659,20 +666,42 @@ class VidSchool:
                 "error": "You do not have permission to link channels"
             }
 
+    def unlink_channel(self, channel_id, author):
+        if author['user_type'] == 0:
+            try:
+                sql = "update channel set tokens=JSON_OBJECT() where id=%s"
+                val = (channel_id,)
+                self.cursor.execute(sql, val)
+                self.dbconnect.commit()
+                log_data = {
+                    "action": "unlink_channel",
+                    "author_id": author['user_id'],
+                    "data": {
+                        "channel_id": channel_id,
+                    }
+                }
+                self.log_action(2, log_data)
+                VidSchool.start_credential_pool(self)
+            except Exception as e:
+                print(e)
+                return {
+                    "error": str(e)
+                }
+        else:
+            return "You do not have permission to unlink channels"
+
     # function to edit a channel in the database
-    def edit_channel(self, channel_id, channel_name, platform, creator_id, editor_id, manager_id, ops_id, status, author):
+    def edit_channel(self, request, author):
+        channel_id = request['channel_id']
+        channel_name = request['channel_name']
+        platform = request['platform']
+        creator_id = request['creator_id']
+        editor_id = request['editor_id']
+        manager_id = request['manager_id']
+        ops_id = request['ops_id']
+        status = request['status']
         # checks if user is admin
         if author['user_type'] == 0:
-            # stores default values from DB
-            defvalue = self.get_channel(channel_id)
-            # sets values to default if None
-            channel_name = channel_name if channel_name != None else defvalue[1]
-            platform = platform if platform != None else defvalue[3]
-            creator_id = creator_id if creator_id != None else defvalue[4]
-            editor_id = editor_id if editor_id != None else defvalue[5]
-            manager_id = manager_id if manager_id != None else defvalue[6]
-            ops_id = ops_id if ops_id != None else defvalue[7]
-            status = status if status != None else defvalue[8]
             # executes SQL command
             sql = "UPDATE Channel SET name = %s, platform = %s, creator_id = %s, editor_id = %s, manager_id = %s, ops_id = %s, status = %s WHERE ID = %s"
             val = (channel_name, platform, creator_id, editor_id, manager_id, ops_id, status, channel_id)
@@ -685,10 +714,18 @@ class VidSchool:
                 "data": {
                     "channel_id": channel_id,
                     "channel_name": channel_name,
-                    "platform": platform
+                    "platform": platform,
+                    "creator_id": creator_id,
+                    "editor_id": editor_id,
+                    "manager_id": manager_id,
+                    "ops_id": ops_id,
+                    "status": status
                 }
             }
             self.log_action(2, log_data)
+            return True
+        else:
+            return "You do not have permission to edit this channel"
 
     # function to update the status of a channel
     def update_channel_status(self, channel_id, status, author):

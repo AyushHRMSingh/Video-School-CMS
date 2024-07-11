@@ -8,7 +8,7 @@ from flask import Flask, render_template, request, redirect, url_for, session, s
 import flask
 import envfile
 import userenum
-import platform_type
+import channelenum
 from datetime import datetime
 host = envfile.host
 username = envfile.dbuser
@@ -246,6 +246,79 @@ def add_user():
                 else:
                     return render_template('add_user.html', msg="User added Successfully")
             return render_template('add_user.html')
+        else:
+            return "You are not authorized to view this page"
+    else:
+        return redirect(url_for('login'))
+
+@app.route('/channels')
+def view_channels():
+    if session.get('loggedin'):
+        if session['user_type'] == 0:
+            author = {
+                'user_id': session['user_id'],
+                'user_type': session['user_type']
+            }
+            channels = vidschool.get_channels()
+            users = vidschool.get_users(author=author)
+            finaluserlist = {}
+            for user in list(users):
+                finaluserlist[user[0]] = [user[1], user[2]]
+            return render_template('view_all_channels.html', channels=channels, user=finaluserlist, status=channelenum.channelstatus, platform=channelenum.platform_names)
+        else:
+            return "You are not authorized to view this page"
+    else:
+        return redirect(url_for('login'))
+
+@app.route('/channels/edit/<int:channel_id>', methods=['GET', 'POST'])
+def edit_channel(channel_id):
+    if session.get('loggedin'):
+        if session['user_type'] == 0:
+            if request.method == 'POST':
+                author = {
+                    'user_id': session['user_id'],
+                    'user_type': session['user_type']
+                }
+                print(request.form.to_dict())
+                # return request.form.to_dict()
+                result = vidschool.edit_channel(request.form.to_dict(), author)
+                if result!=True:
+                    return result
+                return redirect(url_for('view_channels'))
+            channel = vidschool.get_channel(channel_id)
+            creator = vidschool.get_users_by_role(4)
+            editor = vidschool.get_users_by_role(3)
+            ops = vidschool.get_users_by_role(2)
+            manager = vidschool.get_users_by_role(1)
+            return render_template('edit_channel.html', channel=channel, creators=creator, editors=editor, opss=ops, managers=manager, status=channelenum.channelstatus, platform=channelenum.platform_names)
+        else:
+            return "You are not authorized to view this page"
+    else:
+        return redirect(url_for('login'))
+
+@app.route('/channels/add', methods=['GET', 'POST'])
+def add_channel():
+    if session.get('loggedin'):
+        if session['user_type'] == 0:
+            channel_name = None
+            if "tempname" in session:
+                channel_name = session["tempname"]
+            creator = vidschool.get_users_by_role(4)
+            editor = vidschool.get_users_by_role(3)
+            ops = vidschool.get_users_by_role(2)
+            manager = vidschool.get_users_by_role(1)
+            if request.method == 'POST':
+                author = {
+                    'user_id': session['user_id'],
+                    'user_type': session['user_type']
+                }
+                result = vidschool.add_channel(request.form.to_dict(), author)
+                if "tempname" in session:
+                    session.pop("tempname")
+                if result!=True and type(result)!=int:
+                    return result
+                return render_template('add_channel.html', channel_name=channel_name, creators=creator, editors=editor, opss=ops, managers=manager, status=channelenum.channelstatus, platform=channelenum.platform_names, msg="Channel added Successfully")
+            return render_template('add_channel.html', channel_name=channel_name, creators=creator, editors=editor, opss=ops, managers=manager, status=channelenum.channelstatus, platform=channelenum.platform_names)
         else:
             return "You are not authorized to view this page"
     else:

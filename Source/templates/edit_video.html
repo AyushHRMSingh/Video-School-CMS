@@ -32,11 +32,11 @@
                 {% if sessionvar['user_type'] == 0 %}
                     <li class="breadcrumb-item"><a href="{{url_for('dashboard')}}">Dashboard</a></li>
                     <li class="breadcrumb-item"><a href="{{url_for('view_channels')}}">Channels</a></li>
-                    <li class="breadcrumb-item"><a href="{{url_for('view_channel',channel_id=video[4])}}">Channel{{video[4]}}</a></li>
+                    <li class="breadcrumb-item"><a href="{{url_for('view_channel',channel_id=channel[0])}}">{{channel[1]}}</a></li>
                     <li class="breadcrumb-item active" aria-current="page">Edit Video</li>
                     {% else %}
                     <li class="breadcrumb-item"><a href="{{url_for('dashboard')}}">Dashboard</a></li>
-                    <li class="breadcrumb-item"><a href="{{url_for('view_channel',channel_id=video[4])}}">Channel{{video[4]}}</a></li>
+                    <li class="breadcrumb-item"><a href="{{url_for('view_channel',channel_id=channel[0])}}">{{channel[1]}}</a></li>
                     <li class="breadcrumb-item active" aria-current="page">Edit Video</li>
                 {%endif%}
             </ol>

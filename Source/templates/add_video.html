@@ -23,11 +23,11 @@
                 {% if sessionvar['user_type'] == 0 %}
                     <li class="breadcrumb-item"><a href="{{url_for('dashboard')}}">Dashboard</a></li>
                     <li class="breadcrumb-item"><a href="{{url_for('view_channels')}}">Channels</a></li>
-                    <li class="breadcrumb-item"><a href="{{url_for('view_channel',channel_id=channel_id)}}">Channel{{channel_id}}</a></li>
+                    <li class="breadcrumb-item"><a href="{{url_for('view_channel',channel_id=channel[0])}}">{{channel[1]}}</a></li>
                     <li class="breadcrumb-item active" aria-current="page">Add Video</li>
                 {% else %}
                     <li class="breadcrumb-item"><a href="{{url_for('dashboard')}}">Dashboard</a></li>
-                    <li class="breadcrumb-item"><a href="{{url_for('view_channel',channel_id=channel_id)}}">Channel{{channel_id}}</a></li>
+                    <li class="breadcrumb-item"><a href="{{url_for('view_channel',channel_id=channel[0])}}">{{channel[1]}}</a></li>
                     <li class="breadcrumb-item active" aria-current="page">Add Video</li>
                 {%endif%}
             </ol>
@@ -35,15 +35,14 @@
     </div>
     <div class="container">
         <h1>Add Video</h1>
-        <form action="{{ url_for('add_video',channel_id=channel_id) }}" method="post">
-            <input type="hidden" name="channel_id" value="{{ channel_id }}">
+        <form action="{{ url_for('add_video',channel_id=channel[0]) }}" method="post">
+            <input type="hidden" name="channel_id" value="{{ channel[0] }}">
             <div class='mb-3'>
                 <label class='form-label' for="video_title">Video Name:</label>
                 <input class='form-control' type="text" id="video_title" name="video_title" required>
             </div>
             <button type="submit" class="btn btn-primary mb-3">Add Video</button>
         </form>
-                   
     </div>
     
     {% if msg %}

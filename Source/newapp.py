@@ -1,4 +1,5 @@
 # Import necessary modules
+import ast
 import requests
 import json
 import extrafunc
@@ -10,6 +11,7 @@ import flask
 import envfile
 import userenum
 import channelenum
+import videnum
 from datetime import datetime
 host = envfile.host
 username = envfile.dbuser
@@ -109,10 +111,10 @@ def view_channel(channel_id):
             if session['user_id'] != channels[4]:
                 return "You are not authorized to view this page"
         elif session['user_type'] == 2:
-            if session['user_id'] != channels[5]:
+            if session['user_id'] != channels[6]:
                 return "You are not authorized to view this page"
         elif session['user_type'] == 1:
-            if session['user_id'] != channels[6]:
+            if session['user_id'] != channels[5]:
                 return "You are not authorized to view this page"
         videos = vidschool.get_videos_by_channel(channel_id)
         users = {
@@ -121,7 +123,7 @@ def view_channel(channel_id):
             channels[5] : vidschool.get_user(channels[5])[1],
             channels[6] : vidschool.get_user(channels[6])[1]
         }
-        return render_template('view_channel.html', sessionvar=session,channel=channels, videos=videos, users=users, strfunc=extrafunc.format_string)
+        return render_template('view_channel.html', sessionvar=session,channel=channels, videos=videos, users=users, platform=channelenum.platform_names, status=videnum.vidstatus)
     else:
         return redirect(url_for('login'))
 
@@ -136,15 +138,15 @@ def view_channel_stats(channel_id):
             if session['user_id'] != channels[4]:
                 return "You are not authorized to view this page"
         elif session['user_type'] == 2:
-            if session['user_id'] != channels[5]:
+            if session['user_id'] != channels[6]:
                 return "You are not authorized to view this page"
         elif session['user_type'] == 1:
-            if session['user_id'] != channels[6]:
+            if session['user_id'] != channels[5]:
                 return "You are not authorized to view this page"
         stats = None
         if channels[0] in VidSchool.credentialpool:
             stats = stat_functions.get_main(channels[1], channels[0])
-        return render_template('view_channel_stats.html', channel=channels, stats=stats)
+        return render_template('view_channel_stats.html', sessionvar=session, channel=channels, stats=stats)
     else:
         return redirect(url_for('login'))
 
@@ -179,10 +181,10 @@ def delete_video(video_id):
             if session['user_id'] != channels[4]:
                 return "You are not authorized to view this page"
         elif session['user_type'] == 2:
-            if session['user_id'] != channels[5]:
+            if session['user_id'] != channels[6]:
                 return "You are not authorized to view this page"
         elif session['user_type'] == 1:
-            if session['user_id'] != channels[6]:
+            if session['user_id'] != channels[5]:
                 return "You are not authorized to view this page"
         result = vidschool.set_delete_video(video_id=video_id, author=author)
         if result!=True:
@@ -194,7 +196,8 @@ def delete_video(video_id):
 @app.route('/edit/video/<int:video_id>', methods=['GET', 'POST'])
 def edit_video(video_id):
     if session.get('loggedin'):
-        channel_id = request.form['channel_id']
+        video = vidschool.get_video(video_id)
+        channel_id = video[4]
         if session['user_type'] == 4:
             if session['user_id'] != channel_id:
                 return "You are not authorized to view this page"
@@ -224,19 +227,20 @@ def edit_video(video_id):
 @app.route('/view/<int:channel_id>/add_video', methods=['GET', 'POST'])
 def add_video(channel_id):
     if session.get('loggedin'):
+        channel = vidschool.get_channel(channel_id)
         if session['user_type'] == 4:
-            if session['user_id'] != channel_id:
+            if session['user_id'] != channel[3]:
                 return "You are not authorized to view this page"
         elif session['user_type'] == 3:
-            if session['user_id'] != channel_id:
+            if session['user_id'] != channel[4]:
                 return "You are not authorized to view this page"
         elif session['user_type'] == 2:
-            if session['user_id'] != channel_id:
+            if session['user_id'] != channel[6]:
                 return "You are not authorized to view this page"
         elif session['user_type'] == 1:
-            if session['user_id'] != channel_id:
+            if session['user_id'] != channel[5]:
                 return "You are not authorized to view this page"
-        if session["user_type"] < 3 and session['user_type'] != 4:
+        if session["user_type"] >= 3 and session['user_type'] != 4:
             return "You are not authorized to add videos"
         if request.method == 'POST':
             author = {
@@ -443,6 +447,28 @@ def unlink_channel(channel_id):
                 return result
             elif result == True:
                 return redirect(request.referrer)
+        else:
+            return "You are not authorized to view this page"
+    else:
+        return redirect(url_for('login'))
+
+@app.route('/logs')
+def get_logs():
+    if session.get('loggedin'):
+        if session['user_type'] == 0:
+            author = {
+                'user_id': session['user_id'],
+                'user_type': session['user_type']
+            }
+            logs = vidschool.get_logs()
+            finallogs = []
+            finaluserlist = {}
+            users = vidschool.get_users(author=author)
+            for log in logs:
+                finallogs.append([log[0], log[1], log[2], ast.literal_eval(log[3])])
+            for user in list(users):
+                finaluserlist[user[0]] = [user[1], user[2]]
+            return render_template('view_logs.html', logs=finallogs, users=finaluserlist)
         else:
             return "You are not authorized to view this page"
     else:

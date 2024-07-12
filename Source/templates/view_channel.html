@@ -10,18 +10,18 @@
 
 <body>
     <nav class="navbar navbar-dark bg-dark">
-            <div class="container-fluid">
-                <span class="navbar-brand mb-0 h1">
-                    <img src="{{ url_for('static', filename='favicon.ico') }}" alt="Logo" width="30" height="24" class="d-inline-block align-text-top">
-                    Video School CMS
-                </span>
-              <a class="d-flex btn btn-outline-light" href="{{ url_for('logout') }}">Logout</a>
-            </div>
-        </nav>
+        <div class="container-fluid">
+            <span class="navbar-brand mb-0 h1">
+                <img src="{{ url_for('static', filename='favicon.ico') }}" alt="Logo" width="30" height="24" class="d-inline-block align-text-top">
+                Video School CMS
+            </span>
+            <a class="d-flex btn btn-outline-light" href="{{ url_for('logout') }}">Logout</a>
+        </div>
+    </nav>
     <div class="row p-2">
         <nav class="gx-5" aria-label="breadcrumb">
             <ol class="breadcrumb">
-                {% if sessionvar['user_type'] < 3 %}
+                {% if sessionvar['user_type'] == 0 %}
                     <li class="breadcrumb-item"><a href="{{url_for('dashboard')}}">Dashboard</a></li>
                     <li class="breadcrumb-item"><a href="{{url_for('view_channels')}}">Channels</a></li>
                     <li class="breadcrumb-item active" aria-current="page">Channel{{channel[0]}}</li>
@@ -34,7 +34,7 @@
     </div>
     <div class='container'>
         <h1>Channel name: {{ channel[1] }}</h1>
-        <p>Channel Platform: {{ channel[2] }}</p>
+        <p>Channel Platform: {{ platform[channel[2]] }}</p>
         <p>Assigned Users:-</p>
         <ul>
             <p>Manager: {{ users[channel[5]] }}</p>
@@ -75,9 +75,9 @@
                         <td>{{ video[5] }}</td>
                         <td>{{ video[6] }}</td>
                         <td>{{ video[7] }}</td>
-                        <td>{{ video[8] }}</td>
+                        <td>{{ status[video[8]] }}</td>
                         {% autoescape false %}
-                            <td><button type="button" class="btn btn-primary" onclick="openModal('{{ video[0] }}',' {{ video[8] }}', '{{ video[9] | replace("\\","\\\\") |forceescape }}')" >Update Status</button></td>
+                            <td><button type="button" class="btn btn-primary" onclick="openModal('{{ video[0] }}',' {{ video[8] }}', '{{ video[9] | replace('\\','\\\\') | replace('\'','\\\'') | forceescape }}')" >Update Status</button></td>
                         {% endautoescape %}
                         {% if video[9]==None %}
                             <td></td>

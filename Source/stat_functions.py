@@ -1,3 +1,4 @@
+import math
 from external_function import VidSchool
 from datetime import datetime, date
 import api_functions as api_functions
@@ -8,7 +9,7 @@ def get_main(channel_name, channel_id):
     data = VidSchool.get_credentials(channel_id=channel_id)
     if data == None:
         return None
-    print(data)
+    # print(data)
     # get total no. subscriptions, views and watchtime
     stata = api_functions.youtubedata(
         'youtube',
@@ -19,8 +20,7 @@ def get_main(channel_name, channel_id):
         mine=True,
         # mine=True,
     )
-    print(stata)
-    uploadsid = stata['items'][0]['contentDetails']['relatedPlaylists']['uploads']
+    # print(stata)
     today = datetime.now().strftime('%Y-%m-%d')
     # get total watch time for whole life
     statb = api_functions.youtubedata(
@@ -67,6 +67,8 @@ def get_main(channel_name, channel_id):
     print("statc2 done")
     # last_month = str(str(datetime.now().year-1)+'-'+str(datetime.now().month)+'-01')
     # todayd = str(datetime.now().year)+'-'+str(datetime.now().month-1)+'-01'
+    current_month = date.today().replace(month=date.today().month-1,day=1).isoformat()
+    last_year = date.today().replace(year=date.today().year-1,day=1).isoformat()
     statd1 = api_functions.youtubedata(
         'youtubeAnalytics',
         'v2',
@@ -74,18 +76,48 @@ def get_main(channel_name, channel_id):
         dimensions='month',
         ids='channel==MINE',
         metrics='views,estimatedMinutesWatched',
-        startDate= date.today().replace(year=date.today().year-1,day=1).isoformat(),
-        endDate=date.today().replace(day=1).isoformat(),
+        startDate=last_year,
+        endDate=current_month,
     )
-    statdfinal = statd1['rows']
-    print("statd1 done")
+    print(statd1)
+    statdlist = []
+    print(last_year)
+    smonth = int(last_year[5:7])
+    syear = int(last_year[0:4])
+    for i in range(0,12):
+        datef='{:04d}-{:02d}'.format(syear,smonth)
+        if statd1['rows'][0][0] == datef:
+            statdlist.append({
+                "date":datef,
+                "views":statd1['rows'][0][1],
+                "watchtime":statd1['rows'][0][2],
+            })
+            statd1['rows'].pop(0)
+        else:
+            statdlist.append({
+                "date":datef,
+                "views":0,
+                "watchtime":0,
+            })
+        if smonth == 12:
+            smonth = 1
+            syear += 1
+        else:
+            smonth +=1
+
+    print(statdlist)
+        # statdlist.append[{
+        #     f'{last_year[5:7]}-{last_year[0:4],}':{
+        #     }
+        # }]
+
     return {
         "section_a":{
             'subscribers': stata['items'][0]['statistics']['subscriberCount'],
             'views': stata['items'][0]['statistics']['viewCount'],
             'totalvideos': stata['items'][0]['statistics']['videoCount'],
         },
-        "section_b":statb,
+        "section_b":math.floor(statb/60),
         "section_c":statcfinal,
-        "section_d":statdfinal,
+        "section_d":statdlist
     }

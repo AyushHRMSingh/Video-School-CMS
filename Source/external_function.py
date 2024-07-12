@@ -54,6 +54,7 @@ class VidSchool:
         # add credentials to credential pool
         if result == []:
             print("No channels found")
+            VidSchool.credentialpool = {}
             return False
         for i in list(result):
             cred = [i[8]]

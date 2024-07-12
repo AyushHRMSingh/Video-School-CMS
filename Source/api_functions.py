@@ -32,7 +32,7 @@ def youtreporting():
     print("youtube reporting")
 
 def youtubedata(API_SERVICE_NAME, API_SERVICE_VERSION, credentials, **kwargs):
-    print("Stuff: ",API_SERVICE_NAME, API_SERVICE_VERSION, credentials, kwargs)
+    # print("Stuff: ",API_SERVICE_NAME, API_SERVICE_VERSION, credentials, kwargs)
     # Build the service object.
     credentials = google.oauth2.credentials.Credentials(**credentials)
     service = build(API_SERVICE_NAME, API_SERVICE_VERSION, credentials=credentials)
@@ -58,6 +58,6 @@ def youtubedata(API_SERVICE_NAME, API_SERVICE_VERSION, credentials, **kwargs):
             # print(args)
             request = service.playlistItems().list(**args)
     response = request.execute()
-    print("response:-")
-    print(response)
+    # print("response:-")
+    # print(response)
     return response

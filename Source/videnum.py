@@ -1,9 +1,9 @@
 vidstatus = {
-    "0": "VIDEO_STATUS_TO_BE_CREATED",
-    "1": "VIDEO_STATUS_SHOT",
-    "2": "VIDEO_STATUS_EDITED",
-    "3": "VIDEO_STATUS_TO_BE_RESHOT",
-    "4": "VIDEO_STATUS_TO_BE_REDITED",
-    "6": "VIDEO_STATUS_UPLOADED",
-    "7": "VIDEO_STATUS_DELETED"
+    0: "To be created",
+    1: "Shot",
+    2: "Edited",
+    3: "To be reshot",
+    4: "To be reedited",
+    6: "Uploaded",
+    7: "Deleted",
 }

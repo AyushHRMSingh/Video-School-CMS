@@ -218,7 +218,7 @@ def edit_video(video_id):
                 return result
             return redirect(url_for('view_channel', channel_id=request.form['channel_id']))
         video = vidschool.get_video(video_id)
-        return render_template('edit_video.html', sessionvar=session, video=video)
+        return render_template('edit_video.html', channel=channel, sessionvar=session, video=video)
     else:
         return redirect(url_for('login'))
 
@@ -254,6 +254,14 @@ def add_video(channel_id):
         return render_template('add_video.html', sessionvar=session, channel=channel)
     else:
         return redirect(url_for('login'))
+
+# @app.route('/view/<int:channel_id>/add_video/import', methods=['GET', 'POST'])
+# def import_videos(channel_id):
+#     if session.get('loggedin'):
+#         channel = vidschool.get_channel(channel_id)
+#         if session['user_type'] == 4:
+#             if session['user_id'] != channel[3]:
+#                 return "You are not
 
 @app.route('/users')
 def view_users():

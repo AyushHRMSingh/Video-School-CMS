@@ -476,7 +476,7 @@ def get_logs():
             finaluserlist = {}
             users = vidschool.get_users(author=author)
             for log in logs:
-                finallogs.append([log[0], log[1], log[2], ast.literal_eval(log[3])])
+                finallogs.append([log[0], log[1], log[2], ast.literal_eval(log[3].replace('null', 'None'))])
             for user in list(users):
                 finaluserlist[user[0]] = [user[1], user[2]]
             return render_template('view_logs.html', logs=finallogs, users=finaluserlist, action=genlogenum.log_type)

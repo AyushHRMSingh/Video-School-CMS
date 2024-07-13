@@ -11,12 +11,24 @@ import flask
 import envfile
 import userenum , channelenum , videnum , genlogenum
 from datetime import datetime
-host = envfile.host
-username = envfile.dbuser
-password = envfile.dbpass
-dbname = envfile.dbname
 import google_auth_oauthlib.flow
 from googleapiclient.discovery import build
+import yaml
+import os
+
+# Find Root Path
+PROJECT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+
+# Load environment variables from env.yml file
+with open(os.path.join(PROJECT_PATH+'/Source/env.yml')) as file:
+    env = yaml.load(file, Loader=yaml.FullLoader)
+
+# Extract database connection parameters from environment variables
+host = env['dbvar']['host']
+username = env['dbvar']['dbuser']
+password = env['dbvar']['dbpass']
+dbname = env['dbvar']['dbname']
+
 # set the environment variable for the google api testing
 import os
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
@@ -38,14 +50,15 @@ ALLOWED_EXTENSIONS = {'csv'}
 app.secret_key = 'your secret key'
 
 # Initialize VidSchool object with database connection parameters
-vidschool = VidSchool(host, username, password, dbname)
+cmsobj_db = VidSchool(host, username, password, dbname)
 
-# Set a secret key for session management
 
+# Redirect request for favicon to static folder
 @app.route('/favicon.ico')
 def favicon():
     return send_from_directory(os.path.join(app.root_path, 'static'),'favicon.ico', mimetype='image/vnd.microsoft.icon')
 
+# root path
 @app.route('/')
 def base():
     print(session)
@@ -54,6 +67,7 @@ def base():
     else:
         return redirect(url_for('login'))
 
+# login page
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     msg = ''
@@ -62,7 +76,7 @@ def login():
         user_email = request.form['user_email']                                                        
         password = request.form['password']                                                            
         # Call external function to validate user credentials
-        valid = vidschool.login_user(user_email, password)
+        valid = cmsobj_db.login_user(user_email, password)
         # If credentials are valid
         if valid and valid.get('success'):               
             session['loggedin'] = True                   
@@ -92,7 +106,7 @@ def dashboard():
             # return "Admin Dashboard"
             return render_template('dashboard.html', sessionvar=session, user=userenum.roletype)
         elif session['user_type'] >= 1:
-            channellist = vidschool.get_channels_by_user(session['user_id'], session['user_type'])
+            channellist = cmsobj_db.get_channels_by_user(session['user_id'], session['user_type'])
             # return "Manager Dashboard"
             return render_template('dashboard.html', sessionvar=session, channels=channellist, user=userenum.roletype)
     else:
@@ -101,7 +115,7 @@ def dashboard():
 @app.route('/view/<int:channel_id>')
 def view_channel(channel_id):
     if session.get('loggedin'):
-        channels = vidschool.get_channel(channel_id)
+        channels = cmsobj_db.get_channel(channel_id)
         if session['user_type'] == 4:
             if session['user_id'] != channels[3]:
                 return "You are not authorized to view this page"
@@ -114,12 +128,12 @@ def view_channel(channel_id):
         elif session['user_type'] == 1:
             if session['user_id'] != channels[5]:
                 return "You are not authorized to view this page"
-        videos = vidschool.get_videos_by_channel(channel_id)
+        videos = cmsobj_db.get_videos_by_channel(channel_id)
         users = {
-            channels[3] : vidschool.get_user(channels[3])[1],
-            channels[4] : vidschool.get_user(channels[4])[1],
-            channels[5] : vidschool.get_user(channels[5])[1],
-            channels[6] : vidschool.get_user(channels[6])[1]
+            channels[3] : [cmsobj_db.get_user(channels[3])[1], cmsobj_db.get_user(channels[3])[2]],
+            channels[4] : [cmsobj_db.get_user(channels[4])[1], cmsobj_db.get_user(channels[4])[2]],
+            channels[5] : [cmsobj_db.get_user(channels[5])[1], cmsobj_db.get_user(channels[5])[2]],
+            channels[6] : [cmsobj_db.get_user(channels[6])[1], cmsobj_db.get_user(channels[6])[2]]
         }
         return render_template('view_channel.html', sessionvar=session,channel=channels, videos=videos, users=users, platform=channelenum.platform_names, status=videnum.vidstatus)
     else:
@@ -128,7 +142,7 @@ def view_channel(channel_id):
 @app.route('/view/<int:channel_id>/stat')
 def view_channel_stats(channel_id):
     if session.get('loggedin'):
-        channels = vidschool.get_channel(channel_id)
+        channels = cmsobj_db.get_channel(channel_id)
         if session['user_type'] == 4:
             if session['user_id'] != channels[3]:
                 return "You are not authorized to view this page"
@@ -155,7 +169,7 @@ def update_status():
             'user_id': session['user_id'],
             'user_type': session['user_type']
         }
-        result = vidschool.set_video_status(request.form.to_dict(), author)
+        result = cmsobj_db.set_video_status(request.form.to_dict(), author)
         if result!=True:
             return result
         # return "you updated"
@@ -170,7 +184,7 @@ def delete_video(channel_id,video_id):
             'user_id': session['user_id'],
             'user_type': session['user_type']
         }
-        channels = vidschool.get_channel(channel_id)
+        channels = cmsobj_db.get_channel(channel_id)
         if session['user_type'] == 4:
             if session['user_id'] != channels[3]:
                 return "You are not authorized to view this page"
@@ -183,7 +197,7 @@ def delete_video(channel_id,video_id):
         elif session['user_type'] == 1:
             if session['user_id'] != channels[5]:
                 return "You are not authorized to view this page"
-        result = vidschool.set_delete_video(video_id=video_id, author=author)
+        result = cmsobj_db.set_delete_video(video_id=video_id, author=author)
         if result!=True:
             return result
         return flask.redirect(request.referrer)
@@ -193,9 +207,9 @@ def delete_video(channel_id,video_id):
 @app.route('/edit/video/<int:video_id>', methods=['GET', 'POST'])
 def edit_video(video_id):
     if session.get('loggedin'):
-        video = vidschool.get_video(video_id)
+        video = cmsobj_db.get_video(video_id)
         channel_id = video[4]
-        channel = vidschool.get_channel(channel_id)
+        channel = cmsobj_db.get_channel(channel_id)
         if session['user_type'] == 4:
             if session['user_id'] != channel[3]:
                 return "You are not authorized to view this page"
@@ -213,11 +227,11 @@ def edit_video(video_id):
                 'user_id': session['user_id'],
                 'user_type': session['user_type']
             }
-            result = vidschool.update_video(request.form.to_dict(), author)
+            result = cmsobj_db.update_video(request.form.to_dict(), author)
             if result!=True:
                 return result
             return redirect(url_for('view_channel', channel_id=request.form['channel_id']))
-        video = vidschool.get_video(video_id)
+        video = cmsobj_db.get_video(video_id)
         return render_template('edit_video.html', channel=channel, sessionvar=session, video=video)
     else:
         return redirect(url_for('login'))
@@ -225,7 +239,7 @@ def edit_video(video_id):
 @app.route('/view/<int:channel_id>/add_video', methods=['GET', 'POST'])
 def add_video(channel_id):
     if session.get('loggedin'):
-        channel = vidschool.get_channel(channel_id)
+        channel = cmsobj_db.get_channel(channel_id)
         if session['user_type'] == 4:
             if session['user_id'] != channel[3]:
                 return "You are not authorized to view this page"
@@ -245,7 +259,7 @@ def add_video(channel_id):
                 'user_id': session['user_id'],
                 'user_type': session['user_type']
             }
-            result = vidschool.add_video(request.form.to_dict(), author)
+            result = cmsobj_db.add_video(request.form.to_dict(), author)
             if result!=True:
                 return result
             else:
@@ -258,7 +272,7 @@ def add_video(channel_id):
 # @app.route('/view/<int:channel_id>/add_video/import', methods=['GET', 'POST'])
 # def import_videos(channel_id):
 #     if session.get('loggedin'):
-#         channel = vidschool.get_channel(channel_id)
+#         channel = cmsobj_db.get_channel(channel_id)
 #         if session['user_type'] == 4:
 #             if session['user_id'] != channel[3]:
 #                 return "You are not
@@ -271,7 +285,7 @@ def view_users():
                 'user_id': session['user_id'],
                 'user_type': session['user_type']
             }
-            users = vidschool.get_users(author=author)
+            users = cmsobj_db.get_users(author=author)
             roles = userenum.roletype
             status = userenum.userstatus
             return render_template('view_user.html', users=users, roles=roles, status=status)
@@ -290,11 +304,11 @@ def edit_user(user_id):
                     'user_type': session['user_type']
                 }
                 print(request.form.to_dict())
-                result = vidschool.edit_user(request.form.to_dict(), author)
+                result = cmsobj_db.edit_user(request.form.to_dict(), author)
                 if result!=True:
                     return result
                 return redirect(url_for('view_users'))
-            user = vidschool.get_user(user_id)
+            user = cmsobj_db.get_user(user_id)
             return render_template('edit_user.html', user=user)
         else:
             return "You are not authorized to view sthis page"
@@ -309,7 +323,7 @@ def delete_user(user_id):
                 'user_id': session['user_id'],
                 'user_type': session['user_type']
             }
-            result = vidschool.delete_user(user_id, author)
+            result = cmsobj_db.delete_user(user_id, author)
             if result!=True:
                 return result
             elif result == True:
@@ -326,7 +340,7 @@ def add_user():
                     'user_id': session['user_id'],
                     'user_type': session['user_type']
                 }
-                result = vidschool.add_user(request.form.to_dict(), author)
+                result = cmsobj_db.add_user(request.form.to_dict(), author)
                 if result!=True:
                     return render_template('add_user.html', msg=result)
                 else:
@@ -345,8 +359,8 @@ def view_channels():
                 'user_id': session['user_id'],
                 'user_type': session['user_type']
             }
-            channels = vidschool.get_channels()
-            users = vidschool.get_users(author=author)
+            channels = cmsobj_db.get_channels()
+            users = cmsobj_db.get_users(author=author)
             finaluserlist = {}
             for user in list(users):
                 finaluserlist[user[0]] = [user[1], user[2]]
@@ -367,7 +381,7 @@ def edit_channel(channel_id):
                 }
                 print(request.form.to_dict())
                 # return request.form.to_dict()
-                result = vidschool.edit_channel(request.form.to_dict(), author)
+                result = cmsobj_db.edit_channel(request.form.to_dict(), author)
                 if result!=True:
                     return result
                 if 'addcredentials' in session:
@@ -376,11 +390,11 @@ def edit_channel(channel_id):
                     if linkres!=True:
                         return linkres
                 return redirect(url_for('view_channels'))
-            channel = vidschool.get_channel(channel_id)
-            creator = vidschool.get_users_by_role(4)
-            editor = vidschool.get_users_by_role(3)
-            ops = vidschool.get_users_by_role(2)
-            manager = vidschool.get_users_by_role(1)
+            channel = cmsobj_db.get_channel(channel_id)
+            creator = cmsobj_db.get_users_by_role(4)
+            editor = cmsobj_db.get_users_by_role(3)
+            ops = cmsobj_db.get_users_by_role(2)
+            manager = cmsobj_db.get_users_by_role(1)
             return render_template('edit_channel.html', channel=channel, creators=creator, editors=editor, opss=ops, managers=manager, status=channelenum.channelstatus, platform=channelenum.platform_names)
         else:
             return "You are not authorized to view this page"
@@ -394,10 +408,10 @@ def add_channel():
             channel_name = None
             if "temp_channel_name" in session:
                 channel_name = session["temp_channel_name"]
-            creator = vidschool.get_users_by_role(4)
-            editor = vidschool.get_users_by_role(3)
-            ops = vidschool.get_users_by_role(2)
-            manager = vidschool.get_users_by_role(1)
+            creator = cmsobj_db.get_users_by_role(4)
+            editor = cmsobj_db.get_users_by_role(3)
+            ops = cmsobj_db.get_users_by_role(2)
+            manager = cmsobj_db.get_users_by_role(1)
             if request.method == 'POST':
                 author = {
                     'user_id': session['user_id'],
@@ -405,7 +419,7 @@ def add_channel():
                 }
                 if "temp_channel_name" in session:
                     session.pop("temp_channel_name")
-                channel_id = vidschool.add_channel(request.form.to_dict(), author)
+                channel_id = cmsobj_db.add_channel(request.form.to_dict(), author)
                 if type(channel_id)!=int:
                     return channel_id
                 elif type(channel_id)==int:
@@ -435,7 +449,7 @@ def link_channel(channel_id):
                 tokens = json.dumps(session['addcredentials'])
                 session.pop('addcredentials')
                 print(tokens)
-                result = vidschool.link_channel(channel_id=channel_id, token=tokens, author=author)
+                result = cmsobj_db.link_channel(channel_id=channel_id, token=tokens, author=author)
                 if result!=True:
                     return result
                 else:
@@ -453,7 +467,7 @@ def unlink_channel(channel_id):
                 'user_id': session['user_id'],
                 'user_type': session['user_type']
             }
-            result = vidschool.unlink_channel(channel_id, author)
+            result = cmsobj_db.unlink_channel(channel_id, author)
             if result!=True:
                 return result
             elif result == True:
@@ -471,10 +485,10 @@ def get_logs():
                 'user_id': session['user_id'],
                 'user_type': session['user_type']
             }
-            logs = vidschool.get_logs()
+            logs = cmsobj_db.get_logs()
             finallogs = []
             finaluserlist = {}
-            users = vidschool.get_users(author=author)
+            users = cmsobj_db.get_users(author=author)
             for log in logs:
                 finallogs.append([log[0], log[1], log[2], ast.literal_eval(log[3].replace('null', 'None'))])
             for user in list(users):
@@ -530,5 +544,5 @@ def oauth2callback():
 
 # Main entry point of the application
 if __name__ == '__main__':
-    vidschool.setupdb()                                            # Setup any necessary components from extfun module
+    cmsobj_db.setupdb()                                            # Setup any necessary components from extfun module
     app.run(debug=True, port=8089,host='localhost')                                            # Run the Flask application in debug mode

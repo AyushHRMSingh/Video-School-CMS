@@ -276,7 +276,7 @@ class VidSchool:
             edit_timestamp = request['edit_timestamp']
             upload_timestamp = request['upload_timestamp']
             status = int(request['status'])
-            comment = request['comment']
+            
             
             defvalue = self.get_video(video_id)
             # if value is None, set to default value
@@ -287,7 +287,10 @@ class VidSchool:
             edit_timestamp = edit_timestamp if edit_timestamp != '' else defvalue[6]
             upload_timestamp = upload_timestamp if upload_timestamp != '' else defvalue[7]
             status = status if status != '' else defvalue[8]
-            comment = comment if comment != '' else defvalue[9]
+            if 'comment' not in request:
+                comment = ''
+            else:
+                comment = request['comment']
             # executes SQL command
         # executes SQL command
             sql = "UPDATE Video SET title = %s, url = %s,channel_id = %s, shoot_timestamp = %s, edit_timestamp = %s, upload_timestamp = %s, status = %s, comment = %s WHERE id = %s"
@@ -319,10 +322,10 @@ class VidSchool:
     def set_video_status(self, request, author):
         video_id = int(request['video_id'])
         status = int(request["status"])
-        comment = request['comment']
-        # checks if comment is set
-        if comment == '':
-            comment = None
+        if 'comment' not in request:
+            comment = ''
+        else:
+            comment = request['comment']
         # checks different usertypes to check if action is permitted
         # creatorx
         print(author['user_type']," : ",status)

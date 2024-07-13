@@ -4,6 +4,6 @@ vidstatus = {
     2: "Edited",
     3: "To be reshot",
     4: "To be reedited",
-    6: "Uploaded",
-    7: "Deleted",
+    5: "Uploaded",
+    6: "Deleted",
 }

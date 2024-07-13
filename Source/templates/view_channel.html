@@ -44,17 +44,18 @@
         </nav>
     </div>
     <div class='container'>
-        <h1>Channel name: {{ channel[1] }}</h1>
-        <p>Channel Platform: {{ platform[channel[2]] }}</p>
-        <p>Assigned Users:-</p>
+        <h1>{{ channel[1] }}</h1>
+        <hr>
+        <h2>Platform: {{ platform[channel[2]] }}</h3>
+        <h3>Users</h3>
         <ul>
-            <p>Manager: {{ users[channel[5]] }}</p>
-            <p>Ops: {{ users[channel[6]] }}</p>
-            <p>Creator: {{ users[channel[3]] }}</p>
-            <p>Editor: {{ users[channel[4]] }}</p>
+            <p><strong>Manager:</strong> {{ users[channel[5]][0] }} ({{ users[channel[5]][1] }})</p>
+            <p><strong>Ops:</strong> {{ users[channel[6]][0] }} ({{ users[channel[6]][1] }})</p>
+            <p><strong>Creator:</strong> {{ users[channel[3]][0] }} ({{ users[channel[3]][1] }})</p>
+            <p><strong>Editor:</strong> {{ users[channel[4]][0] }} ({{ users[channel[4]][1] }})</p>
         </ul>
     
-        <h1>Videos table:-</h1>
+        <h1>Videos table</h1>
         <table class='table table-hover'>
             <thead>
                 <th scope="col">ID</th>
@@ -106,9 +107,16 @@
             </tbody>
         </table>
         
+        {%if (sessionvar['user_type'] == 0 or sessionvar['user_type'] == 1 or sessionvar['user_type'] == 2 or sessionvar['user_type'] == 4) %}
         <a class="btn btn-primary" href="{{url_for('add_video', channel_id=channel[0]) }}">Add Video</a>
         <br><br>
-        <a class="btn btn-primary" href="{{url_for('view_channel_stats',channel_id=channel[0])}}">Click to view channel statistics</a>
+        {% endif %}
+        <a class="btn btn-primary" href="{{url_for('view_channel_stats',channel_id=channel[0])}}">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-graph-up" viewBox="0 0 16 16">
+                <path fill-rule="evenodd" d="M0 0h1v15h15v1H0zm14.817 3.113a.5.5 0 0 1 .07.704l-4.5 5.5a.5.5 0 0 1-.74.037L7.06 6.767l-3.656 5.027a.5.5 0 0 1-.808-.588l4-5.5a.5.5 0 0 1 .758-.06l2.609 2.61 4.15-5.073a.5.5 0 0 1 .704-.07"/>
+            </svg>
+            Channel Statistics
+        </a>
 
         {# MODAL DEFINITION #}
         <div class="modal fade" id="updateModal" tabindex="-1" role="dialog" aria-labelledby="updateModalLabel" aria-hidden="true">
@@ -132,12 +140,12 @@
                                         <option value="2">Edited</option>
                                         <option value="3">To be Reshot</option>
                                         <option value="4">To be Re-edited</option>
-                                        <option value="6">Uploaded</option>
-                                        <option value="7">Deleted</option>
+                                        <option value="5">Uploaded</option>
+                                        <option value="6">Deleted</option>
                                     {% elif sessionvar['user_type'] == 2 %}
                                         <option value="3">To be Reshot</option>
                                         <option value="4">To be Re-edited</option>
-                                        <option value="6">Uploaded</option>
+                                        <option value="5">Uploaded</option>
                                     {% elif sessionvar['user_type'] == 3 %}
                                         <option value="2">Edited</option>
                                     {% elif sessionvar['user_type'] == 4 %}
@@ -145,8 +153,22 @@
                                     {% endif %}
                                 </select>
                             </div>
+                            <br>
+                            {% if (sessionvar['user_type'] == 0 or sessionvar['user_type'] == 1) %}
+                                <div class="form-group">
+                                    <label for="url">URL</label>
+                                    <input type="url" name="url" id="url" class="form-control">
+                                </div>
+                                <br>
+                            {% endif %}
+
                             <div class="form-group">
-                                <label for="comment">Comment</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="commentcheck">
+                                    <label for="comment">
+                                        Comment
+                                    </label>
+                                </div>
                                 <textarea name="comment" id="comment" class="form-control"></textarea>
                             </div>
                             <div class="modal-footer">
@@ -193,7 +215,31 @@
         }
         document.getElementById('comment').value = comment;
         myModal.show(toggleModal);
+        document.getElementById('url').disabled = true;
+        status = document.getElementById('status');
+        status.addEventListener('change', function() {
+            console.log(status.value);
+            if (status.value == 6) {
+                document.getElementById('url').disabled = false;
+            } else {
+                document.getElementById('url').value = "";
+                document.getElementById('url').disabled = true;
+                document.getElementById('url').required = true;
+            }
+        });
+
+        commentcheck = document.getElementById('commentcheck');
+        commentbox = document.getElementById('comment');
+        commentbox.disabled = true;
+        commentcheck.addEventListener('change', function() {
+            if (commentcheck.checked) {
+                commentbox.disabled = false;
+            } else {
+                commentbox.value = "";
+                commentbox.disabled = true;
+            }
+        });
     }
-</script>
+    </script>
 </body>
 </html>

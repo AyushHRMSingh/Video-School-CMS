@@ -67,5 +67,5 @@ python Setup/reset_db.py
 10. Start or restart the Apache Web Server after editing the above files
 11. Run the Flask application
 ```bash
-python /Path/to/Video-School-CMS/Source/app.py
+python /Path/to/Video-School-CMS/Source/wsgi.py
 ```

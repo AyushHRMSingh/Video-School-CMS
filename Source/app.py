@@ -1,16 +1,14 @@
 # Import necessary modules
 import ast
-import requests
 import json
 import extrafunc
 import csv_functions
+from type_vars import *
 import stat_functions
 from external_function import VidSchool
 from flask import Flask, render_template, request, redirect, url_for, session, send_from_directory
 import flask
-import envfile
 import userenum , channelenum , videnum , genlogenum
-from datetime import datetime
 import google_auth_oauthlib.flow
 from googleapiclient.discovery import build
 import yaml
@@ -20,7 +18,7 @@ import os
 PROJECT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
 # Load environment variables from env.yml file
-with open(os.path.join(PROJECT_PATH+'/Source/env.yml')) as file:
+with open(os.path.join(PROJECT_PATH+'/env.yml')) as file:
     env = yaml.load(file, Loader=yaml.FullLoader)
 
 # Extract database connection parameters from environment variables
@@ -61,7 +59,7 @@ def favicon():
 # root path
 @app.route('/')
 def base():
-    print(session)
+    # print(session)
     if 'logged_in' in session:
         return redirect(url_for('dashboard'))
     else:
@@ -129,13 +127,19 @@ def view_channel(channel_id):
             if session['user_id'] != channels[5]:
                 return "You are not authorized to view this page"
         videos = cmsobj_db.get_videos_by_channel(channel_id)
-        users = {
-            channels[3] : [cmsobj_db.get_user(channels[3])[1], cmsobj_db.get_user(channels[3])[2]],
-            channels[4] : [cmsobj_db.get_user(channels[4])[1], cmsobj_db.get_user(channels[4])[2]],
-            channels[5] : [cmsobj_db.get_user(channels[5])[1], cmsobj_db.get_user(channels[5])[2]],
-            channels[6] : [cmsobj_db.get_user(channels[6])[1], cmsobj_db.get_user(channels[6])[2]]
-        }
-        return render_template('view_channel.html', sessionvar=session,channel=channels, videos=videos, users=users, platform=channelenum.platform_names, status=videnum.vidstatus)
+        videos.reverse()
+        finalvideos = []
+        for i in videos:
+            # print(i)
+            finalvideos.append([i[0], i[1], i[2], i[3], i[4], extrafunc.epoch_to_string(i[5],'date'), extrafunc.epoch_to_string(i[6],'date'), extrafunc.epoch_to_string(i[7],'date'), i[8], i[9]])
+        users = {}
+        for i in range(3,7):
+            user = cmsobj_db.get_user(channels[i])
+            if user[5] == USER_STATUS_INACTIVE:
+                users[channels[i]] = [user[1], "INACTIVE USER"]
+            else:
+                users[channels[i]] = [user[1], user[2]]
+        return render_template('view_channel.html', sessionvar=session,channel=channels, videos=finalvideos, users=users, platform=channelenum.platform_names, status=videnum.vidstatus)
     else:
         return redirect(url_for('login'))
 
@@ -227,12 +231,22 @@ def edit_video(video_id):
                 'user_id': session['user_id'],
                 'user_type': session['user_type']
             }
-            result = cmsobj_db.update_video(request.form.to_dict(), author)
+            passreq = request.form.to_dict()
+            passreq['shoot_timestamp'] = extrafunc.string_to_epoch(passreq['shoot_timestamp'])
+            passreq['edit_timestamp'] = extrafunc.string_to_epoch(passreq['edit_timestamp'])
+            passreq['upload_timestamp'] = extrafunc.string_to_epoch(passreq['upload_timestamp'])
+            # print(passreq)
+            # result = True
+            result = cmsobj_db.update_video(passreq, author)
             if result!=True:
                 return result
             return redirect(url_for('view_channel', channel_id=request.form['channel_id']))
         video = cmsobj_db.get_video(video_id)
-        return render_template('edit_video.html', channel=channel, sessionvar=session, video=video)
+        finalvidlist = list(video)
+        for i in range(5,8):
+            finalvidlist[i] = extrafunc.epoch_to_string(finalvidlist[i], 'date')
+            print(finalvidlist[i])
+        return render_template('edit_video.html', channel=channel, sessionvar=session, video=finalvidlist)
     else:
         return redirect(url_for('login'))
 
@@ -303,7 +317,7 @@ def edit_user(user_id):
                     'user_id': session['user_id'],
                     'user_type': session['user_type']
                 }
-                print(request.form.to_dict())
+                # print(request.form.to_dict())
                 result = cmsobj_db.edit_user(request.form.to_dict(), author)
                 if result!=True:
                     return result
@@ -363,7 +377,10 @@ def view_channels():
             users = cmsobj_db.get_users(author=author)
             finaluserlist = {}
             for user in list(users):
-                finaluserlist[user[0]] = [user[1], user[2]]
+                if user[5] == USER_STATUS_INACTIVE:
+                    finaluserlist[user[0]] = [user[1], "INACTIVE USER"]
+                else:
+                    finaluserlist[user[0]] = [user[1], user[2]]
             return render_template('view_all_channels.html', channels=channels, user=finaluserlist, status=channelenum.channelstatus, platform=channelenum.platform_names)
         else:
             return "You are not authorized to view this page"
@@ -379,13 +396,13 @@ def edit_channel(channel_id):
                     'user_id': session['user_id'],
                     'user_type': session['user_type']
                 }
-                print(request.form.to_dict())
+                # print(request.form.to_dict())
                 # return request.form.to_dict()
                 result = cmsobj_db.edit_channel(request.form.to_dict(), author)
                 if result!=True:
                     return result
                 if 'addcredentials' in session:
-                    print("linking channel")
+                    # print("linking channel")
                     linkres = link_channel(channel_id)
                     if linkres!=True:
                         return linkres
@@ -448,7 +465,7 @@ def link_channel(channel_id):
                 }
                 tokens = json.dumps(session['addcredentials'])
                 session.pop('addcredentials')
-                print(tokens)
+                # print(tokens)
                 result = cmsobj_db.link_channel(channel_id=channel_id, token=tokens, author=author)
                 if result!=True:
                     return result
@@ -490,9 +507,10 @@ def get_logs():
             finaluserlist = {}
             users = cmsobj_db.get_users(author=author)
             for log in logs:
-                finallogs.append([log[0], log[1], log[2], ast.literal_eval(log[3].replace('null', 'None'))])
+                finallogs.append([log[0], log[1], extrafunc.epoch_to_string(log[2], 'datetime'), ast.literal_eval(log[3].replace('null', 'None'))])
             for user in list(users):
                 finaluserlist[user[0]] = [user[1], user[2]]
+            finallogs.reverse()
             return render_template('view_logs.html', logs=finallogs, users=finaluserlist, action=genlogenum.log_type)
         else:
             return "You are not authorized to view this page"
@@ -537,7 +555,7 @@ def oauth2callback():
     # store channels name and credentials in session
     session['temp_channel_name'] = channel_name
     session['addcredentials'] = extrafunc.credtodict(credentials)
-    print(session['addcredentials'])
+    # print(session['addcredentials'])
     return_url = session['return_url']
     session.pop('return_url')
     return flask.redirect(return_url)

@@ -5,6 +5,8 @@ import mysql.connector
 import time
 import api_functions as api_functions
 import extrafunc
+from type_vars import *
+
 
 class VidSchool:
     # constructor function
@@ -328,25 +330,43 @@ class VidSchool:
             comment = request['comment']
         # checks different usertypes to check if action is permitted
         # creatorx
-        print(author['user_type']," : ",status)
-        if author['user_type'] == 4:
+        # print(author['user_type']," : ",status)
+        if author['user_type'] == USER_TYPE_CREATOR:
             if status != 1:
                 return {
                     "error": "You do not have permission to set that status"
                 }
+            sql = "UPDATE Video SET status = %s, comment = %s, shoot_timestamp=%s WHERE ID = %s"
+            # executes SQL command
+            val = (status, comment, time.time(), video_id,)
+            self.cursor.execute(sql, val)
+            self.dbconnect.commit()
         # editor
-        elif author['user_type'] == 3:
+        elif author['user_type'] == USER_TYPE_EDITOR:
             if status != 2:
                 return {
                     "error": "You do not have permission to set that status"
                 }
+            sql = "UPDATE Video SET status = %s, comment = %s, edit_timestamp=%s WHERE ID = %s"
+            # executes SQL command
+            val = (status, comment, time.time(), video_id,)
+            self.cursor.execute(sql, val)
+            self.dbconnect.commit()
         # operations
-        elif author['user_type'] == 2:
-            if status != 3:
+        elif author['user_type'] == USER_TYPE_OPS:
+            # print("ops: ",status)
+            if status != VIDEO_STATUS_UPLOADED:
+                # print("ops: ",status)
                 return {
                     "error": "You do not have permission to set that status"
                 }
-        elif author['user_type'] == 1 or author['user_type'] == 0:
+            url = request['url']
+            sql = "UPDATE Video SET status = %s, comment = %s, url=%s, upload_timestamp=%s WHERE ID = %s"
+            # executes SQL command
+            val = (status, comment, url, time.time(), video_id,)
+            self.cursor.execute(sql, val)
+            self.dbconnect.commit()
+        elif author['user_type'] == USER_TYPE_MANAGER or author['user_type'] == USER_TYPE_ADMIN:
             print("Manager or Admin")
         else:
             # return if invalid author
@@ -439,8 +459,8 @@ class VidSchool:
             Channels = self.cursor.fetchall()
             if Channels == []:
                 return False
-            print("channels:-")
-            print(Channels)
+            # print("channels:-")
+            # print(Channels)
         else:
             return {
                 "error": "INVALID USER TYPE"
@@ -646,7 +666,7 @@ class VidSchool:
         if author['user_type'] == 0:
             try:
             # print(jsontoken)
-                print("Linking channel")
+                # print("Linking channel")
                 sql = "UPDATE Channel SET tokens = %s WHERE id=%s"
                 val = (token, channel_id)
                 self.cursor.execute(sql, val)
@@ -662,7 +682,7 @@ class VidSchool:
                 VidSchool.start_credential_pool(self)
                 return True
             except Exception as e:
-                print(e)
+                # print(e)
                 return str(e)
         else:
             return "You do not have permission to link channels"
@@ -685,7 +705,7 @@ class VidSchool:
                 VidSchool.start_credential_pool(self)
                 return True
             except Exception as e:
-                print(e)
+                # print(e)
                 return str(e)
         else:
             return "You do not have permission to unlink channels"

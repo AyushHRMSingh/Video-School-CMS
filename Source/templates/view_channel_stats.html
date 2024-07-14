@@ -59,7 +59,7 @@
                     {% endfor %}
                 </tbody>
             </table>
-            <table class="table table-striped">
+            {# <table class="table table-striped">
                 <p>Top 10 Videos (All-Time):-</p>
                 <thead class="table-dark caption-top">
                     <tr>
@@ -83,14 +83,72 @@
                         {% endfor %}
                     </tr>
                 </tbody>
-            </table>
+            </table> #}
             
         {% else %}
             <p>Please link the channel to access the Channel statistics</p>
         {% endif %}
+        <div>
+            <canvas id="ViewChart"></canvas>
+        </div>
+        <br>
     </div>
+
+      
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js" integrity="sha384-oBqDVmMz9ATKxIep9tiCxS/Z9fNfEXiDAYTujMAeBAsjFuCZSmKbSSUnQlmh/jp3" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.min.js" integrity="sha384-cuYeSxntonz0PPNlHhBs68uyIAVpIIOZZ5JqeqvYYIcEL727kskC66kF92t6Xl2V" crossorigin="anonymous"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        var views = [];
+        var dates = [];
+        var watchtime = [];
+        {% for I in stats['section_d'] %}
+            views.push({{I['views']}});
+            dates.push("{{I['date']}}");
+            watchtime.push(Math.round({{I['watchtime']}}/60));
+        {% endfor %}
+        console.log(views);
+        console.log(dates);
+        console.log(watchtime);
+
+        const viewChart = document.getElementById('ViewChart');
+      
+        new Chart(viewChart, {
+          type: 'line',
+          data: {
+            labels: dates,
+            datasets: [{
+              label: 'Views',
+              data: views,
+              fill: false,
+              borderColor: 'rgb(252, 3, 3)',
+              tension: 0.1
+            }]
+          },
+          options: {
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Views',
+                    position: 'bottom',
+                    font: {
+                        size: 16
+                    }
+                }
+            },
+            responsive: true,
+            aspectRatio: 1|2.5,
+            scales: {
+              y: {
+                beginAtZero: false
+              }
+            }
+          }
+        });
+    </script>
+    
 </body>
 </html>

@@ -81,9 +81,18 @@
                         {% if video[1]==None %}
                             <td></td>
                         {% else %}
-                            <td>{{ video[1] }}</td>
+                            <td>
+                                {{ video[1] }}
+                            </td>
                         {% endif %}
-                        <td>{{ video[2] }}</td>
+                        <td>
+                            {% if (video[3] != None) %}
+                                <a href="{{ video[3] }}" target="_blank" rel="noopener noreferrer">{{ video[2] }}</a>
+                            {% else %}
+                                {{ video[2] }}
+                            {% endif %}
+                            {# {{ video[2] }} #}
+                        </td>
                         <td>{{ video[5] }}</td>
                         <td>{{ video[6] }}</td>
                         <td>{{ video[7] }}</td>
@@ -154,7 +163,7 @@
                                 </select>
                             </div>
                             <br>
-                            {% if (sessionvar['user_type'] == 0 or sessionvar['user_type'] == 1) %}
+                            {% if (sessionvar['user_type'] == 0 or sessionvar['user_type'] == 1 or sessionvar['user_type'] == 2) %}
                                 <div class="form-group">
                                     <label for="url">URL</label>
                                     <input type="url" name="url" id="url" class="form-control">
@@ -164,7 +173,6 @@
 
                             <div class="form-group">
                                 <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="commentcheck">
                                     <label for="comment">
                                         Comment
                                     </label>
@@ -215,30 +223,20 @@
         }
         document.getElementById('comment').value = comment;
         myModal.show(toggleModal);
-        document.getElementById('url').disabled = true;
-        status = document.getElementById('status');
-        status.addEventListener('change', function() {
-            console.log(status.value);
-            if (status.value == 6) {
-                document.getElementById('url').disabled = false;
-            } else {
-                document.getElementById('url').value = "";
-                document.getElementById('url').disabled = true;
-                document.getElementById('url').required = true;
-            }
-        });
-
-        commentcheck = document.getElementById('commentcheck');
-        commentbox = document.getElementById('comment');
-        commentbox.disabled = true;
-        commentcheck.addEventListener('change', function() {
-            if (commentcheck.checked) {
-                commentbox.disabled = false;
-            } else {
-                commentbox.value = "";
-                commentbox.disabled = true;
-            }
-        });
+        {% if (sessionvar['user_type'] != 4 and sessionvar['user_type'] != 3)%}
+            document.getElementById('url').disabled = true;
+            status = document.getElementById('status');
+            status.addEventListener('change', function() {
+                console.log(status.value);
+                if (status.value == 5) {
+                    document.getElementById('url').disabled = false;
+                    document.getElementById('url').required = true;
+                } else {
+                    document.getElementById('url').value = "";
+                    document.getElementById('url').disabled = true;
+                }
+            });
+        {%endif%}
     }
     </script>
 </body>

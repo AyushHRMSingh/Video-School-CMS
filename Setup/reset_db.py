@@ -1,10 +1,20 @@
 import mysql.connector
 import bcrypt
-import envfile
-host = envfile.host
-username = envfile.dbuser
-password = envfile.dbpass
-dbname = envfile.dbname
+import yaml
+import os
+
+# Find Root Path
+PROJECT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+
+# Load environment variables from env.yml file
+with open(os.path.join(PROJECT_PATH+'/env.yml')) as file:
+    env = yaml.load(file, Loader=yaml.FullLoader)
+
+# Extract database connection parameters from environment variables
+host = env['dbvar']['host']
+username = env['dbvar']['dbuser']
+password = env['dbvar']['dbpass']
+dbname = env['dbvar']['dbname']
 
 def hash_password(password):
     password = password.encode('utf-8')
@@ -60,4 +70,4 @@ def mainB():
         print("Executing command: ", command)
         cursor.execute(command)
 
-# mainB()
+mainB()

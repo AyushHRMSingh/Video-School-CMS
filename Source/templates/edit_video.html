@@ -82,7 +82,11 @@
                 </div>
                 <div class='mb-3'>
                     <label class="form-label" for="comment">Comment</label>
-                    <textarea class="form-control" name="comment" id="comment" ></textarea>
+                    {% if video[9] != None %}
+                        <textarea class="form-control" name="comment" id="comment">{{video[9]}}</textarea>
+                    {% else %}
+                        <textarea class="form-control" name="comment" id="comment"></textarea>
+                    {% endif %}
                 </div>
                 <br>
                 <button type="submit" class="btn btn-primary">Update Video</button>

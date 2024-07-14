@@ -49,7 +49,7 @@ dbvar:
 python Setup/reset_db.py
 ```
 9. Setup the Apache Web Server to reverse proxy the Flask application. Edit the specified configuration file and edit or add the following lines
-    - Uncomment or add the following lines
+    - Uncomment or add the following lines to httpd.conf file
     ```apache
     Include /private/etc/apache2/extra/httpd-vhosts.conf
     LoadModule proxy_module libexec/apache2/mod_proxy.so

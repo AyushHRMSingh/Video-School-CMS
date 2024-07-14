@@ -65,6 +65,13 @@ python Setup/reset_db.py
     </VirtualHost>
     ```
 10. Start or restart the Apache Web Server after editing the above files
+11. Create a project in Google Console and enable the Youtube Analytics API v2 and Youtube Data API v3
+12. From the project dashboard click on OAuth consent screen to set it up (remember to add your gmail account to the list of Test User when in the testing phase)
+13. After finishing the setup of th OAuth consent screen go to the Credentials tab, select the "CREATE CREDENTIALS" and then select "OAuth client ID" option
+14. Select "Web application" as the Application type, enter the other relevant details
+    * for local testing remember to add "http://localhost/oauth2callback" as the authorized redirect URI
+15. Once the OAuth 2.0 CLient ID is created download the client secret json file
+16. Place the json file in the root of the folder rename it to "client_secrets.json"
 11. Run the Flask application
 ```bash
 python /Path/to/Video-School-CMS/Source/wsgi.py

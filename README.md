@@ -71,7 +71,7 @@ python Setup/reset_db.py
 14. Select "Web application" as the Application type, enter the other relevant details
     * for local testing remember to add "http://localhost/oauth2callback" as the authorized redirect URI
 15. Once the OAuth 2.0 CLient ID is created download the client secret json file
-16. Place the json file in the root of the folder rename it to "client_secrets.json"
+16. Place the json file in the Source folder of the project folder rename it to "client_secrets.json"
 11. Run the Flask application
 ```bash
 python /Path/to/Video-School-CMS/Source/wsgi.py

@@ -18,6 +18,10 @@
             window.location.href="/view/"+channel_id+"/delete_video/"+video_id;
         }
     }
+    function sanitizeComment() {
+        let commentField = document.getElementById('comment');
+        commentField.value = commentField.value.replace(/\n/g, ' ');
+    }
 </script>
 <body>
     <nav class="navbar navbar-dark bg-dark">
@@ -181,7 +185,7 @@
                             </div>
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                <button type="submit" class="btn btn-primary">Save changes</button>
+                                <button type="submit" class="btn btn-primary" id="saveChangesButton">Save changes</button>
                             </div>
                         </form>
                     </div>
@@ -238,6 +242,14 @@
             });
         {%endif%}
     }
+    </script>
+    <script>
+        document.getElementById("saveChangesButton").onclick = function() {
+            let textArea = document.getElementById("comment");
+            let text = textArea.value;
+            let processedText = text.replace(/\n/g, " ");
+            textArea.value = processedText;
+        }
     </script>
 </body>
 </html>

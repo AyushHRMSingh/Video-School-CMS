@@ -48,13 +48,13 @@
                         <td>{{ channel[0] }}</td>
                         <td>{{ channel[1] }}</td>
                         <td>{{ platform[channel[2]] }}</td>
-                        <td>{{ user[channel[3]][0] }} ({{ user[channel[3]][1] }})</td>
-                        <td>{{ user[channel[4]][0] }} ({{ user[channel[4]][1] }})</td>
-                        <td>{{ user[channel[5]][0] }} ({{ user[channel[5]][1] }})</td>
-                        <td>{{ user[channel[6]][0] }} ({{ user[channel[6]][1] }})</td>
+                        <td><a href="{{url_for('edit_user', user_id=channel[3])}}">{{ user[channel[3]] }}</a></td>
+                        <td><a href="{{ url_for('edit_user', user_id=channel[4]) }}">{{ user[channel[4]] }}</a></td>
+                        <td><a href="{{ url_for('edit_user', user_id=channel[5]) }}">{{ user[channel[5]] }}</a></td>
+                        <td><a href="{{ url_for('edit_user', user_id=channel[6]) }}">{{ user[channel[6]] }}</a></td>
                         <td>{{ status[channel[7]] }}</td>
                         <td>{{ channel[8] != "{}" }}</td>
-                        <td><a class="btn btn-primary" href="{{ url_for('view_channel', channel_id=channel[0]) }}">View</a></td>
+                        <td><a class="btn btn-primary" href="{{ url_for('view_single_channel', channel_id=channel[0]) }}">View</a></td>
                         <td><a class="btn btn-primary" href="{{ url_for('edit_channel',channel_id=channel[0]) }}">Edit</a></td>
                     </tr>
                 {% endfor %}

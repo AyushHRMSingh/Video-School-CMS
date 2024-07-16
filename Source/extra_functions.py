@@ -1,4 +1,5 @@
 import datetime
+from type_vars import *
 
 # function to turn credentials object into dictionary
 def credtodict(cred):
@@ -11,16 +12,7 @@ def credtodict(cred):
         'scopes': cred.scopes
     }
 
-# function to turn response object to array/dictionary
-def format_string(stringa):
-    for i in stringa:
-        # if detects special character that conflicts with javascript or any other syntax such as singlequote, doublequote, etc use \ to have it be ignored
-        if i == "'":
-            stringa = stringa.replace(i, "\'")
-        if i == "\\":
-            stringa = stringa.replace(i, "\\\\")
-
-# render datetime function
+# convert epoch to string
 def epoch_to_string(epoch, type):
     if epoch == None:
         return ''
@@ -29,8 +21,25 @@ def epoch_to_string(epoch, type):
     elif type == 'datetime':
         return datetime.datetime.fromtimestamp(epoch).strftime('%Y-%m-%d %H:%M:%S')
 
+# convert string date into epoch
 def string_to_epoch(string):
     if string != '':
         return int(datetime.datetime.strptime(string, '%Y-%m-%d').timestamp())
     else:
         return ''
+    
+# check whether or not a user is linked to the specified channel
+def check_if_in_channel(user_type, user_id, channel):
+    if user_type == USER_TYPE_CREATOR and user_id == channel[3]:
+        return True
+    elif user_type == USER_TYPE_EDITOR and user_id == channel[4]:
+        return True
+    elif user_type == USER_TYPE_OPS and user_id == channel[6]:
+        return True
+    elif user_type == USER_TYPE_MANAGER and user_id == channel[5]:
+        return True
+    elif user_type == USER_TYPE_ADMIN:
+        return True
+    else:
+        return False
+    

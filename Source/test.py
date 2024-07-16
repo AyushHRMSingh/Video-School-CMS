@@ -1,0 +1,2 @@
+testvar = ""
+print(int(testvar))

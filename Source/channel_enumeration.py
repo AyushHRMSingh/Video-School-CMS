@@ -1,5 +1,3 @@
-3# 'ACTIVE', 'INACTIVE', 'TO_BE_DELETED', 'DELETED'
-
 channelstatus ={
     0: "Active",
     1: "Inactive",

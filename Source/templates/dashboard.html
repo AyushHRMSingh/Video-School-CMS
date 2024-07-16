@@ -31,9 +31,9 @@
                     <table class="table align-middle">
                       <tbody>
                         <tr class="align-bottom">
-                            <td class="align-top" scope="col"><a class="btn btn-outline-dark btn-lg" href="{{url_for("view_users")}}">Users</a></th>
-                            <td class="align-top" scope="col"><a class="btn btn-outline-dark dark btn-lg" href="{{url_for("view_channels")}}">Channel</a></th>
-                            <td class="align-top" scope="col"><a class="btn btn-outline-dark dark btn-lg" href="{{url_for("get_logs")}}">Logs</a></th>
+                            <td class="align-top" scope="col"><a class="btn btn-outline-dark dark btn-lg" href="{{url_for("view_users")}}">Users</a></th>
+                            <td class="align-top" scope="col"><a class="btn btn-outline-dark dark btn-lg" href="{{url_for("view_all_channels")}}">Channels</a></th>
+                            <td class="align-top" scope="col"><a class="btn btn-outline-dark dark btn-lg" href="{{url_for("get_logs",pagenum=1)}}">Logs</a></th>
                         </tr>
                     </tbody>
                     </table>
@@ -53,7 +53,7 @@
                             {% for channel in channels%}
                                 <tr>
                                     <td>{{ channel[1] }}</td>
-                                    <td><a href="{{ url_for('view_channel', channel_id=channel[0]) }}">View</a></td>
+                                    <td><a href="{{ url_for('view_single_channel', channel_id=channel[0]) }}">View</a></td>
                                 </tr>
                             {% endfor %}
                         </tbody>

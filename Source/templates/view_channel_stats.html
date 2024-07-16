@@ -22,12 +22,12 @@
             <ol class="breadcrumb">
                 {% if sessionvar['user_type'] == 0 %}
                     <li class="breadcrumb-item"><a href="{{url_for('dashboard')}}">Dashboard</a></li>
-                    <li class="breadcrumb-item"><a href="{{url_for('view_channels')}}">Channels</a></li>
-                    <li class="breadcrumb-item"><a href="{{url_for('view_channel',channel_id=channel[0])}}">{{channel[1]}}</a></li>
+                    <li class="breadcrumb-item"><a href="{{url_for('view_all_channels')}}">Channels</a></li>
+                    <li class="breadcrumb-item"><a href="{{url_for('view_single_channel',channel_id=channel[0])}}">{{channel[1]}}</a></li>
                     <li class="breadcrumb-item active" aria-current="page">Channel Stats</li>
                     {% else %}
                     <li class="breadcrumb-item"><a href="{{url_for('dashboard')}}">Dashboard</a></li>
-                    <li class="breadcrumb-item"><a href="{{url_for('view_channel',channel_id=channel[0])}}">{{channel[1]}}</a></li>
+                    <li class="breadcrumb-item"><a href="{{url_for('view_single_channel',channel_id=channel[0])}}">{{channel[1]}}</a></li>
                     <li class="breadcrumb-item active" aria-current="page">Channel Stats</li>
                 {%endif%}
             </ol>

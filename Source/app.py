@@ -57,7 +57,7 @@ def favicon():
 # root path
 @app.route('/')
 def base():
-    # print(session)
+    # checks for session variables
     if 'logged_in' in session:
         return redirect(url_for('dashboard'))
     else:
@@ -96,6 +96,7 @@ def logout():
     session.pop('user_id', None)
     return redirect(url_for('login'))
 
+# Home page for all users
 @app.route('/dashboard')
 def dashboard():
     if session.get('loggedin'):
@@ -109,17 +110,22 @@ def dashboard():
     else:
         return redirect(url_for('login'))
 
-
+# page to view list of all users in the system
 @app.route('/users')
 def view_users():
+    # check for login session
     if session.get('loggedin'):
+        # check if user is admin
         if session['user_type'] == USER_TYPE_ADMIN:
             author = {
                 'user_id': session['user_id'],
                 'user_type': session['user_type']
             }
+            # get list of all users
             users = cmsobj_db.get_users(author=author)
+            # get dictionary of all roles
             roles = user_enumeration.roletype
+            # get dictionary of all user status types
             status = user_enumeration.userstatus
             return render_template('view_user.html', users=users, roles=roles, status=status)
         else:
@@ -127,19 +133,25 @@ def view_users():
     else:
         return redirect(url_for('login'))
 
+# page to edit user details for specified user
 @app.route('/users/edit/<int:user_id>', methods=['GET', 'POST'])
 def edit_user(user_id):
+    # checks for login session
     if session.get('loggedin'):
+        # checks if user is admin
         if session['user_type'] == USER_TYPE_ADMIN:
+            # checks if request is POST then considered api request
             if request.method == 'POST':
                 author = {
                     'user_id': session['user_id'],
                     'user_type': session['user_type']
                 }
-                # print(request.form.to_dict())
+                # call external function to edit user details
                 result = cmsobj_db.edit_user(request.form.to_dict(), author)
+                # if result is not True then return the result
                 if result!=True:
                     return result
+                # if result is True then redirect to view users page
                 return redirect(url_for('view_users'))
             user = cmsobj_db.get_user(user_id)
             return render_template('edit_user.html', user=user)
@@ -148,133 +160,184 @@ def edit_user(user_id):
     else:
         return redirect(url_for('login'))
 
+# page to delete user
 @app.route('/users/delete/<int:user_id>')
 def delete_user(user_id):
+    # check for login session
     if session.get('loggedin'):
+        # check if user is admin
         if session['user_type'] == USER_TYPE_ADMIN:
             author = {
                 'user_id': session['user_id'],
                 'user_type': session['user_type']
             }
+            # call external function to delete user
             result = cmsobj_db.delete_user(user_id, author)
+            # if result is not True then return the result
             if result!=True:
                 return result
+            # if result is True then redirect to view users page
             elif result == True:
                 return redirect(url_for('view_users'))
         else:
             return "You are not authorized to view this page"
 
+# page to add users in the system
 @app.route('/users/add', methods=['GET', 'POST'])
 def add_user():
+    # check for login session
     if session.get('loggedin'):
+        # check if user is admin
         if session['user_type'] == USER_TYPE_ADMIN:
+            # check if request is POST then considered api request
             if request.method == 'POST':
                 author = {
                     'user_id': session['user_id'],
                     'user_type': session['user_type']
                 }
+                # call external function to add user
                 result = cmsobj_db.add_user(request.form.to_dict(), author)
+                # if result is not True then return the result
                 if result!=True:
                     return render_template('add_user.html', msg=result)
+                # if result is True return successful message to the user
                 else:
                     return render_template('add_user.html', msg="User added Successfully")
+            # render add_user.html template
             return render_template('add_user.html')
         else:
             return "You are not authorized to view this page"
     else:
         return redirect(url_for('login'))
 
+# page to view all channels in the system
 @app.route('/channels')
 def view_all_channels():
+    # check for login session
     if session.get('loggedin'):
+        # check if user is admin
         if session['user_type'] == USER_TYPE_ADMIN:
             author = {
                 'user_id': session['user_id'],
                 'user_type': session['user_type']
             }
+            # get list of all channels
             channels = cmsobj_db.get_channels()
+            # get list of all users
             users = cmsobj_db.get_users(author=author)
-            finaluserlist = {}
+            # make a dictionary to store the user details of the channel
+            final_user_list = {}
             for user in list(users):
+                # if user is inactive then show INACTIVE USER
                 if user[5] == USER_STATUS_INACTIVE:
-                    finaluserlist[user[0]] = "INACTIVE USER"
+                    final_user_list[user[0]] = "INACTIVE USER"
                 else:
-                    finaluserlist[user[0]] = user[1]
-            return render_template('view_all_channels.html', channels=channels, user=finaluserlist, status=channel_enumeration.channelstatus, platform=channel_enumeration.platform_names)
+                    final_user_list[user[0]] = user[1]
+            return render_template('view_all_channels.html', channels=channels, user=final_user_list, status=channel_enumeration.channelstatus, platform=channel_enumeration.platform_names)
         else:
             return "You are not authorized to view this page"
     else:
         return redirect(url_for('login'))
 
-
+# page to view the statistics of the specifed channel
 @app.route('/view/<int:channel_id>/stat')
 def view_channel_stats(channel_id):
+    # check for login session
     if session.get('loggedin'):
+        # get the channel details
         channel = cmsobj_db.get_channel(channel_id)
-        # check if user is linked to the channel
+        # check if the user is linked to the channel
         if extra_functions.check_if_in_channel(session['user_type'], session['user_id'], channel) != True:
             return "You are not authorized to view this page"
+        # create variable to store channel stats
         stats = None
+        # check if the channel has credentials
         if channel[0] in VidSchool.credentialpool:
             stats = stat_functions.get_main(channel[1], channel[0])
+        # return the view_channel_stats.html template
         return render_template('view_channel_stats.html', sessionvar=session, channel=channel, stats=stats)
     else:
         return redirect(url_for('login'))
 
-
+# page to edit channel details
 @app.route('/channels/edit/<int:channel_id>', methods=['GET', 'POST'])
 def edit_channel(channel_id):
+    # check for login session
     if session.get('loggedin'):
+        # check if user is admin
         if session['user_type'] == USER_TYPE_ADMIN:
+            # check if request is POST then considered api request
             if request.method == 'POST':
                 author = {
                     'user_id': session['user_id'],
                     'user_type': session['user_type']
                 }
-                # print(request.form.to_dict())
-                # return request.form.to_dict()
+                # call external function to edit channel details
                 result = cmsobj_db.edit_channel(request.form.to_dict(), author)
+                # if result is not True then return the result
                 if result!=True:
                     return result
+                # if 'addcredentials' in session then link the channel
                 if 'addcredentials' in session:
                     # print("linking channel")
                     linkres = link_channel(channel_id)
                     if linkres!=True:
                         return linkres
+                # if result is True then redirect to view all channels page
                 return redirect(url_for('view_all_channels'))
-            channel = cmsobj_db.get_channel(channel_id)
-            creator = cmsobj_db.get_users_by_role(4)
-            editor = cmsobj_db.get_users_by_role(3)
-            ops = cmsobj_db.get_users_by_role(2)
-            manager = cmsobj_db.get_users_by_role(1)
-            return render_template('edit_channel.html', channel=channel, creators=creator, editors=editor, opss=ops, managers=manager, status=channel_enumeration.channelstatus, platform=channel_enumeration.platform_names)
+            else:
+                # get the channel details
+                channel = cmsobj_db.get_channel(channel_id)
+                # get list of all creators
+                creator = cmsobj_db.get_users_by_role(USER_TYPE_CREATOR)
+                # get list of all editors
+                editor = cmsobj_db.get_users_by_role(USER_TYPE_EDITOR)
+                # get list of all ops
+                ops = cmsobj_db.get_users_by_role(USER_TYPE_OPS)
+                # get list of all managers
+                manager = cmsobj_db.get_users_by_role(USER_TYPE_MANAGER)
+                # return the edit_channel.html template pass all above variables along with enumerations to interpret statuses and platforms
+                return render_template('edit_channel.html', channel=channel, creators=creator, editors=editor, opss=ops, managers=manager, status=channel_enumeration.channelstatus, platform=channel_enumeration.platform_names)
         else:
             return "You are not authorized to view this page"
     else:
         return redirect(url_for('login'))
 
+# page to add channels
 @app.route('/channels/add', methods=['GET', 'POST'])
 def add_channel():
+    # check for login session
     if session.get('loggedin'):
+        # check if user is admin
         if session['user_type'] == USER_TYPE_ADMIN:
             channel_name = None
+            # check if 'temp_channel_name' in session then store it in channel_name
             if "temp_channel_name" in session:
                 channel_name = session["temp_channel_name"]
-            creator = cmsobj_db.get_users_by_role(4)
-            editor = cmsobj_db.get_users_by_role(3)
-            ops = cmsobj_db.get_users_by_role(2)
-            manager = cmsobj_db.get_users_by_role(1)
+            # get list of all creators to show in the dropdown
+            creator = cmsobj_db.get_users_by_role(USER_TYPE_CREATOR)
+            # get list of all editors to show in the dropdown
+            editor = cmsobj_db.get_users_by_role(USER_TYPE_EDITOR)
+            # get list of all ops to show in the dropdown
+            ops = cmsobj_db.get_users_by_role(USER_TYPE_OPS)
+            # get list of all managers to show in the dropdown
+            manager = cmsobj_db.get_users_by_role(USER_TYPE_MANAGER)
+            # check if request is POST then considered api request
             if request.method == 'POST':
                 author = {
                     'user_id': session['user_id'],
                     'user_type': session['user_type']
                 }
+                # remove 'temp_channel_name' from session
                 if "temp_channel_name" in session:
                     session.pop("temp_channel_name")
+                # call external function to add channel
                 channel_id = cmsobj_db.add_channel(request.form.to_dict(), author)
+                # if result is not True then return the result
                 if type(channel_id)!=int:
                     return channel_id
                 elif type(channel_id)==int:
+                    # if 'addcredentials' in session then link the channel
                     if "addcredentials" in session:
                         result = link_channel(channel_id)
                         if result!=True:
@@ -289,49 +352,69 @@ def add_channel():
     else:
         return redirect(url_for('login'))
 
+# page to link channel
 @app.route('/channels/link/<int:channel_id>', methods=['GET','POST'])
 def link_channel(channel_id):
+    # check for login session
     if session.get('loggedin'):
+        # check if user is admin
         if session['user_type'] == USER_TYPE_ADMIN:
+            # check if request is POST then considered api request
             if request.method == 'POST':
                 author = {
                     'user_id': session['user_id'],
                     'user_type': session['user_type']
                 }
-                tokens = json.dumps(session['addcredentials'])
-                session.pop('addcredentials')
-                # print(tokens)
-                result = cmsobj_db.link_channel(channel_id=channel_id, token=tokens, author=author)
-                if result!=True:
-                    return result
+                # check if 'addcredentials' in session then store it in tokens
+                if 'addcredentials' not in session:
+                    return "No credentials found"
                 else:
-                    return True
+                    tokens = json.dumps(session['addcredentials'])
+                    # remove 'addcredentials' from session
+                    session.pop('addcredentials')
+                    # call external function to link channel
+                    result = cmsobj_db.link_channel(channel_id=channel_id, token=tokens, author=author)
+                    # return the result
+                    if result!=True:
+                        return result
+                    else:
+                        return True
         else:
             return "You are not authorized to view this page"
     else:
         return redirect(url_for('login'))
 
+# page to unlink channel
 @app.route('/channels/unlink/<int:channel_id>')
 def unlink_channel(channel_id):
+    # check for login session
     if session.get('loggedin'):
+        # check if user is admin
         if session['user_type'] == USER_TYPE_ADMIN:
-            author = {
-                'user_id': session['user_id'],
-                'user_type': session['user_type']
-            }
-            result = cmsobj_db.unlink_channel(channel_id, author)
-            if result!=True:
-                return result
-            elif result == True:
-                return redirect(request.referrer)
+            # check if request is POST then considered api request
+            if request.method == 'POST':
+                author = {
+                    'user_id': session['user_id'],
+                    'user_type': session['user_type']
+                }
+                # call external function to unlink channel
+                result = cmsobj_db.unlink_channel(channel_id, author)
+                # return value based on the result
+                if result!=True:
+                    return result
+                elif result == True:
+                    return redirect(request.referrer)
         else:
             return "You are not authorized to view this page"
     else:
         return redirect(url_for('login'))
 
+# page to view a channel's details
 @app.route('/view/<int:channel_id>')
 def view_single_channel(channel_id):
+    # check for login session
     if session.get('loggedin'):
+        # get the channel details
         channel = cmsobj_db.get_channel(channel_id)
         # check if user is linked to the channel
         if extra_functions.check_if_in_channel(session['user_type'], session['user_id'], channel) != True:
@@ -358,37 +441,49 @@ def view_single_channel(channel_id):
     else:
         return redirect(url_for('login'))
 
+# page to add videos to a channel
 @app.route('/view/<int:channel_id>/add_video', methods=['GET', 'POST'])
 def add_video(channel_id):
+    # check for login session
     if session.get('loggedin'):
+        # check if user is admin, manager, ops or creator
         if session["user_type"] not in [USER_TYPE_ADMIN, USER_TYPE_MANAGER, USER_TYPE_OPS, USER_TYPE_CREATOR]:
             return "You are not authorized to add videos"
+        # get the channel details
         channel = cmsobj_db.get_channel(channel_id)
         # check if user is linked to the channel
         if extra_functions.check_if_in_channel(session['user_type'], session['user_id'], channel) != True:
             return "You are not authorized to view this page"
+        # check if request is POST then considered api request
         if request.method == 'POST':
             author = {
                 'user_id': session['user_id'],
                 'user_type': session['user_type']
             }
+            # call external function to add video
             result = cmsobj_db.add_video(request.form.to_dict(), author)
+            # return value based on the result
             if result!=True:
                 return result
             else:
                 return render_template('add_video.html', sessionvar=session, channel=channel, msg="Video added Successfully")
-        return render_template('add_video.html', sessionvar=session, channel=channel)
+        else:
+            return render_template('add_video.html', sessionvar=session, channel=channel)
     else:
         return redirect(url_for('login'))
 
+# page to update video status
 @app.route('/update', methods=['GET', 'POST'])
 def update_status():
+    # check for login session
     if session.get('loggedin'):
         author = {
             'user_id': session['user_id'],
             'user_type': session['user_type']
         }
+        # call external function to update video status
         result = cmsobj_db.set_video_status(request.form.to_dict(), author)
+        # return value based on the result
         if result!=True:
             return result
         # return "you updated"
@@ -396,58 +491,77 @@ def update_status():
     else:
         return redirect(url_for('login'))
 
+# 
 @app.route('/edit/video/<int:video_id>', methods=['GET', 'POST'])
 def edit_video(video_id):
+    # check for login session
     if session.get('loggedin'):
-        video = cmsobj_db.get_video(video_id)
-        channel_id = video[4]
-        channel = cmsobj_db.get_channel(channel_id)
-        # check if user is linked to the channel
+        # check if user is linked to channel
         if extra_functions.check_if_in_channel(session['user_type'], session['user_id'], channel) != True:
             return "You are not authorized to view this page"
+        # get video details
+        video = cmsobj_db.get_video(video_id)
+        # get channel id and details
+        channel_id = video[4]
+        channel = cmsobj_db.get_channel(channel_id)
+        # check if request is POST then considered api request
         if request.method == 'POST':
             author = {
                 'user_id': session['user_id'],
                 'user_type': session['user_type']
             }
+            # storing form data as dictionary to edit beforehand
             passreq = request.form.to_dict()
+            # edit all timestamps from string to epoch
             passreq['shoot_timestamp'] = extra_functions.string_to_epoch(passreq['shoot_timestamp'])
             passreq['edit_timestamp'] = extra_functions.string_to_epoch(passreq['edit_timestamp'])
             passreq['upload_timestamp'] = extra_functions.string_to_epoch(passreq['upload_timestamp'])
-            # print(passreq)
-            # result = True
+            # call external function to edit video
             result = cmsobj_db.edit_video(passreq, author)
+            # return value based on the result
             if result!=True:
                 return result
-            return redirect(url_for('view_single_channel', channel_id=request.form['channel_id']))
-        video = cmsobj_db.get_video(video_id)
-        finalvidlist = list(video)
-        for i in range(5,8):
-            finalvidlist[i] = extra_functions.epoch_to_string(finalvidlist[i], 'date')
-            print(finalvidlist[i])
-        return render_template('edit_video.html', channel=channel, sessionvar=session, video=finalvidlist)
+            else:
+                return redirect(url_for('view_single_channel', channel_id=request.form['channel_id']))
+        else:
+            video = cmsobj_db.get_video(video_id)
+            finalvidlist = list(video)
+            for i in range(5,8):
+                finalvidlist[i] = extra_functions.epoch_to_string(finalvidlist[i], 'date')
+                print(finalvidlist[i])
+            return render_template('edit_video.html', channel=channel, sessionvar=session, video=finalvidlist)
     else:
         return redirect(url_for('login'))
 
+# page to display all logs
 @app.route('/logs/p=<int:pagenum>')
 def get_logs(pagenum):
+    # check for login session
     if session.get('loggedin'):
+        # check if user is admin
         if session['user_type'] == USER_TYPE_ADMIN:
             author = {
                 'user_id': session['user_id'],
                 'user_type': session['user_type']
             }
+            # call external function to get logs and total number of logs
             output = cmsobj_db.get_logs_by_page(pagenum-1)
+            # get logs and number of pages
             logs = output[0]
             number_of_pages = math.ceil(output[1]/100)
-            finallogs = []
-            finaluserlist = {}
+            # make a list to store logs
+            final_logs = []
+            # make a dictionary to store user details
+            final_user_list = {}
+            # get all users
             users = cmsobj_db.get_users(author=author)
+            # add logs to final_logs list and convert dates from epoch to string
             for log in logs:
-                finallogs.append([log[0], log[1], extra_functions.epoch_to_string(log[2], 'datetime'), ast.literal_eval(log[3].replace('null', 'None'))])
+                final_logs.append([log[0], log[1], extra_functions.epoch_to_string(log[2], 'datetime'), ast.literal_eval(log[3].replace('null', 'None'))])
+            # add users to final_user_list dictionary
             for user in list(users):
-                finaluserlist[user[0]] = [user[1], user[2]]
-            return render_template('view_logs.html', logs=finallogs, users=finaluserlist, action=general_log_enumeration.log_type, pagenum=pagenum, number_of_pages=number_of_pages)
+                final_user_list[user[0]] = [user[1], user[2]]
+            return render_template('view_logs.html', logs=final_logs, users=final_user_list, action=general_log_enumeration.log_type, pagenum=pagenum, number_of_pages=number_of_pages)
         else:
             return "You are not authorized to view this page"
     else:

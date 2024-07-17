@@ -60,6 +60,12 @@
         </ul>
     
         <h1>Videos table</h1>
+        <select class="form-select" id="actionTypeFilter" onchange="filtervideos(this.value)">
+                <option value="">All</option>
+                {% for key, value in status.items() %}
+                    <option value="{{ key }}">{{ value }}</option>
+                {% endfor %}
+        </select>
         <table class='table table-hover'>
             <thead>
                 <th scope="col">ID</th>
@@ -75,9 +81,9 @@
                     <th scope="col">Edit</th>
                 {% endif %}
             </thead>
-            <tbody class="table-group-divider">
+            <tbody class="table-group-divider" id="videotablebody">
                 {% for video in videos %}
-                    <tr>
+                    <tr data-action-type="{{ video[8] }}">
                         <td>{{ video[0] }}</td>
                         {% if video[1]==None %}
                             <td></td>
@@ -288,6 +294,19 @@
             let text = textArea.value;
             let processedText = text.replace(/\n/g, " ");
             textArea.value = processedText;
+        }
+    </script>
+    <script>
+        function filtervideos(selectedValue) {
+            const tableRows = document.querySelectorAll('#videotablebody tr');
+            tableRows.forEach(row => {
+                const actionType = row.getAttribute('data-action-type');
+                if (selectedValue === "" || actionType === selectedValue) {
+                    row.style.display = "";
+                } else {
+                    row.style.display = "none";
+                }
+            });
         }
     </script>
 </body>

@@ -1,1 +1,194 @@
-{{stats}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stats</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
+</head>
+<body>
+    <nav class="navbar navbar-dark bg-dark">
+        <div class="container-fluid">
+            <span class="navbar-brand mb-0 h1">
+                <img src="{{ url_for('static', filename='favicon.ico') }}" alt="Logo" width="30" height="24" class="d-inline-block align-text-top">
+                Video School CMS
+            </span>
+          <a class="d-flex btn btn-outline-light" href="{{ url_for('logout') }}">Logout</a>
+        </div>
+    </nav>   
+    <div class="row p-2">
+        <nav class="gx-5" aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                {% if sessionvar['user_type'] == 0 %}
+                    <li class="breadcrumb-item"><a href="{{url_for('dashboard')}}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{{url_for('view_all_channels')}}">Channels</a></li>
+                    <li class="breadcrumb-item"><a href="{{url_for('view_single_channel',channel_id=channel[0])}}">{{channel[1]}}</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Channel Stats</li>
+                {% else %}
+                    <li class="breadcrumb-item"><a href="{{url_for('dashboard')}}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{{url_for('view_single_channel',channel_id=channel[0])}}">{{channel[1]}}</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Channel Stats</li>
+                {% endif %}
+            </ol>
+        </nav>
+    </div>
+    <div class="container">
+        <h1>Channel Statistics</h1>
+        {% if stats %}
+            <p>Total No. of Subscribers: {{ stats['section1']['subscriber_Count'] }}</p>
+            <p>Total No. of Views: {{ stats['section1']['view_Count'] }}</p>
+            <p>Total No. of Videos: {{ stats['section1']['video_Count'] }}</p>
+            <p>Total Watch time (in Hours): {{ stats['section1']['watch_time'] }}</p>
+            
+            <div class="row mb-3">
+                <div class="col">
+                    <label for="timeRangeSelect" class="form-label">Select Time Range:</label>
+                    <select class="form-select" id="timeRangeSelect" aria-label="Time Range Select">
+                        <option value="alltime" selected>All Time</option>
+                        <option value="last_7_days">Last 7 Days</option>
+                        <option value="last_30_days">Last 30 Days</option>
+                        <option value="last_90_days">Last 90 Days</option>
+                        <option value="last_6_months">Last Six Months</option>
+                        <option value="past_year">Last Year</option>
+                    </select>
+                </div>
+            </div>
+    
+            <div id="videosTableContainer">
+                <!-- Videos table will be inserted here by JavaScript -->
+            </div>
+            
+            <table class="table table-striped">
+                <p>Subscriber Status (Last 7 Days):-</p>
+                <thead class="table-dark caption-top">
+                    <tr>
+                        <th scope="col">Date</th>
+                        <th scope="col">Subscribers Gained</th>
+                        <th scope="col">Subscribers Lost</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for sub in stats['section3']['last_7_days'] %}
+                        <tr>
+                            <td>{{ sub['date'] }}</td>
+                            <td>{{ sub['subscribersGained'] }}</td>
+                            <td>{{ sub['subscribersLost'] }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            
+        {% else %}
+            <p>Please link the channel to access the Channel statistics</p>
+        {% endif %}
+        <div>
+            <canvas id="ViewChart"></canvas>
+        </div>
+        <br>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js" integrity="sha384-oBqDVmMz9ATKxIep9tiCxS/Z9fNfEXiDAYTujMAeBAsjFuCZSmKbSSUnQlmh/jp3" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.min.js" integrity="sha384-cuYeSxntonz0PPNlHhBs68uyIAVpIIOZZ5JqeqvYYIcEL727kskC66kF92t6Xl2V" crossorigin="anonymous"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const stats = {{ stats | tojson }};
+            const timeRangeSelect = document.getElementById('timeRangeSelect');
+            const videosTableContainer = document.getElementById('videosTableContainer');
+    
+            function createVideosTable(timeRange) {
+                let videos = stats['section2'][timeRange];
+                let tableHTML = `
+                    <table class="table table-striped">
+                        <p>Top 10 Videos (${timeRange.replace('_', ' ').replace('_', ' ')}):-</p>
+                        <thead class="table-dark caption-top">
+                            <tr>
+                                <th scope="col">#</th>
+                                <th scope="col">Title</th>
+                                <th scope="col">Views</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+    
+                videos.forEach((video, index) => {
+                    tableHTML += `
+                        <tr>
+                            <th scope="row">${index + 1}</th>
+                            <td>${video['title']}</td>
+                            <td>${video['views']}</td>
+                        </tr>
+                    `;
+                });
+    
+                tableHTML += `
+                        </tbody>
+                    </table>
+                `;
+    
+                videosTableContainer.innerHTML = tableHTML;
+            }
+    
+            timeRangeSelect.addEventListener('change', function () {
+                createVideosTable(this.value);
+            });
+    
+            // Initialize with default value
+            createVideosTable(timeRangeSelect.value);
+        });
+    </script>
+    
+    <script>
+        var views = [];
+        var dates = [];
+        var watchtime = [];
+        {% for I in stats['section_d'] %}
+            views.push({{I['views']}});
+            dates.push("{{I['date']}}");
+            watchtime.push(Math.round({{I['watchtime']}}/60));
+        {% endfor %}
+        console.log(views);
+        console.log(dates);
+        console.log(watchtime);
+
+        const viewChart = document.getElementById('ViewChart');
+      
+        new Chart(viewChart, {
+          type: 'line',
+          data: {
+            labels: dates,
+            datasets: [{
+              label: 'Views',
+              data: views,
+              fill: false,
+              borderColor: 'rgb(252, 3, 3)',
+              tension: 0.1
+            }]
+          },
+          options: {
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Views',
+                    position: 'bottom',
+                    font: {
+                        size: 16
+                    }
+                }
+            },
+            responsive: true,
+            aspectRatio: 1|2.5,
+            scales: {
+              y: {
+                beginAtZero: false
+              }
+            }
+          }
+        });
+    </script>
+    
+</body>
+</html>

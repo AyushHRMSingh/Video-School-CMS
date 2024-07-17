@@ -3,6 +3,8 @@ import json
 import bcrypt
 import mysql.connector
 import time
+
+import mysql.connector.errorcode
 import api_functions as api_functions
 import extra_functions 
 from type_vars import *
@@ -388,6 +390,7 @@ class VidSchool:
                 "error": "You do not have permission to delete this video"
             }
     # function to get all videos from the database
+    
     def get_videos(self):
         # executes SQL command
         sql = "SELECT * FROM Video"
@@ -413,6 +416,42 @@ class VidSchool:
         result = self.cursor.fetchone()
         return result
     
+    # function to add videos in bulk
+    def add_videos_bulk(self, csv_list, channel_id, author):
+        if author['user_type'] == USER_TYPE_ADMIN:
+            # executes SQL command to add all videos in a single command
+            sql = 'INSERT INTO Video (old_id, title, url, channel_id, shoot_timestamp, edit_timestamp, upload_timestamp, status, comment) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)'
+            insert_list = []
+            for i in range(0, len(csv_list)):
+                row = csv_list[i]
+                old_id = row[0]
+                title = row[1]
+                url = row[2] if row[2] != '' else None
+                shoot_timestamp = int(row[3]) if row[3] != '' else None
+                edit_timestamp = int(row[4]) if row[4] != '' else None
+                upload_timestamp = int(row[5]) if row[5] != '' else None
+                comment = row[6] if row[6] != '' else None
+                status = int(row[7]) if row[7] != '' else None
+                insert_list.append((old_id, title, url, channel_id, shoot_timestamp, edit_timestamp, upload_timestamp, status, comment))
+            print(sql)
+            self.cursor.executemany(sql, insert_list)
+            self.dbconnect.commit()
+            print("Videos added")
+            # Logging
+            log_data = {
+                "action": "add_videos",
+                "author_id": author['user_id'],
+                "data": {
+                    "channel_id": channel_id,
+                }
+            }
+            self.log_action(3, log_data)
+            return True
+        else:
+            return {
+                "error": "You do not have permission to add videos"
+            }
+
     ### CHANNEL FUNCTIONS
     def add_channel(self, request, author):
         if author['user_type'] == USER_TYPE_ADMIN:

@@ -2,12 +2,12 @@
 import ast
 import json
 import extra_functions as extra_functions
-import csv_functions
+from csv_functions import *
 from type_vars import *
-import type_vars
+from werkzeug.utils import secure_filename
 import stat_functions
 from external_function import VidSchool
-from flask import Flask, render_template, request, redirect, url_for, session, send_from_directory
+from flask import Flask, render_template, request, redirect, url_for, session, send_from_directory, flash
 import user_enumeration, video_enumeration, channel_enumeration, general_log_enumeration
 import google_auth_oauthlib.flow
 from googleapiclient.discovery import build
@@ -609,6 +609,86 @@ def oauth2callback():
     return_url = session['return_url']
     session.pop('return_url')
     return redirect(return_url)
+
+@app.route('/bulk_import/<int:channel_id>', methods=['GET','POST'])
+def import_file(channel_id):
+    # check if request is POST then considered api request
+    if session.get('loggedin'):
+        # check if user is admin
+        if session['user_type'] == USER_TYPE_ADMIN:
+            if request.method == 'POST':
+                # check if 'file' in request files
+                if 'file' not in request.files:
+                    flash('No file provided')
+                    return redirect(request.url)
+                file = request.files['file']
+                # check for empty file
+                if file.filename == '':
+                    flash("No file provided")
+                    return redirect(request.url)
+                # check if file is valid
+                if file and file.filename.split('.')[1] in ALLOWED_EXTENSIONS:
+                    # save file and filename
+                    filename = secure_filename(file.filename)
+                    file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                    # check if file is csv
+                    if file.filename.split('.')[1] == "csv":
+                        file_url = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                        # get csv list
+                        csv_list = handle_csv(file_url)
+                        # format csv lsit for displaying
+                        output = check_n_format_csv(csv_list)
+                        # if output is a string then return error
+                        if type(output) == str:
+                            return "error: "+output
+                        # get all channels
+                        return render_template('view_csv.html', csv_list=output, video_status=video_enumeration.vidstatus, file_url=file_url, channel_id=channel_id)
+                    elif file.filename.split('.')[1] == "txt":
+                        return "Sorry plaintext bulk import file support hasnt been added"
+                else:
+                    return "Invalid file"
+        else:
+            return "You are not authorized to view this page"
+    else:
+        return redirect(url_for('login'))
+    return '''
+    <!doctype html>
+    <title>Upload new File</title>
+    <h1>Upload new File</h1>
+    <form method='post' enctype='multipart/form-data'>
+      <input type=file name=file>
+      <input type=submit value=Upload>
+    </form>
+    '''
+
+@app.route('/import_csv', methods=['POST'])
+def import_via_csv():
+    if session.get('loggedin'):
+        # check if user is admin
+        if session['user_type'] == USER_TYPE_ADMIN:
+            request_data = request.form.to_dict()
+            channel_id = int(request_data['channel_id'])
+            file_url = request_data['file_url']
+            csv_list = handle_csv(file_url)
+            output = check_n_format_csv(csv_list, import_format=True)
+            # print(output[1])
+            if type(output) == str:
+                return "error: "+output
+            else:
+                author = {
+                    'user_id': session['user_id'],
+                    'user_type': session['user_type']
+                }
+                result = cmsobj_db.add_videos_bulk(output, channel_id, author)
+                if result!=True:
+                    return result
+                else:
+                    return redirect(url_for('view_single_channel', channel_id=channel_id))
+        else:
+            return "You are not authorized to access this function"
+    else:
+        return redirect(url_for('login'))
+    
 
 # Main entry point of the application
 if __name__ == '__main__':

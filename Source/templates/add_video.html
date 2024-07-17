@@ -43,6 +43,12 @@
             </div>
             <button type="submit" class="btn btn-primary mb-3">Add Video</button>
         </form>
+
+        <br>
+        <br>
+        {% if sessionvar['user_type'] == 0%}
+            <a href="{{url_for('import_file',channel_id=channel[0])}}" class="btn btn-secondary">Import bulk files (CSV for old, plaintext for new)</a>
+        {% endif%}
     </div>
     
     {% if msg %}

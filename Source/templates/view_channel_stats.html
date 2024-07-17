@@ -112,7 +112,7 @@
                     tableHTML += `
                         <tr>
                             <th scope="row">${index + 1}</th>
-                            <td>${video['title']}</td>
+                            <td><a href="https://www.youtube.com/watch?v=${video['id']}" target="_blank">${video['title']}</a></td>
                             <td>${video['views']}</td>
                         </tr>
                     `;

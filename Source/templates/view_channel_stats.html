@@ -36,14 +36,15 @@
     <div class="container">
         <h1>Channel Statistics</h1>
         {% if stats %}
+            <h3><a href="http://youtube.com/{{ stats['section1']['url'] }}" target="_blank">{{channel[1]}}</a></h3>
             <p>Total No. of Subscribers: {{ stats['section1']['subscriber_Count'] }}</p>
             <p>Total No. of Views: {{ stats['section1']['view_Count'] }}</p>
             <p>Total No. of Videos: {{ stats['section1']['video_Count'] }}</p>
             <p>Total Watch time (in Hours): {{ stats['section1']['watch_time'] }}</p>
-            
+
             <div class="row mb-3">
                 <div class="col">
-                    <label for="timeRangeSelect" class="form-label">Select Time Range:</label>
+                    <label for="timeRangeSelect" class="form-label">Top 10 Videos:</label>
                     <select class="form-select" id="timeRangeSelect" aria-label="Time Range Select">
                         <option value="alltime" selected>All Time</option>
                         <option value="last_7_days">Last 7 Days</option>
@@ -59,25 +60,18 @@
                 <!-- Videos table will be inserted here by JavaScript -->
             </div>
             
-            <table class="table table-striped">
-                <p>Subscriber Status (Last 7 Days):-</p>
-                <thead class="table-dark caption-top">
-                    <tr>
-                        <th scope="col">Date</th>
-                        <th scope="col">Subscribers Gained</th>
-                        <th scope="col">Subscribers Lost</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for sub in stats['section3']['last_7_days'] %}
-                        <tr>
-                            <td>{{ sub['date'] }}</td>
-                            <td>{{ sub['subscribersGained'] }}</td>
-                            <td>{{ sub['subscribersLost'] }}</td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+
+            <div>
+                <label for="timePeriod">Select Time Period: </label>
+                <select id="timePeriod" onchange="updateChart()">
+                    <option value="last_7_days" selected>Last 7 Days</option>
+                    <option value="last_30_days">Last 30 Days</option>
+                    <option value="last_90_days">Last 90 Days</option>
+                    <option value="last_6_months">Last Six Months</option>
+                    <option value="past_year">Last Year</option>
+                </select>
+            </div>
+            <canvas id="subscriberChart"></canvas>
             
         {% else %}
             <p>Please link the channel to access the Channel statistics</p>
@@ -103,7 +97,7 @@
                 let videos = stats['section2'][timeRange];
                 let tableHTML = `
                     <table class="table table-striped">
-                        <p>Top 10 Videos (${timeRange.replace('_', ' ').replace('_', ' ')}):-</p>
+                        
                         <thead class="table-dark caption-top">
                             <tr>
                                 <th scope="col">#</th>
@@ -140,54 +134,65 @@
             createVideosTable(timeRangeSelect.value);
         });
     </script>
-    
     <script>
-        var views = [];
-        var dates = [];
-        var watchtime = [];
-        {% for I in stats['section_d'] %}
-            views.push({{I['views']}});
-            dates.push("{{I['date']}}");
-            watchtime.push(Math.round({{I['watchtime']}}/60));
-        {% endfor %}
-        console.log(views);
-        console.log(dates);
-        console.log(watchtime);
-
-        const viewChart = document.getElementById('ViewChart');
-      
-        new Chart(viewChart, {
-          type: 'line',
-          data: {
-            labels: dates,
-            datasets: [{
-              label: 'Views',
-              data: views,
-              fill: false,
-              borderColor: 'rgb(252, 3, 3)',
-              tension: 0.1
-            }]
-          },
-          options: {
-            plugins: {
-                title: {
-                    display: true,
-                    text: 'Views',
-                    position: 'bottom',
-                    font: {
-                        size: 16
+        let chart;
+        const rawData = {{ stats['section3']|tojson }};
+        
+        function createChart(data) {
+            const ctx = document.getElementById('subscriberChart').getContext('2d');
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        label: 'Subscribers Gained',
+                        data: data.gained,
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    }, {
+                        label: 'Subscribers Lost',
+                        data: data.lost,
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        title: {
+                            display: true,
+                            text: 'Subscribers Over Time'
+                        }
                     }
-                }
-            },
-            responsive: true,
-            aspectRatio: 1|2.5,
-            scales: {
-              y: {
-                beginAtZero: false
-              }
+                },
+            });
+        }
+
+        function updateChart() {
+            const period = document.getElementById('timePeriod').value;
+            const selectedData = rawData[period];
+
+            const labels = selectedData.map(entry => entry.date);
+            const gained = selectedData.map(entry => entry.subscribersGained);
+            const lost = selectedData.map(entry => entry.subscribersLost);
+
+            const data = {
+                labels: labels,
+                gained: gained,
+                lost: lost
+            };
+            
+            if (chart) {
+                chart.destroy();
             }
-          }
-        });
+            
+            createChart(data);
+        }
+
+        document.addEventListener('DOMContentLoaded', updateChart);
     </script>
     
 </body>

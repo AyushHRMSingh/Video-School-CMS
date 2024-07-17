@@ -253,7 +253,7 @@ def view_channel_stats(channel_id):
         stats = None
         # check if the channel has credentials
         if channel[0] in VidSchool.credentialpool:
-            stats = stat_functions.get_main(channel[1], channel[0])
+            stats = stat_functions.get_main(channel[0])
         # return the view_channel_stats.html template
         return render_template('view_channel_stats.html', sessionvar=session, channel=channel, stats=stats)
     else:

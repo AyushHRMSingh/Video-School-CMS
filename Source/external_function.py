@@ -187,6 +187,45 @@ class VidSchool:
         result = self.cursor.fetchone()
         return result
     
+    def edit_self(self, request, author):
+        # stores default values from DB
+        user_id = int(request['user_id'])
+        if author['user_id'] == user_id:
+            defvalue = self.get_user(user_id)
+            # sets values to default if None
+            user_name = request['user_name'] if request['user_name'] != "" else defvalue[1]
+            user_email = request['user_email'] if request['user_email'] != "" else defvalue[2]
+            if 'password' in request:
+                hashpass = self.hash_password(request['password'])
+                if hashpass != defvalue[3]:
+                    password = hashpass
+                else:
+                    password = defvalue[3]
+            else:
+                password = defvalue[3]
+            sql = "UPDATE User SET name = %s, email = %s, password = %s WHERE ID = %s"
+            val = (user_name, user_email, password, user_id)
+            try:
+                self.cursor.execute(sql, val)
+                self.dbconnect.commit()
+            except mysql.connector.IntegrityError as err:
+                if err.errno == mysql.connector.errorcode.ER_DUP_ENTRY:
+                    return "User Already Exists"
+            # Logging
+            log_data = {
+                "action": "edit_user",
+                "author_id": author["user_id"],
+                "data": {
+                    "user_id": user_id,
+                    "user_email": user_email,
+                    "password change?": "yes" if password != defvalue[3] else "no"
+                }
+            }
+            self.log_action(1, log_data)
+            return True
+        else:
+            return "Function not allowed for other users"
+
     # function to edit a user in the database
     def edit_user(self, request, author):
         # checks permissions

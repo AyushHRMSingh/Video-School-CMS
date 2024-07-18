@@ -684,8 +684,6 @@ def import_file(channel_id):
                         # get all channels
                         print(csv_list)
                         return render_template('view_csv.html', csv_list=output, video_status=video_enumeration.vidstatus, file_url=file_url, channel_id=channel_id)
-                    elif file.filename.split('.')[1] == "txt":
-                        return "Sorry plaintext bulk import file support hasnt been added"
                 else:
                     return "Invalid file"
             return render_template('import_page.html',channel=channel)
@@ -722,6 +720,24 @@ def import_via_csv():
     else:
         return redirect(url_for('login'))
     
+@app.route('/user_customise', methods=['GET', 'POST'])
+def user_customise():
+    if session.get('loggedin'):
+        user_id = session['user_id']
+        user = cmsobj_db.get_user(user_id)
+        if request.method == 'POST':
+            author = {
+                'user_id': session['user_id'],
+                'user_type': session['user_type']
+            }
+            result = cmsobj_db.edit_self(request.form.to_dict(), author)
+            if result != True:
+                return render_template('edit_self.html', sessionvar=session, user=user, msg=result)
+            else:
+                return redirect(url_for('dashboard'))
+        return render_template('edit_self.html', sessionvar=session, user=user)
+    else:
+        return redirect(url_for('login'))
 
 # Main entry point of the application
 if __name__ == '__main__':

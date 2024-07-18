@@ -71,9 +71,11 @@
                                         <tr data-action-type="{{ log[1] }}">
                                                 <td>
                                                 {% if info=="author_id" %}
-                                                    User : {{ users[log[3][info]][0] }} ({{ users[log[3][info]][1] }})
-                                                {% else %}
-                                                    {{ info }} : {{ log[3][info] }}
+                                                    
+                                                    User - {{ users[log[3][info]][0] }} ({{ users[log[3][info]][1] }})
+                                                {% else %} 
+                                                    
+                                                    {{ info }} -   {{ log[3][info]|replace("_"," ")|replace("{","")|replace("}","")|replace("'","") }}
                                                 {% endif %}
                                                 </td>
                                             </tr>

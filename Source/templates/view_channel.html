@@ -307,56 +307,43 @@
         }
     </script>
     <script>
-        function filtervideos(selectedValue) {
-            const tableRows = document.querySelectorAll('#videotablebody tr');
-            tableRows.forEach(row => {
-                const actionType = row.getAttribute('data-action-type');
-                if (selectedValue === "" || actionType === selectedValue) {
-                    row.style.display = "";
-                } else {
-                    row.style.display = "none";
-                }
-            });
-        }
-    </script>
-    <script>
         let currentPage = 1;
         const videosPerPage = 100;
+        let filteredVideos = [];
+    
+        function filtervideos(selectedValue) {
+            const tableRows = document.querySelectorAll('#videotablebody tr');
+            filteredVideos = Array.from(tableRows).filter(row => {
+                const actionType = row.getAttribute('data-action-type');
+                return selectedValue === "" || actionType === selectedValue;
+            });
+            currentPage = 1;
+            paginateVideos(currentPage);
+        }
     
         function paginateVideos(page) {
             currentPage = page;
             const start = (currentPage - 1) * videosPerPage;
             const end = start + videosPerPage;
-            const allVideos = Array.from(document.querySelectorAll('#videotablebody tr'));
+  
+            document.querySelectorAll('#videotablebody tr').forEach(row => row.style.display = 'none');
             
-            // Hide all videos
-            allVideos.forEach(video => video.style.display = 'none');
-            
-            // Show only the videos for the current page
-            allVideos.slice(start, end).forEach(video => video.style.display = '');
-            
-            // Update pagination controls
+            filteredVideos.slice(start, end).forEach(video => video.style.display = '');
+                
             updatePaginationControls();
-
-            if (actionTypeFilter.value != "") {
-                filtervideos(actionTypeFilter.value);
-            }
         }
     
         function updatePaginationControls() {
-            const allVideos = document.querySelectorAll('#videotablebody tr');
-            const totalPages = Math.ceil(allVideos.length / videosPerPage);
+            const totalPages = Math.ceil(filteredVideos.length / videosPerPage);
             const pagination = document.querySelector('.pagination');
             pagination.innerHTML = '';
-    
-            // Create Previous button
+
             const prevItem = document.createElement('li');
             prevItem.classList.add('page-item');
             prevItem.innerHTML = `<a class="page-link" href="#" onclick="paginateVideos(${currentPage - 1})">Previous</a>`;
             if (currentPage === 1) prevItem.classList.add('disabled');
             pagination.appendChild(prevItem);
-    
-            // Create page number buttons
+
             for (let i = 1; i <= totalPages; i++) {
                 const pageItem = document.createElement('li');
                 pageItem.classList.add('page-item');
@@ -364,8 +351,7 @@
                 pageItem.innerHTML = `<a class="page-link" href="#" onclick="paginateVideos(${i})">${i}</a>`;
                 pagination.appendChild(pageItem);
             }
-    
-            // Create Next button
+
             const nextItem = document.createElement('li');
             nextItem.classList.add('page-item');
             nextItem.innerHTML = `<a class="page-link" href="#" onclick="paginateVideos(${currentPage + 1})">Next</a>`;
@@ -374,9 +360,12 @@
         }
     
         document.addEventListener('DOMContentLoaded', () => {
+            const tableRows = document.querySelectorAll('#videotablebody tr');
+            filteredVideos = Array.from(tableRows); 
             paginateVideos(currentPage);
         });
     </script>
+    
     
 </body>
 </html>

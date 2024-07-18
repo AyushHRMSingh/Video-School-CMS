@@ -37,14 +37,14 @@
         <h1>Channel Statistics</h1>
         {% if stats %}
             <h3><a href="http://youtube.com/{{ stats['section1']['url'] }}" target="_blank">{{channel[1]}}</a></h3>
-            <p>Total No. of Subscribers: {{ stats['section1']['subscriber_Count'] }}</p>
-            <p>Total No. of Views: {{ stats['section1']['view_Count'] }}</p>
-            <p>Total No. of Videos: {{ stats['section1']['video_Count'] }}</p>
-            <p>Total Watch time (in Hours): {{ stats['section1']['watch_time'] }}</p>
+            <p class="fw-semibold">Total No. of Subscribers: {{ stats['section1']['subscriber_Count'] }}</p>
+            <p class="fw-semibold">Total No. of Views: {{ stats['section1']['view_Count'] }}</p>
+            <p class="fw-semibold">Total No. of Videos: {{ stats['section1']['video_Count'] }}</p>
+            <p class="fw-semibold">Total Watch time (in Hours): {{ stats['section1']['watch_time'] }}</p>
 
             <div class="row mb-3">
                 <div class="col">
-                    <label for="timeRangeSelect" class="form-label">Top 10 Videos:</label>
+                    <label for="timeRangeSelect" class="form-label"><h3>Top 10 Videos:</h3> </label>
                     <select class="form-select" id="timeRangeSelect" aria-label="Time Range Select">
                         <option value="alltime" selected>All Time</option>
                         <option value="last_7_days">Last 7 Days</option>
@@ -62,8 +62,8 @@
             
 
             <div>
-                <label for="timePeriod">Select Time Period: </label>
-                <select id="timePeriod" onchange="updateChart()">
+                <label for="timePeriod"class="form-label"><h3>Subscribers Count: </h3></label>
+                <select id="timePeriod" onchange="updateChart()" class="form-select" >
                     <option value="last_7_days" selected>Last 7 Days</option>
                     <option value="last_30_days">Last 30 Days</option>
                     <option value="last_90_days">Last 90 Days</option>

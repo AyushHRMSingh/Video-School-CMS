@@ -437,19 +437,18 @@ class VidSchool:
     def add_videos_bulk(self, csv_list, channel_id, author):
         if author['user_type'] == USER_TYPE_ADMIN:
             # executes SQL command to add all videos in a single command
-            sql = 'INSERT INTO Video (old_id, title, url, channel_id, shoot_timestamp, edit_timestamp, upload_timestamp, status, comment) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)'
+            sql = 'INSERT INTO Video (old_id, title, channel_id, shoot_timestamp, edit_timestamp, upload_timestamp, status, comment) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)'
             insert_list = []
             for i in range(0, len(csv_list)):
                 row = csv_list[i]
                 old_id = row[0]
                 title = row[1]
-                url = row[2] if row[2] != '' else None
-                shoot_timestamp = int(row[3]) if row[3] != '' else None
-                edit_timestamp = int(row[4]) if row[4] != '' else None
-                upload_timestamp = int(row[5]) if row[5] != '' else None
-                comment = row[6] if row[6] != '' else None
-                status = int(row[7]) if row[7] != '' else None
-                insert_list.append((old_id, title, url, channel_id, shoot_timestamp, edit_timestamp, upload_timestamp, status, comment))
+                shoot_timestamp = int(row[2]) if row[2] != '' else None
+                edit_timestamp = int(row[3]) if row[3] != '' else None
+                upload_timestamp = int(row[4]) if row[4] != '' else None
+                comment = row[5] if row[5] != '' else None
+                status = int(row[6]) if row[6] != '' else None
+                insert_list.append((old_id, title, channel_id, shoot_timestamp, edit_timestamp, upload_timestamp, status, comment))
             print(sql)
             try:
                 self.cursor.executemany(sql, insert_list)

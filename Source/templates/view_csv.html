@@ -25,13 +25,12 @@
         <table class="table table-hover table-striped-columns table-bordered">
             <thead>
                 <tr>
-                <th scope="col">ID</th>
+                <th scope="col">Video No.</th>
                 <th scope="col">Title</th>
-                <th scope="col">url</th>
                 <th scope="col">Shoot Date</th>
                 <th scope="col">Edit Date</th>
                 <th scope="col">Upload Date</th>
-                <th scope="col">Comment</th>
+                <th scope="col">Comments</th>
                 <th scope="col">Status</th>
                 </tr>
             </thead>
@@ -44,8 +43,7 @@
                     <td>{{i[3]}}</td>
                     <td>{{i[4]}}</td>
                     <td>{{i[5]}}</td>
-                    <td>{{i[6]}}</td>
-                    <td>{{video_status[i[7]]}}</td>
+                    <td>{{video_status[i[6]]}}</td>
                     </tr>
                 {% endfor %}
             </tbody>

@@ -680,6 +680,7 @@ def import_file(channel_id):
                         if type(output) == str:
                             return "error: "+output
                         # get all channels
+                        print(csv_list)
                         return render_template('view_csv.html', csv_list=output, video_status=video_enumeration.vidstatus, file_url=file_url, channel_id=channel_id)
                     elif file.filename.split('.')[1] == "txt":
                         return "Sorry plaintext bulk import file support hasnt been added"

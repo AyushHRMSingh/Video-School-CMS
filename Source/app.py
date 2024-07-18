@@ -539,6 +539,11 @@ def edit_video(video_id):
         # check if user is linked to channel
         if extra_functions.check_if_in_channel(session['user_type'], session['user_id'], channel) != True:
             return "You are not authorized to view this page"
+        video = cmsobj_db.get_video(video_id)
+        finalvidlist = list(video)
+        for i in range(5,8):
+            finalvidlist[i] = extra_functions.epoch_to_string(finalvidlist[i], 'date')
+            print(finalvidlist[i])
         # check if request is POST then considered api request
         if request.method == 'POST':
             author = {
@@ -555,15 +560,11 @@ def edit_video(video_id):
             result = cmsobj_db.edit_video(passreq, author)
             # return value based on the result
             if result!=True:
-                return result
+                return render_template('edit_video.html', channel=channel, sessionvar=session, video=finalvidlist, msg=result)
             else:
                 return redirect(url_for('view_single_channel', channel_id=request.form['channel_id']))
         else:
-            video = cmsobj_db.get_video(video_id)
-            finalvidlist = list(video)
-            for i in range(5,8):
-                finalvidlist[i] = extra_functions.epoch_to_string(finalvidlist[i], 'date')
-                print(finalvidlist[i])
+            
             return render_template('edit_video.html', channel=channel, sessionvar=session, video=finalvidlist)
     else:
         return redirect(url_for('login'))

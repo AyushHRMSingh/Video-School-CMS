@@ -111,5 +111,10 @@
             textArea.value = processedText;
         }
     </script>
+    {% if msg %}
+        <script>
+            alert("{{ msg }}");
+        </script>
+    {% endif %}
 </body>
 </html>

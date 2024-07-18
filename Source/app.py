@@ -650,10 +650,12 @@ def oauth2callback():
 
 @app.route('/bulk_import/<int:channel_id>', methods=['GET','POST'])
 def import_file(channel_id):
-    # check if request is POST then considered api request
     if session.get('loggedin'):
         # check if user is admin
         if session['user_type'] == USER_TYPE_ADMIN:
+            # get channel information
+            channel = cmsobj_db.get_channel(channel_id)
+            # check if request is POST then considered api request
             if request.method == 'POST':
                 # check if 'file' in request files
                 if 'file' not in request.files:
@@ -686,19 +688,11 @@ def import_file(channel_id):
                         return "Sorry plaintext bulk import file support hasnt been added"
                 else:
                     return "Invalid file"
+            return render_template('import_page.html',channel=channel)
         else:
             return "You are not authorized to view this page"
     else:
         return redirect(url_for('login'))
-    return '''
-    <!doctype html>
-    <title>Upload new File</title>
-    <h1>Upload new File</h1>
-    <form method='post' enctype='multipart/form-data'>
-      <input type=file name=file>
-      <input type=submit value=Upload>
-    </form>
-    '''
 
 @app.route('/import_csv', methods=['POST'])
 def import_via_csv():

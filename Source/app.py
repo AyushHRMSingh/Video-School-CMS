@@ -8,6 +8,7 @@ from werkzeug.utils import secure_filename
 import stat_functions
 from external_function import VidSchool
 from flask import Flask, render_template, request, redirect, url_for, session, send_from_directory, flash
+import flask
 import user_enumeration, video_enumeration, channel_enumeration, general_log_enumeration
 import google_auth_oauthlib.flow
 from googleapiclient.discovery import build
@@ -33,7 +34,7 @@ import os
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 
 #youtube api implementation
-CLIENT_SECRETS_FILE = "Source/client_secrets.json"
+CLIENT_SECRETS_FILE = os.path.join(PROJECT_PATH, 'client_secrets.json')
 SCOPES = [
     'https://www.googleapis.com/auth/youtube.readonly',
     'https://www.googleapis.com/auth/yt-analytics.readonly',
@@ -140,6 +141,7 @@ def edit_user(user_id):
     if session.get('loggedin'):
         # checks if user is admin
         if session['user_type'] == USER_TYPE_ADMIN:
+            user = cmsobj_db.get_user(user_id)
             # checks if request is POST then considered api request
             if request.method == 'POST':
                 author = {
@@ -150,10 +152,9 @@ def edit_user(user_id):
                 result = cmsobj_db.edit_user(request.form.to_dict(), author)
                 # if result is not True then return the result
                 if result!=True:
-                    return result
+                    return render_template('edit_user.html', user=user, msg=result)
                 # if result is True then redirect to view users page
                 return redirect(url_for('view_users'))
-            user = cmsobj_db.get_user(user_id)
             return render_template('edit_user.html', user=user)
         else:
             return "You are not authorized to view sthis page"
@@ -266,6 +267,38 @@ def edit_channel(channel_id):
     if session.get('loggedin'):
         # check if user is admin
         if session['user_type'] == USER_TYPE_ADMIN:
+            msg = None
+            # get channel details to show in the form
+            channel = cmsobj_db.get_channel(channel_id)
+            
+            # checking if channel has credentials
+            if "temp_channel_name" in session:
+                # accounting for it linked account does not have a youtube channel
+                # remove credentials as a precaution
+                if session["temp_channel_name"] == "No channel found":
+                    msg = "Linked google account does not a have a youtube channel"
+                    session.pop("temp_channel_name")
+                    if "addcredentials" in session:
+                        session.pop("addcredentials")
+                else:
+                    channel_name = session["temp_channel_name"]
+                    # check if channel name matches the linked youtube channel
+                    # if not then remove credentials
+                    if channel_name != channel[1]:
+                        msg = "Channel name does not match linked youtube channel"
+                        session.pop("temp_channel_name")
+                        if "addcredentials" in session:
+                            session.pop("addcredentials")
+
+            # get list of all creators
+            creator = cmsobj_db.get_users_by_role(USER_TYPE_CREATOR)
+            # get list of all editors
+            editor = cmsobj_db.get_users_by_role(USER_TYPE_EDITOR)
+            # get list of all ops
+            ops = cmsobj_db.get_users_by_role(USER_TYPE_OPS)
+            # get list of all managers
+            manager = cmsobj_db.get_users_by_role(USER_TYPE_MANAGER)
+
             # check if request is POST then considered api request
             if request.method == 'POST':
                 author = {
@@ -276,7 +309,7 @@ def edit_channel(channel_id):
                 result = cmsobj_db.edit_channel(request.form.to_dict(), author)
                 # if result is not True then return the result
                 if result!=True:
-                    return result
+                    return render_template('edit_channel.html', channel=channel, creators=creator, editors=editor, opss=ops, managers=manager, status=channel_enumeration.channelstatus, platform=channel_enumeration.platform_names, msg=result)
                 # if 'addcredentials' in session then link the channel
                 if 'addcredentials' in session:
                     # print("linking channel")
@@ -285,19 +318,10 @@ def edit_channel(channel_id):
                         return linkres
                 # if result is True then redirect to view all channels page
                 return redirect(url_for('view_all_channels'))
+            
             else:
                 # get the channel details
-                channel = cmsobj_db.get_channel(channel_id)
-                # get list of all creators
-                creator = cmsobj_db.get_users_by_role(USER_TYPE_CREATOR)
-                # get list of all editors
-                editor = cmsobj_db.get_users_by_role(USER_TYPE_EDITOR)
-                # get list of all ops
-                ops = cmsobj_db.get_users_by_role(USER_TYPE_OPS)
-                # get list of all managers
-                manager = cmsobj_db.get_users_by_role(USER_TYPE_MANAGER)
-                # return the edit_channel.html template pass all above variables along with enumerations to interpret statuses and platforms
-                return render_template('edit_channel.html', channel=channel, creators=creator, editors=editor, opss=ops, managers=manager, status=channel_enumeration.channelstatus, platform=channel_enumeration.platform_names)
+                return render_template('edit_channel.html', channel=channel, creators=creator, editors=editor, opss=ops, managers=manager, status=channel_enumeration.channelstatus, platform=channel_enumeration.platform_names, msg = msg)
         else:
             return "You are not authorized to view this page"
     else:
@@ -310,10 +334,20 @@ def add_channel():
     if session.get('loggedin'):
         # check if user is admin
         if session['user_type'] == USER_TYPE_ADMIN:
+            msg = None
             channel_name = None
+
             # check if 'temp_channel_name' in session then store it in channel_name
             if "temp_channel_name" in session:
-                channel_name = session["temp_channel_name"]
+                # accounting for it linked account does not have a youtube channel
+                # remove credentials as a precaution
+                if session["temp_channel_name"] == "No channel found":
+                    msg = "Linked google account does not a have a youtube channel"
+                    if "addcredentials" in session:
+                        session.pop("addcredentials")
+                else:
+                    channel_name = session["temp_channel_name"]
+            
             # get list of all creators to show in the dropdown
             creator = cmsobj_db.get_users_by_role(USER_TYPE_CREATOR)
             # get list of all editors to show in the dropdown
@@ -322,6 +356,7 @@ def add_channel():
             ops = cmsobj_db.get_users_by_role(USER_TYPE_OPS)
             # get list of all managers to show in the dropdown
             manager = cmsobj_db.get_users_by_role(USER_TYPE_MANAGER)
+            
             # check if request is POST then considered api request
             if request.method == 'POST':
                 author = {
@@ -335,18 +370,18 @@ def add_channel():
                 channel_id = cmsobj_db.add_channel(request.form.to_dict(), author)
                 # if result is not True then return the result
                 if type(channel_id)!=int:
-                    return channel_id
+                    return render_template('add_channel.html', channel_name=None, creators=creator, editors=editor, opss=ops, managers=manager, status=channel_enumeration.channelstatus, platform=channel_enumeration.platform_names, msg=channel_id)
                 elif type(channel_id)==int:
                     # if 'addcredentials' in session then link the channel
                     if "addcredentials" in session:
                         result = link_channel(channel_id)
                         if result!=True:
-                            return result
+                            return render_template('add_channel.html', channel_name=None, creators=creator, editors=editor, opss=ops, managers=manager, status=channel_enumeration.channelstatus, platform=channel_enumeration.platform_names, msg=result)
                         else:
                             return render_template('add_channel.html', channel_name=None, creators=creator, editors=editor, opss=ops, managers=manager, status=channel_enumeration.channelstatus, platform=channel_enumeration.platform_names, msg="Channel added and linked Successfully")
                     else:
                         return render_template('add_channel.html', channel_name=None, creators=creator, editors=editor, opss=ops, managers=manager, status=channel_enumeration.channelstatus, platform=channel_enumeration.platform_names, msg="Channel added Successfully")
-            return render_template('add_channel.html', channel_name=channel_name, creators=creator, editors=editor, opss=ops, managers=manager, status=channel_enumeration.channelstatus, platform=channel_enumeration.platform_names)
+            return render_template('add_channel.html', channel_name=channel_name, creators=creator, editors=editor, opss=ops, managers=manager, status=channel_enumeration.channelstatus, platform=channel_enumeration.platform_names, msg=msg)
         else:
             return "You are not authorized to view this page"
     else:
@@ -464,7 +499,7 @@ def add_video(channel_id):
             result = cmsobj_db.add_video(request.form.to_dict(), author)
             # return value based on the result
             if result!=True:
-                return result
+                return render_template('add_video.html', sessionvar=session, channel=channel, msg=result)
             else:
                 return render_template('add_video.html', sessionvar=session, channel=channel, msg="Video added Successfully")
         else:
@@ -577,7 +612,7 @@ def oauth():
         access_type='offline',
         include_granted_scopes='true')
     session['state'] = state
-    session['return_url'] = request.referrer
+    session['return_url'] = flask.request.referrer
     return redirect(auth_url)
 
 # Oauth page 2
@@ -587,17 +622,19 @@ def oauth2callback():
     flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
       CLIENT_SECRETS_FILE, scopes=SCOPES, state=state)
     flow.redirect_uri = url_for('oauth2callback', _external=True)
-    auth_response = request.url
+    auth_response = flask.request.url
     flow.fetch_token(authorization_response=auth_response)
     
     credentials = flow.credentials
     youtube = build('youtube', 'v3', credentials=credentials)
-    request = youtube.channels().list(
+    request1 = youtube.channels().list(
         part="snippet",
         mine=True
     )
-    response = request.execute()
-    if response['items']:
+    response = request1.execute()
+    print("RESPONSE:_")
+    print(response)
+    if 'items' in response:
         channel_name = response['items'][0]['snippet']['title']
     else:
         channel_name = "No channel found"

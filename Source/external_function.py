@@ -109,8 +109,12 @@ class VidSchool:
             # executes SQL command
             sql = "INSERT INTO User (name, email, password, role, status) VALUES (%s, %s, %s, %s, 0)"
             val = (request['user_name'], request['user_email'], hashpass, request['user_type'])
-            self.cursor.execute(sql, val)
-            self.dbconnect.commit()
+            try:
+                self.cursor.execute(sql, val)
+                self.dbconnect.commit()
+            except mysql.connector.IntegrityError as err:
+                if err.errno == mysql.connector.errorcode.ER_DUP_ENTRY:
+                    return "User Already Exists"
             self.cursor.execute("SELECT ID FROM User WHERE email = %s AND password = %s", (request['user_email'], hashpass))
             user = self.cursor.fetchone()
             # Logging
@@ -200,8 +204,12 @@ class VidSchool:
             # executes SQL command
             sql = "UPDATE User SET name = %s, email = %s, role = %s, status = %s WHERE ID = %s"
             val = (user_name, user_email, user_type, status, user_id)
-            self.cursor.execute(sql, val)
-            self.dbconnect.commit()
+            try:
+                self.cursor.execute(sql, val)
+                self.dbconnect.commit()
+            except mysql.connector.IntegrityError as err:
+                if err.errno == mysql.connector.errorcode.ER_DUP_ENTRY:
+                    return "User Already Exists"
             # Logging
             log_data = {
                 "action": "edit_user",
@@ -229,8 +237,12 @@ class VidSchool:
             # executes SQL command
             sql = "INSERT INTO Video (title, channel_id, status) VALUES (%s, %s, 0)"
             val = (video_title, channel_id,)
-            self.cursor.execute(sql, val)
-            self.dbconnect.commit()
+            try:
+                self.cursor.execute(sql, val)
+                self.dbconnect.commit()
+            except mysql.connector.IntegrityError as err:
+                if err.errno == mysql.connector.errorcode.ER_DUP_ENTRY:
+                    return "Video Already Exists"
             # Logging
             log_data = {
                 "action": "add_video",
@@ -360,7 +372,8 @@ class VidSchool:
             "author_id": author['user_id'],
             "data": {
                 "video_id": video_id,
-                "status": status
+                "status": status,
+                "comment": comment
             }
         }
         self.log_action(3, log_data)
@@ -434,9 +447,13 @@ class VidSchool:
                 status = int(row[7]) if row[7] != '' else None
                 insert_list.append((old_id, title, url, channel_id, shoot_timestamp, edit_timestamp, upload_timestamp, status, comment))
             print(sql)
-            self.cursor.executemany(sql, insert_list)
-            self.dbconnect.commit()
-            print("Videos added")
+            try:
+                self.cursor.executemany(sql, insert_list)
+                self.dbconnect.commit()
+                print("Videos added")
+            except mysql.connector.IntegrityError as err:
+                if err.errno == mysql.connector.errorcode.ER_DUP_ENTRY:
+                    return "Video Already Exists"
             # Logging
             log_data = {
                 "action": "add_videos",
@@ -458,8 +475,12 @@ class VidSchool:
             # executes SQL command
             sql = "INSERT INTO Channel (name ,platform, creator_id, editor_id, manager_id, ops_id, status) VALUES (%s, %s, %s, %s, %s, %s, 0)"
             val = (request['channel_name'], int(request['platform']), int(request['creator_id']), int(request['editor_id']), int(request['manager_id']), int(request['ops_id']))
-            self.cursor.execute(sql, val)
-            self.dbconnect.commit()
+            try:
+                self.cursor.execute(sql, val)
+                self.dbconnect.commit()
+            except mysql.connector.IntegrityError as err:
+                if err.errno == mysql.connector.errorcode.ER_DUP_ENTRY:
+                    return "Channel Already Exists"
             # gets channel ID after adding
             sql = "SELECT ID FROM Channel WHERE name = %s AND platform = %s"
             val = (request['channel_name'], int(request['platform']))
@@ -580,8 +601,12 @@ class VidSchool:
             # executes SQL command
             sql = "UPDATE Channel SET name = %s, platform = %s, creator_id = %s, editor_id = %s, manager_id = %s, ops_id = %s, status = %s WHERE ID = %s"
             val = (channel_name, platform, creator_id, editor_id, manager_id, ops_id, status, channel_id)
-            self.cursor.execute(sql, val)
-            self.dbconnect.commit()
+            try:
+                self.cursor.execute(sql, val)
+                self.dbconnect.commit()
+            except mysql.connector.IntegrityError as err:
+                if err.errno == mysql.connector.errorcode.ER_DUP_ENTRY:
+                    return "Channel Already Exists"
             # logging
             log_data = {
                 "action": "edit_channel",

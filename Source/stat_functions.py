@@ -242,7 +242,7 @@ def get_subscriber_status(data):
     subs_list['last_7_days'] = []
     for i in range(0, len(last_7_days['rows'])):
         subs_list['last_7_days'].append({
-            'date': last_7_days['rows'][i][0],
+            'date': dateconverstion(last_7_days['rows'][i][0], 'day'),
             'subscribersGained': last_7_days['rows'][i][1],
             'subscribersLost': last_7_days['rows'][i][2],
         })
@@ -264,7 +264,7 @@ def get_subscriber_status(data):
     subs_list['last_30_days'] = []
     for i in range(0, len(last_30_days['rows'])):
         subs_list['last_30_days'].append({
-            'date': last_30_days['rows'][i][0],
+            'date': dateconverstion(last_30_days['rows'][i][0], 'day'),
             'subscribersGained': last_30_days['rows'][i][1],
             'subscribersLost': last_30_days['rows'][i][2],
         })
@@ -285,7 +285,7 @@ def get_subscriber_status(data):
     subs_list['last_90_days'] = []
     for i in range(0, len(last_90_days['rows'])):
         subs_list['last_90_days'].append({
-            'date': last_90_days['rows'][i][0],
+            'date': dateconverstion(last_90_days['rows'][i][0], 'day'),
             'subscribersGained': last_90_days['rows'][i][1],
             'subscribersLost': last_90_days['rows'][i][2],
         })
@@ -308,7 +308,7 @@ def get_subscriber_status(data):
     subs_list['last_6_months'] = []
     for i in range(0, len(last_6_months['rows'])):
         subs_list['last_6_months'].append({
-            'date': last_6_months['rows'][i][0],
+            'date': dateconverstion(last_6_months['rows'][i][0], 'month'),
             'subscribersGained': last_6_months['rows'][i][1],
             'subscribersLost': last_6_months['rows'][i][2],
         })
@@ -330,9 +330,16 @@ def get_subscriber_status(data):
     subs_list['past_year'] = []
     for i in range(0, len(past_year['rows'])):
         subs_list['past_year'].append({
-            'date': past_year['rows'][i][0],
+            'date': dateconverstion(past_year['rows'][i][0], 'month'),
             'subscribersGained': past_year['rows'][i][1],
             'subscribersLost': past_year['rows'][i][2],
         })
 
     return subs_list
+
+
+def dateconverstion(datea, type):
+    if type == 'day':
+        return datetime.datetime.strptime(datea, '%Y-%m-%d').strftime('%d-%b')
+    elif type == 'month':
+        return datetime.datetime.strptime(datea, '%Y-%m').strftime('%b-%Y')

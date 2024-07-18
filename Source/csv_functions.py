@@ -7,7 +7,7 @@ from type_vars import *
 def handle_csv(url):
     sqllist=[]
     # opens the csv file and reads it
-    with open(url, "r") as csvfile:
+    with open(url, "r"  , encoding='utf-8') as csvfile:
         rows = csv.reader(csvfile, dialect="excel")
         rows = list(rows)
         for i in range(0, len(rows)):

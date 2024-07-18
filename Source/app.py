@@ -45,7 +45,7 @@ SCOPES = [
 # Initialize Flask application
 app = Flask(__name__)
 app.secret_key = 'your secret key'
-app.config['UPLOAD_FOLDER'] = "Data"
+app.config['UPLOAD_FOLDER'] = os.path.join(PROJECT_PATH, 'Data')
 ALLOWED_EXTENSIONS = {'csv'}
 app.secret_key = 'your secret key'
 

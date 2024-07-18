@@ -130,11 +130,11 @@
                     </tr>
                 {% endfor %}
             </tbody>
-            <nav aria-label="Page navigation example">
-                <ul class="pagination"></ul>
-              </nav>
+            
         </table>
-        
+        <nav aria-label="Page navigation example">
+            <ul class="pagination"></ul>
+          </nav>
         {%if (sessionvar['user_type'] == 0 or sessionvar['user_type'] == 1 or sessionvar['user_type'] == 2 or sessionvar['user_type'] == 4) %}
         <a class="btn btn-primary" href="{{url_for('add_video', channel_id=channel[0]) }}">Add Video</a>
         <br><br>
@@ -337,6 +337,10 @@
             
             // Update pagination controls
             updatePaginationControls();
+
+            if (actionTypeFilter.value != "") {
+                filtervideos(actionTypeFilter.value);
+            }
         }
     
         function updatePaginationControls() {

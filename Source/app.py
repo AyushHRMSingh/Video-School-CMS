@@ -531,14 +531,14 @@ def update_status():
 def edit_video(video_id):
     # check for login session
     if session.get('loggedin'):
-        # check if user is linked to channel
-        if extra_functions.check_if_in_channel(session['user_type'], session['user_id'], channel) != True:
-            return "You are not authorized to view this page"
         # get video details
         video = cmsobj_db.get_video(video_id)
         # get channel id and details
         channel_id = video[4]
         channel = cmsobj_db.get_channel(channel_id)
+        # check if user is linked to channel
+        if extra_functions.check_if_in_channel(session['user_type'], session['user_id'], channel) != True:
+            return "You are not authorized to view this page"
         # check if request is POST then considered api request
         if request.method == 'POST':
             author = {

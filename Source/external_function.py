@@ -281,8 +281,12 @@ class VidSchool:
         # executes SQL command
             sql = "UPDATE Video SET title = %s, url = %s,channel_id = %s, shoot_timestamp = %s, edit_timestamp = %s, upload_timestamp = %s, status = %s, comment = %s WHERE id = %s"
             val = (video_title, video_url, channel_id, shoot_timestamp, edit_timestamp, upload_timestamp, status, comment, video_id)
-            self.cursor.execute(sql, val)
-            self.dbconnect.commit()
+            try:
+                self.cursor.execute(sql, val)
+                self.dbconnect.commit()
+            except mysql.connector.IntegrityError as err:
+                if err.errno == mysql.connector.errorcode.ER_DUP_ENTRY:
+                    return "Video Already Exists"
             # Logging
             log_data = {
                 "action": "edit_video",

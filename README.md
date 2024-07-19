@@ -12,10 +12,10 @@ This is a content management system for a video school. It allows the company to
 - Action logging
 
 ## Pre-requisites
-1. Python 3.10.14
+1. Python >= 3.10.14 (upto 3.12)
 2. MySQL 8.4.0 LTS
 3. Apache Web Server 2.4.60
-
+4. Bootstrap 5.2.3
 
 ## Installation
 1. Clone the repository
@@ -25,12 +25,12 @@ path/to/project/Video-School-CMS
 ```
 3. Create a virtual environment
 ```bash
-python -m venv venv
+python -m venv .venv
 ```
 4. Activate the virtual environment
 ```
-source /path/to/venv/bin/activate # Linux and Mac Systems
-venv\Scripts\activate.bat # Windows systems
+source /path/to/.venv/bin/activate # Linux and Mac Systems
+\path\to\.venv\Scripts\activate.bat # Windows systems
 ```
 5. Install the required packages
 ```bash
@@ -48,22 +48,24 @@ dbvar:
 ```bash
 python Setup/reset_db.py
 ```
-9. Setup the Apache Web Server to reverse proxy the Flask application. Edit the specified configuration file and edit or add the following lines
-    - Uncomment or add the following lines to httpd.conf file
-    ```apache
-    Include /private/etc/apache2/extra/httpd-vhosts.conf
-    LoadModule proxy_module libexec/apache2/mod_proxy.so
-    LoadModule proxy_http_module libexec/apache2/mod_proxy_http.so
-    ```
-    - Add the following lines to the httpd-vhosts.conf file and also comment out the example virtual hosts
-    ```apache
-    <VirtualHost *:80>
-        ProxyPreserveHost On
-        ProxyRequests Off
-        ProxyPass / http://127.0.0.1:8089/
-        ProxyPassReverse / http://127.0.0.1:8089/
-    </VirtualHost>
-    ```
+9. Go to Source folder and edit the app.cgi file and replace `#!</path/to/venv>` with the path to the virtual environment (Absolute path not relative)
+```python
+#!/path/to/venv/bin/python for linux and mac
+#!"C:\path\to\venv\Scripts\python.exe" for windows
+```
+9. Setup the Apache Web Server to run the Flask application via a cgi script. Edit the specified configuration file and edit or add the following lines and replace the paths with the actual path to your project
+```apache
+    LoadModule cgi_module libexec/apache2/mod_cgi.so
+
+    ScriptAlias /app/ "/path/to/Video-School-CMS/"
+
+    <Directory "/path/to/Video-School-CMS/">
+        Options +ExecCGI
+        AddHandler cgi-script .cgi .py
+        AllowOverride None
+        Require all granted
+    </Directory>
+```
 10. Start or restart the Apache Web Server after editing the above files
 11. Create a project in Google Console and enable the Youtube Analytics API v2 and Youtube Data API v3
 12. From the project dashboard click on OAuth consent screen to set it up (remember to add your gmail account to the list of Test User when in the testing phase)
@@ -71,8 +73,10 @@ python Setup/reset_db.py
 14. Select "Web application" as the Application type, enter the other relevant details
     * for local testing remember to add "http://localhost/oauth2callback" as the authorized redirect URI
 15. Once the OAuth 2.0 CLient ID is created download the client secret json file
-16. Place the json file in the Source folder of the project folder rename it to "client_secrets.json"
-11. Run the Flask application
-```bash
-python /Path/to/Video-School-CMS/Source/wsgi.py
-```
+16. Place the json file in the root directort of the project folder rename it to "client_secrets.json"
+17. Create a folder in the root of the directory called Data, this is where the csv files will be stored for import
+18. The project is now ready to be used access it by going to [localhost/app/Source/app.cgi](http://localhost/app/Source/app.cgi)
+
+## Troubleshooting
+- if server is not running check the apache error logs for any errors
+- if a file not found error occurs check the paths in the configuration files and make sure that the permissions of the files are set correctly

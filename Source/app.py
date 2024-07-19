@@ -29,6 +29,9 @@ username = env['dbvar']['dbuser']
 password = env['dbvar']['dbpass']
 dbname = env['dbvar']['dbname']
 
+# create database object
+cmsobj_db = VidSchool(host, username, password, dbname)
+
 # set the environment variable for the google api testing
 import os
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
@@ -741,6 +744,4 @@ def user_customise():
 
 # Main entry point of the application
 if __name__ == '__main__':
-    # cmsobj_db.setupdb()
-    cmsobj_db = VidSchool(host, username, password, dbname)
     app.run(debug=True, port=8089,host='localhost')

@@ -195,12 +195,12 @@ class VidSchool:
             # sets values to default if None
             user_name = request['user_name'] if request['user_name'] != "" else defvalue[1]
             user_email = request['user_email'] if request['user_email'] != "" else defvalue[2]
-            if 'password' in request:
-                hashpass = self.hash_password(request['password'])
-                if hashpass != defvalue[3]:
-                    password = hashpass
-                else:
+            if 'password' in request and request['password'] != "":
+                if bcrypt.checkpw(request['password'].encode('utf-8'), defvalue[3].encode('utf-8')):
                     password = defvalue[3]
+                else:
+                    hashpass = self.hash_password(request['password'])
+                    password = hashpass
             else:
                 password = defvalue[3]
             sql = "UPDATE User SET name = %s, email = %s, password = %s WHERE ID = %s"

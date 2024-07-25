@@ -583,8 +583,10 @@ class VidSchool:
         if author['user_type'] == USER_TYPE_ADMIN:
             try:
             # print(jsontoken)
+                # if 
                 # print("Linking channel")
                 sql = "UPDATE Channel SET tokens = %s WHERE id=%s"
+                print(type(token))
                 val = (token, channel_id)
                 self.cursor.execute(sql, val)
                 self.dbconnect.commit()
@@ -607,10 +609,19 @@ class VidSchool:
     def unlink_channel(self, channel_id, author):
         if author['user_type'] == 0:
             try:
-                sql = "update channel set tokens=JSON_OBJECT() where id=%s"
+                print("Unlinking channel")
+                sql = "update Channel set tokens=JSON_OBJECT() where id=%s"
                 val = (channel_id,)
-                self.cursor.execute(sql, val)
-                self.dbconnect.commit()
+                try:
+                    print('try unlinking')
+                    self.cursor.execute(sql, val)
+                    self.dbconnect.commit()
+                except mysql.connector.IntegrityError as err:
+                    print("unlink failed here")
+                    return "Some Error: "+str(err)
+                except Exception as e:
+                    print("unlink failed there")
+                    return "Some Error"+str(e)
                 log_data = {
                     "action": "unlink_channel",
                     "author_id": author['user_id'],
@@ -783,8 +794,8 @@ class VidSchool:
         result = self.cursor.fetchone()
         row_num = result[0]
         print(row_num)
-        sql2 = "SELECT * FROM Log_Table ORDER BY id DESC LIMIT 100 OFFSET %s"
-        val = ((page*100),)
+        sql2 = "SELECT * FROM Log_Table ORDER BY id DESC LIMIT 50 OFFSET %s"
+        val = ((page*50),)
         self.cursor.execute(sql2, val)
         result2 = self.cursor.fetchall()
         print(sql2, val)

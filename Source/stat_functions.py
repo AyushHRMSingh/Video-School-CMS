@@ -10,7 +10,7 @@ def get_main(channel_id):
         return None
     stata = get_basic_stats(data)
     statb = get_top_vids(data)
-    statc = get_subscriber_status(data)
+    statc = get_subscriber_stats(data)
     return {
         'section1': stata,
         'section2': statb,
@@ -202,7 +202,7 @@ def get_top_vids(data):
 
     return top_10_list
 
-def get_subscriber_status(data):
+def get_subscriber_stats(data):
     
     raw_today = (datetime.datetime.now()-datetime.timedelta(days=3)).date()
     today = raw_today.isoformat()

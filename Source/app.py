@@ -430,18 +430,19 @@ def unlink_channel(channel_id):
         # check if user is admin
         if session['user_type'] == USER_TYPE_ADMIN:
             # check if request is POST then considered api request
-            if request.method == 'POST':
-                author = {
-                    'user_id': session['user_id'],
-                    'user_type': session['user_type']
-                }
-                # call external function to unlink channel
-                result = cmsobj_db.unlink_channel(channel_id, author)
-                # return value based on the result
-                if result!=True:
-                    return result
-                elif result == True:
-                    return redirect(request.referrer)
+            print("unlinking channel")
+            author = {
+                'user_id': session['user_id'],
+                'user_type': session['user_type']
+            }
+            print("unlinking channel2")
+            # call external function to unlink channel
+            result = cmsobj_db.unlink_channel(channel_id, author)
+            # return value based on the result
+            if result!=True:
+                return result
+            elif result == True:
+                return redirect(request.referrer)
         else:
             return "You are not authorized to view this page"
     else:
@@ -587,7 +588,7 @@ def get_logs(pagenum):
             output = cmsobj_db.get_logs_by_page(pagenum-1)
             # get logs and number of pages
             logs = output[0]
-            number_of_pages = math.ceil(output[1]/100)
+            number_of_pages = math.ceil(output[1]/50)
             # make a list to store logs
             final_logs = []
             # make a dictionary to store user details
@@ -613,6 +614,7 @@ def oauth():
         CLIENT_SECRETS_FILE, scopes=SCOPES)
     flow.redirect_uri = url_for('oauth2callback', _external=True)
     auth_url,state = flow.authorization_url(
+        prompt='consent',
         access_type='offline',
         include_granted_scopes='true')
     session['state'] = state
@@ -741,7 +743,3 @@ def user_customise():
         return render_template('edit_self.html', sessionvar=session, user=user)
     else:
         return redirect(url_for('login'))
-
-# Main entry point of the application
-if __name__ == '__main__':
-    app.run(debug=True, port=8089,host='localhost')

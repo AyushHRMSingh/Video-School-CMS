@@ -743,3 +743,20 @@ def user_customise():
         return render_template('edit_self.html', sessionvar=session, user=user)
     else:
         return redirect(url_for('login'))
+
+@app.route('/get_data_for_cache', methods=['POST'])
+def get_data_for_cache():
+    if session.get('loggedin'):
+        if session['user_type'] == USER_TYPE_ADMIN:
+            channels_list = cmsobj_db.get_channels()
+            users_list = cmsobj_db.get_users()
+            videos_list = cmsobj_db.get_videos()
+            logs_list = cmsobj_db.get_logs()
+        elif session['user_type'] in [USER_TYPE_MANAGER, USER_TYPE_CREATOR, USER_TYPE_EDITOR, USER_TYPE_OPS]:
+            channels_list = cmsobj_db.get_channels_by_user(session['user_id'], session['user_type'])
+            
+    else:
+        return redirect(url_for('login'))
+
+if __name__ == '__main__':
+    app.run(debug=True)

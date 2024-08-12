@@ -13,6 +13,7 @@ def refresh_token(old_credentials):
     response = requests.post("https://oauth2.googleapis.com/token", data=data)
     new_tokens = response.json()
     new_access_token = new_tokens.get("access_token")
+    # print("new_access_token: ", new_access_token)
     expiry = time.time()+new_tokens.get("expires_in")
     newcred = {
         'client_id': old_credentials['client_id'],
@@ -23,13 +24,6 @@ def refresh_token(old_credentials):
         'token': new_access_token
     }
     return [newcred, expiry]
-
-def youtdata():
-    print("youtube data")
-def youtanalytics():
-    print("youtube analytics")
-def youtreporting():
-    print("youtube reporting")
 
 def youtubedata(API_SERVICE_NAME, API_SERVICE_VERSION, credentials, **kwargs):
     # print("Stuff: ",API_SERVICE_NAME, API_SERVICE_VERSION, credentials, kwargs)
@@ -44,20 +38,14 @@ def youtubedata(API_SERVICE_NAME, API_SERVICE_VERSION, credentials, **kwargs):
     # if data api
     elif (API_SERVICE_NAME == 'youtube' and API_SERVICE_VERSION == 'v3' and 'type' in kwargs):
         args = kwargs
-        # print(args['type'], args)
         if args['type'] == "channel":
             args.pop('type')
-            # print(args)
             request = service.channels().list(**args)
         elif args['type'] == 'video':
             args.pop('type')
-            # print(args)
             request = service.videos().list(**args)
         elif args['type'] == 'playlistItem':
             args.pop('type')
-            # print(args)
             request = service.playlistItems().list(**args)
     response = request.execute()
-    # print("response:-")
-    # print(response)
     return response

@@ -15,23 +15,22 @@ class VidSchool:
         # getting database object
         connected = False
         while not connected:
+            self.dbconnect = mysql.connector.connect(
+                host = dbhost,
+                user = dbusername,
+                password = dbpassword
+            )
+            self.cursor = self.dbconnect.cursor()
+            self.dbname = dbname
+            self.sqlcommands = [
+                "USE  {}".format(dbname),
+            ]
+            if self.dbconnect.is_connected():
+                print("Connected to database")
+                connected = True
+                self.select_db()
+            VidSchool.credentialpool = {}
             try:
-                self.dbconnect = mysql.connector.connect(
-                    host = dbhost,
-                    user = dbusername,
-                    password = dbpassword
-                )
-                self.cursor = self.dbconnect.cursor()
-                self.dbname = dbname
-                self.sqlcommands = [
-                    "USE  {}".format(dbname),
-                ]
-
-                if self.dbconnect.is_connected():
-                    print("Connected to database")
-                    connected = True
-                    self.select_db()
-                VidSchool.credentialpool = {}
                 VidSchool.start_credential_pool(self)
             except Exception as e:
                 print("Error connecting to database: ", e)
@@ -72,12 +71,15 @@ class VidSchool:
             cred = [i[8]]
             cred = ast.literal_eval(cred[0])
             VidSchool.credentialpool[i[0]] = cred
+        # print(VidSchool.credentialpool)
         print("Credential pool started")
-
         # # Refresh all access tokens
         for i in VidSchool.credentialpool:
+            print('credschool refreshing i:', i)
             oldcred = VidSchool.credentialpool[i]
-            # oldcred = ast.literal_eval(oldcred)
+            # print('oldcred:', oldcred)
+            # print(api_functions.refresh_token(oldcred))
+            # print('testing')
             VidSchool.credentialpool[i] = api_functions.refresh_token(oldcred)
         print("Credential pool refreshed")
 

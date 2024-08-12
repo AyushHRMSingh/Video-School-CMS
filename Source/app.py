@@ -5,7 +5,7 @@ import extra_functions as extra_functions
 from csv_functions import *
 from type_vars import *
 from werkzeug.utils import secure_filename
-import stat_functions
+import stat_functions as stat_functions_edited
 from external_function import VidSchool
 from flask import Flask, render_template, request, redirect, url_for, session, send_from_directory, flash
 import flask
@@ -90,6 +90,9 @@ def login():
             return render_template('login.html', msg=msg)
     # Render login.html template with current message (empty message)    
     return render_template('login.html', msg=msg)
+
+
+
 
 # User logout, deletes all session variables
 @app.route('/logout')
@@ -257,11 +260,21 @@ def view_channel_stats(channel_id):
         stats = None
         # check if the channel has credentials
         if channel[0] in VidSchool.credentialpool:
-            stats = stat_functions.get_main(channel[0])
+            stats = stat_functions_edited.get_main(channel[0])
         # return the view_channel_stats.html template
         return render_template('view_channel_stats.html', sessionvar=session, channel=channel, stats=stats)
     else:
         return redirect(url_for('login'))
+
+# create a test api route
+# @app.route('/api/getstat/<int:channel_id>', methods=['GET','POST'])
+# def get_stat_api(channel_id):
+#     request_json = request.get_json()
+#     if request_json['req_type'] == "default":
+#         return flask.jsonify({
+#             'message' : "defaulnow"
+#         })
+#     return "nonoe"
 
 # page to edit channel details
 @app.route('/channels/edit/<int:channel_id>', methods=['GET', 'POST'])
@@ -547,7 +560,7 @@ def edit_video(video_id):
         finalvidlist = list(video)
         for i in range(5,8):
             finalvidlist[i] = extra_functions.epoch_to_string(finalvidlist[i], 'date')
-            print(finalvidlist[i])
+            # print(finalvidlist[i])
         # check if request is POST then considered api request
         if request.method == 'POST':
             author = {
@@ -638,8 +651,8 @@ def oauth2callback():
         mine=True
     )
     response = request1.execute()
-    print("RESPONSE:_")
-    print(response)
+    # print("RESPONSE:_")
+    # print(response)
     if 'items' in response:
         channel_name = response['items'][0]['snippet']['title']
     else:
@@ -687,7 +700,7 @@ def import_file(channel_id):
                         if type(output) == str:
                             return "error: "+output
                         # get all channels
-                        print(csv_list)
+                        # print(csv_list)
                         return render_template('view_csv.html', csv_list=output, video_status=video_enumeration.vidstatus, file_url=file_url, channel_id=channel_id)
                 else:
                     return "Invalid file"
@@ -748,15 +761,26 @@ def user_customise():
 def get_data_for_cache():
     if session.get('loggedin'):
         if session['user_type'] == USER_TYPE_ADMIN:
+            author = {
+                'user_id': session['user_id'],
+                'user_type': session['user_type']
+            }
             channels_list = cmsobj_db.get_channels()
-            users_list = cmsobj_db.get_users()
-            videos_list = cmsobj_db.get_videos()
-            logs_list = cmsobj_db.get_logs()
-        elif session['user_type'] in [USER_TYPE_MANAGER, USER_TYPE_CREATOR, USER_TYPE_EDITOR, USER_TYPE_OPS]:
-            channels_list = cmsobj_db.get_channels_by_user(session['user_id'], session['user_type'])
-            
+            # print(channels_list)
+            users_list = cmsobj_db.get_users(author=author)
+            return json.dumps({
+                'success': True,
+                'channels': channels_list,
+                'users': users_list
+            })
+        else:
+            return json.dumps({
+                'success': False
+            })
     else:
-        return redirect(url_for('login'))
+        return json.dumps({
+            'success': False
+        })
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, host="localhost")

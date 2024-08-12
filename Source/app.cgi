@@ -1,4 +1,4 @@
-#!/home/plz/public_html/Video-School-CMS-main/.venv/bin/python
+#!/path/to/venv/python
 
 from wsgiref.handlers import CGIHandler
 from app import app

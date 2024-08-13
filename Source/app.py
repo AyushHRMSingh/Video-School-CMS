@@ -5,7 +5,8 @@ import extra_functions as extra_functions
 from csv_functions import *
 from type_vars import *
 from werkzeug.utils import secure_filename
-import stat_functions as stat_functions_edited
+import stat_functions
+import stat_functions_edited
 from external_function import VidSchool
 from flask import Flask, render_template, request, redirect, url_for, session, send_from_directory, flash
 import flask
@@ -246,6 +247,28 @@ def view_all_channels():
     else:
         return redirect(url_for('login'))
 
+# # page to view the statistics of the specifed channel
+# @app.route('/view/<int:channel_id>/stat')
+# def view_channel_stats(channel_id):
+#     # check for login session
+#     if session.get('loggedin'):
+#         # get the channel details
+#         channel = cmsobj_db.get_channel(channel_id)
+#         # check if the user is linked to the channel
+#         if extra_functions.check_if_in_channel(session['user_type'], session['user_id'], channel) != True:
+#             return "You are not authorized to view this page"
+#         # create variable to store channel stats
+#         stats = None
+#         # check if the channel has credentials
+#         if channel[0] in VidSchool.credentialpool:
+#             # stats = stat_functions.get_main(channel[0])
+#             linked = True
+#         # return the view_channel_stats.html template
+#         return render_template('view_channel_stats.html', sessionvar=session, channel=channel, linked=linked)
+#     else:
+#         return redirect(url_for('login'))
+
+## ORIGINAL function
 # page to view the statistics of the specifed channel
 @app.route('/view/<int:channel_id>/stat')
 def view_channel_stats(channel_id):
@@ -260,21 +283,25 @@ def view_channel_stats(channel_id):
         stats = None
         # check if the channel has credentials
         if channel[0] in VidSchool.credentialpool:
-            stats = stat_functions_edited.get_main(channel[0])
+            stats = stat_functions.get_main(channel[0])
         # return the view_channel_stats.html template
-        return render_template('view_channel_stats.html', sessionvar=session, channel=channel, stats=stats)
+        return render_template('view_channel_stats_notedited.html', sessionvar=session, channel=channel, stats=stats)
     else:
         return redirect(url_for('login'))
 
 # create a test api route
-# @app.route('/api/getstat/<int:channel_id>', methods=['GET','POST'])
-# def get_stat_api(channel_id):
-#     request_json = request.get_json()
-#     if request_json['req_type'] == "default":
-#         return flask.jsonify({
-#             'message' : "defaulnow"
-#         })
-#     return "nonoe"
+@app.route('/api/getstat/<int:channel_id>', methods=['POST'])
+def get_stat_api(channel_id):
+    request_json = request.get_json()
+    if request_json['req_type'] == "default":
+        output = stat_functions_edited.get_default(channel_id)
+        return flask.jsonify(output)
+    elif request_json['req_type'] == "videos":
+        time_range = request_json['time_range']
+        print('timedate changed to:', time_range)
+        output = stat_functions_edited.get_videos(channel_id,time_range)
+        return flask.jsonify(output)
+    return "nonoe"
 
 # page to edit channel details
 @app.route('/channels/edit/<int:channel_id>', methods=['GET', 'POST'])

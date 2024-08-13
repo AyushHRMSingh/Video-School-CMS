@@ -22,17 +22,17 @@
     </div>
     <div class="container">
         <h1>Channel Statistics</h1>
-        {% if stats %}
-            <h3><a href="http://youtube.com/{{ stats['section1']['url'] }}" target="_blank">{{channel[1]}}</a></h3>
-            <p class="fw-semibold">Total No. of Subscribers: {{ stats['section1']['subscriber_Count'] }}</p>
-            <p class="fw-semibold">Total No. of Views: {{ stats['section1']['view_Count'] }}</p>
-            <p class="fw-semibold">Total No. of Videos: {{ stats['section1']['video_Count'] }}</p>
-            <p class="fw-semibold">Total Watch time (in Hours): {{ stats['section1']['watch_time'] }}</p>
+        {% if linked %}
+            <h3><a id="channel_url" href="" target="_blank">{{channel[1]}}</a></h3>
+            <p class="fw-semibold">Total No. of Subscribers: <span id="total_sub_count"><span class="spinner-border spinner-border-sm ms-auto" role="status" aria-hidden="true"></span></span> </p>
+            <p class="fw-semibold">Total No. of Views: <span id="total_view_count"><span class="spinner-border spinner-border-sm ms-auto" role="status" aria-hidden="true"></span></span></p>
+            <p class="fw-semibold">Total No. of Videos: <span id="total_video_count"><span class="spinner-border spinner-border-sm ms-auto" role="status" aria-hidden="true"></span></span></p>
+            <p class="fw-semibold">Total Watch time (in Hours): <span id="total_watch_count"><span class="spinner-border spinner-border-sm ms-auto" role="status" aria-hidden="true"></span></span></p>
 
             <div class="row mb-3">
                 <div class="col">
-                    <label for="timeRangeSelect" class="form-label"><h3>Top 10 Videos:</h3> </label>
-                    <select class="form-select" id="timeRangeSelect" aria-label="Time Range Select">
+                    <label for="topVideosTimeRangeSelect" class="form-label"><h3>Top 10 Videos:</h3> </label>
+                    <select class="form-select" id="topVideosTimeRangeSelect" aria-label="Time Range Select">
                         <option value="alltime" selected>All Time</option>
                         <option value="last_7_days">Last 7 Days</option>
                         <option value="last_30_days">Last 30 Days</option>
@@ -44,27 +44,24 @@
             </div>
     
             <div id="videosTableContainer">
-            </div>
-            
-
-            {% if stats['section3'] %}
-                <div>
-                    <label for="timePeriod" class="form-label"><h3>Subscribers Count: </h3></label>
-                    <select id="timePeriod" onchange="updateChart()" class="form-select">
-                        <option value="last_7_days" selected>Last 7 Days</option>
-                        <option value="last_30_days">Last 30 Days</option>
-                        <option value="last_90_days">Last 90 Days</option>
-                        <option value="last_6_months">Last Six Months</option>
-                        <option value="past_year">Last Year</option>
-                    </select>
+                <div class="text-center">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
                 </div>
-                <canvas id="subscriberChart"></canvas>
-                <script>
-                    const rawData = {{ stats['section3']|tojson }};
-                </script>
-            {% else %}
-                <p>Please link the channel to access the Channel statistics</p>
-            {% endif %}
+            </div>
+
+            <div>
+                <label for="subscribersTimeRangeSelect" class="form-label"><h3>Subscribers Count: </h3></label>
+                <select id="subscribersTimeRangeSelect" class="form-select">
+                    <option value="last_7_days" selected>Last 7 Days</option>
+                    <option value="last_30_days">Last 30 Days</option>
+                    <option value="last_90_days">Last 90 Days</option>
+                    <option value="last_6_months">Last Six Months</option>
+                    <option value="past_year">Last Year</option>
+                </select>
+            </div>
+            <canvas id="subscriberChart"></canvas>
             
         {% else %}
             <p>Please link the channel to access the Channel statistics</p>
@@ -76,58 +73,55 @@
     </div>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            
-                const stats = {{ stats | tojson }};
-                const timeRangeSelect = document.getElementById('timeRangeSelect');
-                const videosTableContainer = document.getElementById('videosTableContainer');
+    
+        // define variables to hold the total subscriber, view, video and watch time count objects
+        const tsub = document.getElementById('total_sub_count');
+        const tview = document.getElementById('total_view_count');
+        const tvideo = document.getElementById('total_video_count');
+        const twatch = document.getElementById('total_watch_count');
+        const channel_url = document.getElementById('channel_url');
+        const topVideosTimeRangeSelect = document.getElementById('topVideosTimeRangeSelect');
+        const videosTableContainer = document.getElementById('videosTableContainer');
+        let rawData;
+        const subscribersTimeRangeSelect = document.getElementById('subscribersTimeRangeSelect');
         
-                function createVideosTable(timeRange) {
-                    let videos = stats['section2'][timeRange];
-                    let tableHTML = `
-                        <table class="table table-striped">
-                            
-                            <thead class="table-dark caption-top">
-                                <tr>
-                                    <th scope="col">#</th>
-                                    <th scope="col">Title</th>
-                                    <th scope="col">Views</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                    `;
-        
-                    videos.forEach((video, index) => {
-                        tableHTML += `
-                            <tr>
-                                <th scope="row">${index + 1}</th>
-                                <td><a href="https://www.youtube.com/watch?v=${video['id']}" target="_blank">${video['title']}</a></td>
-                                <td>${video['views']}</td>
-                            </tr>
-                        `;
-                    });
-        
-                    tableHTML += `
-                            </tbody>
-                        </table>
-                    `;
-        
-                    videosTableContainer.innerHTML = tableHTML;
-                }
-        
-                timeRangeSelect.addEventListener('change', function () {
-                    createVideosTable(this.value);
-                });
-        
-                // Initialize with default value
-                createVideosTable(timeRangeSelect.value);
-        });
-        
-    </script>
-    <script>
+
+        function createVideosTable(data) {
+            let videos = data;
+            // creating the table header
+            let tableHTML = `
+                <table class="table table-striped">
+                    <thead class="table-dark caption-top">
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">Title</th>
+                            <th scope="col">Views</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            // adding rows to the table
+            videos.forEach((video, index) => {
+                tableHTML += `
+                    <tr>
+                        <th scope="row">${index + 1}</th>
+                        <td><a href="https://www.youtube.com/watch?v=${video['id']}" target="_blank">${video['title']}</a></td>
+                        <td>${video['views']}</td>
+                    </tr>
+                `;
+            });
+            // closing the table
+            tableHTML += `
+                    </tbody>
+                </table>
+            `;
+            // setting the innerHTML of the videosTableContainer to the tableHTML
+            videosTableContainer.innerHTML = tableHTML;
+        }
+
         let chart;
-       
-        
+
+        // funtion to create chart
         function createChart(data) {
             const ctx = document.getElementById('subscriberChart').getContext('2d');
             chart = new Chart(ctx, {
@@ -161,10 +155,9 @@
             });
         }
 
-        function updateChart() {
-            const period = document.getElementById('timePeriod').value;
+        // function to update the chart
+        function updateChart(period) {
             const selectedData = rawData[period];
-
             const labels = selectedData.map(entry => entry.date);
             const gained = selectedData.map(entry => entry.subscribersGained);
             const lost = selectedData.map(entry => entry.subscribersLost);
@@ -182,9 +175,68 @@
             createChart(data);
         }
 
-        document.addEventListener('DOMContentLoaded', updateChart);
+        // fetch the default stats to show on page inital load
+        fetch("{{ url_for('get_stat_api', channel_id=channel[0]) }}", {
+            method: "post",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                req_type: "default"
+            })
+        }).then(response => response.json())
+        .then(data => {
+            console.log(data);
+            // setting the innerHTML of the variables to the respective values
+            tsub.innerHTML = data['section1']['subscriber_Count'];
+            tview.innerHTML = data['section1']['view_Count'];
+            tvideo.innerHTML = data['section1']['video_Count'];
+            twatch.innerHTML = data['section1']['watch_Time'];
+            channel_url.href = "https://www.youtube.com/channel/" + data['section1']['url'];
+            
+            // setting up top 10 videos table
+            topVideosTimeRangeSelect.value = "alltime";
+            createVideosTable(data['section2']);
+            
+            // setting up subscribers chart
+            rawData = data['section3'];
+            subscribersTimeRangeSelect.value = "last_7_days";
+            updateChart("last_7_days");
+        });
+
+        // event listener when top videos time range is changed
+        topVideosTimeRangeSelect.addEventListener('change', function () {
+            videosTableContainer.innerHTML = `
+                <div class="text-center">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            `;
+            console.log("Time Range Changed to: ", this.value);
+            fetch("{{ url_for('get_stat_api', channel_id=channel[0]) }}", {
+                method: "post",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    req_type: "videos",
+                    time_range: this.value
+                })
+            }).then(response => response.json())
+            .then(data => {
+                console.log(data);
+                createVideosTable(data['data']);
+            });
+        });
         
     </script>
+    
+    <!-- <script>
+        
+        
+    </script> -->
+    
     <script>
         // Script tag to get and show stats on page
     </script>

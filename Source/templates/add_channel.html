@@ -15,6 +15,11 @@
     </div>
     <div class="container">
         <h1 class="word">Add Channel</h1>
+        <div class="mb-3">
+            <br>
+            <a href="{{ url_for('oauth') }}" class="btn btn-primary" style="width: 100%;">Link Channel</a>
+        </div>
+        <p class="text-center mb-0">OR</p>
         <form method="POST">
             <div class="mb-3">
                 <label for="channel_name" class="form-label">Channel Name</label>
@@ -64,9 +69,6 @@
                         <option value="{{ manager[0] }}">{{ manager[1] }} ({{ manager[2] }})</option>
                     {% endfor %}
                 </select>
-            </div>
-            <div class="mb-3">
-                <a href="{{ url_for('oauth') }}" class="btn btn-secondary">Link Channel</a>
             </div>
             <button type="submit" class="btn btn-primary">Add Channel</button>
         </form>

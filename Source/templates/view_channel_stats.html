@@ -71,173 +71,169 @@
         </div>
         <br>
     </div>
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-    
-        // define variables to hold the total subscriber, view, video and watch time count objects
-        const tsub = document.getElementById('total_sub_count');
-        const tview = document.getElementById('total_view_count');
-        const tvideo = document.getElementById('total_video_count');
-        const twatch = document.getElementById('total_watch_count');
-        const channel_url = document.getElementById('channel_url');
-        const topVideosTimeRangeSelect = document.getElementById('topVideosTimeRangeSelect');
-        const videosTableContainer = document.getElementById('videosTableContainer');
-        let rawData;
-        const subscribersTimeRangeSelect = document.getElementById('subscribersTimeRangeSelect');
+    {% if linked %}
+        <script>
         
+            // define variables to hold the total subscriber, view, video and watch time count objects
+            const tsub = document.getElementById('total_sub_count');
+            const tview = document.getElementById('total_view_count');
+            const tvideo = document.getElementById('total_video_count');
+            const twatch = document.getElementById('total_watch_count');
+            const channel_url = document.getElementById('channel_url');
+            const topVideosTimeRangeSelect = document.getElementById('topVideosTimeRangeSelect');
+            const videosTableContainer = document.getElementById('videosTableContainer');
+            let rawData;
+            const subscribersTimeRangeSelect = document.getElementById('subscribersTimeRangeSelect');
+            
 
-        function createVideosTable(data) {
-            let videos = data;
-            // creating the table header
-            let tableHTML = `
-                <table class="table table-striped">
-                    <thead class="table-dark caption-top">
-                        <tr>
-                            <th scope="col">#</th>
-                            <th scope="col">Title</th>
-                            <th scope="col">Views</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-            `;
-            // adding rows to the table
-            videos.forEach((video, index) => {
-                tableHTML += `
-                    <tr>
-                        <th scope="row">${index + 1}</th>
-                        <td><a href="https://www.youtube.com/watch?v=${video['id']}" target="_blank">${video['title']}</a></td>
-                        <td>${video['views']}</td>
-                    </tr>
+            function createVideosTable(data) {
+                let videos = data;
+                // creating the table header
+                let tableHTML = `
+                    <table class="table table-striped">
+                        <thead class="table-dark caption-top">
+                            <tr>
+                                <th scope="col">#</th>
+                                <th scope="col">Title</th>
+                                <th scope="col">Views</th>
+                            </tr>
+                        </thead>
+                        <tbody>
                 `;
-            });
-            // closing the table
-            tableHTML += `
-                    </tbody>
-                </table>
-            `;
-            // setting the innerHTML of the videosTableContainer to the tableHTML
-            videosTableContainer.innerHTML = tableHTML;
-        }
-
-        let chart;
-
-        // funtion to create chart
-        function createChart(data) {
-            const ctx = document.getElementById('subscriberChart').getContext('2d');
-            chart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: data.labels,
-                    datasets: [{
-                        label: 'Subscribers Gained',
-                        data: data.gained,
-                        borderColor: 'rgba(75, 192, 192, 1)',
-                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                    }, {
-                        label: 'Subscribers Lost',
-                        data: data.lost,
-                        borderColor: 'rgba(255, 99, 132, 1)',
-                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            position: 'top',
-                        },
-                        title: {
-                            display: true,
-                            text: 'Subscribers Over Time'
-                        }
-                    }
-                },
-            });
-        }
-
-        // function to update the chart
-        function updateChart(period) {
-            const selectedData = rawData[period];
-            const labels = selectedData.map(entry => entry.date);
-            const gained = selectedData.map(entry => entry.subscribersGained);
-            const lost = selectedData.map(entry => entry.subscribersLost);
-
-            const data = {
-                labels: labels,
-                gained: gained,
-                lost: lost
-            };
-            
-            if (chart) {
-                chart.destroy();
+                // adding rows to the table
+                videos.forEach((video, index) => {
+                    tableHTML += `
+                        <tr>
+                            <th scope="row">${index + 1}</th>
+                            <td><a href="https://www.youtube.com/watch?v=${video['id']}" target="_blank">${video['title']}</a></td>
+                            <td>${video['views']}</td>
+                        </tr>
+                    `;
+                });
+                // closing the table
+                tableHTML += `
+                        </tbody>
+                    </table>
+                `;
+                // setting the innerHTML of the videosTableContainer to the tableHTML
+                videosTableContainer.innerHTML = tableHTML;
             }
-            
-            createChart(data);
-        }
 
-        // fetch the default stats to show on page inital load
-        fetch("{{ url_for('get_stat_api', channel_id=channel[0]) }}", {
-            method: "post",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                req_type: "default"
-            })
-        }).then(response => response.json())
-        .then(data => {
-            console.log(data);
-            // setting the innerHTML of the variables to the respective values
-            tsub.innerHTML = data['section1']['subscriber_Count'];
-            tview.innerHTML = data['section1']['view_Count'];
-            tvideo.innerHTML = data['section1']['video_Count'];
-            twatch.innerHTML = data['section1']['watch_Time'];
-            channel_url.href = "https://www.youtube.com/channel/" + data['section1']['url'];
-            
-            // setting up top 10 videos table
-            topVideosTimeRangeSelect.value = "alltime";
-            createVideosTable(data['section2']);
-            
-            // setting up subscribers chart
-            rawData = data['section3'];
-            subscribersTimeRangeSelect.value = "last_7_days";
-            updateChart("last_7_days");
-        });
+            let chart;
 
-        // event listener when top videos time range is changed
-        topVideosTimeRangeSelect.addEventListener('change', function () {
-            videosTableContainer.innerHTML = `
-                <div class="text-center">
-                    <div class="spinner-border" role="status">
-                        <span class="visually-hidden">Loading...</span>
-                    </div>
-                </div>
-            `;
-            console.log("Time Range Changed to: ", this.value);
+            // funtion to create chart
+            function createChart(data) {
+                const ctx = document.getElementById('subscriberChart').getContext('2d');
+                chart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: data.labels,
+                        datasets: [{
+                            label: 'Subscribers Gained',
+                            data: data.gained,
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        }, {
+                            label: 'Subscribers Lost',
+                            data: data.lost,
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                            },
+                            title: {
+                                display: true,
+                                text: 'Subscribers Over Time'
+                            }
+                        }
+                    },
+                });
+            }
+
+            // function to update the chart
+            function updateChart(period) {
+                const selectedData = rawData;
+                const labels = selectedData.map(entry => entry.date);
+                const gained = selectedData.map(entry => entry.subscribersGained);
+                const lost = selectedData.map(entry => entry.subscribersLost);
+
+                const data = {
+                    labels: labels,
+                    gained: gained,
+                    lost: lost
+                };
+                
+                if (chart) {
+                    chart.destroy();
+                }
+                
+                createChart(data);
+            }
+
+            // fetch the default stats to show on page inital load
             fetch("{{ url_for('get_stat_api', channel_id=channel[0]) }}", {
                 method: "post",
                 headers: {
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify({
-                    req_type: "videos",
-                    time_range: this.value
+                    req_type: "default"
                 })
             }).then(response => response.json())
             .then(data => {
                 console.log(data);
-                createVideosTable(data['data']);
+                // setting the innerHTML of the variables to the respective values
+                tsub.innerHTML = data['section1']['subscriber_Count'];
+                tview.innerHTML = data['section1']['view_Count'];
+                tvideo.innerHTML = data['section1']['video_Count'];
+                twatch.innerHTML = data['section1']['watch_Time'];
+                channel_url.href = "https://www.youtube.com/channel/" + data['section1']['url'];
+                
+                // setting up top 10 videos table
+                topVideosTimeRangeSelect.value = "alltime";
+                createVideosTable(data['section2']);
+                
+                // setting up subscribers chart
+                rawData = data['section3'];
+                console.log(rawData)
+                subscribersTimeRangeSelect.value = "last_7_days";
+                updateChart(rawData);
             });
-        });
-        
-    </script>
-    
-    <!-- <script>
-        
-        
-    </script> -->
-    
-    <script>
-        // Script tag to get and show stats on page
-    </script>
+
+            // event listener when top videos time range is changed
+            topVideosTimeRangeSelect.addEventListener('change', function () {
+                videosTableContainer.innerHTML = `
+                    <div class="text-center">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                `;
+                console.log("Time Range Changed to: ", this.value);
+                fetch("{{ url_for('get_stat_api', channel_id=channel[0]) }}", {
+                    method: "post",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        req_type: "videos",
+                        time_range: this.value
+                    })
+                }).then(response => response.json())
+                .then(data => {
+                    console.log(data);
+                    createVideosTable(data['data']);
+                });
+            });
+            
+        </script>
+    {% endif %}
+
 {% endblock %}

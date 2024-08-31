@@ -74,6 +74,7 @@ class VidSchool:
         # print(VidSchool.credentialpool)
         print("Credential pool started")
         # # Refresh all access tokens
+        remove = []
         for i in VidSchool.credentialpool:
             print('credschool refreshing i:', i)
             oldcred = VidSchool.credentialpool[i]
@@ -81,6 +82,12 @@ class VidSchool:
             # print(api_functions.refresh_token(oldcred))
             # print('testing')
             VidSchool.credentialpool[i] = api_functions.refresh_token(oldcred)
+            if VidSchool.credentialpool[i] == None:
+                print("Error refreshing token")
+                remove.append(i)
+        for i in remove:
+            print("Removing channel from credential pool due to error: ", i)
+            VidSchool.credentialpool.pop(i)
         print("Credential pool refreshed")
 
     @staticmethod

@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block headtag %}
+    <title>CSV Import</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+{% endblock %}
+{% block style %}
+.tableh {
+    margin: 2%;
+    max-height: 80vh;
+    overflow-y: scroll;
+        border: 1px solid rgb(222, 226, 230);
+        border-radius: 10px;
+    }
+
+    .buttonh {
+        margin: 2%;
+    }
+{% endblock %}
+{% block content %}
+    <div class="tableh  table-responsive ">
+        <table class="table table-hover table-striped-columns table-bordered">
+            <thead>
+                <tr>
+                <th scope="col">Video No.</th>
+                <th scope="col">Title</th>
+                <th scope="col">Shoot Date</th>
+                <th scope="col">Edit Date</th>
+                <th scope="col">Upload Date</th>
+                <th scope="col">Comments</th>
+                <th scope="col">Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for i in csv_list %}
+                    <tr>
+                    <th scope="row">{{i[0]}}</th>
+                    <td>{{i[1]}}</td>
+                    <td>{{i[2]}}</td>
+                    <td>{{i[3]}}</td>
+                    <td>{{i[4]}}</td>
+                    <td>{{i[5]}}</td>
+                    <td>{{video_status[i[6]]}}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="buttonh d-flex justify-content-end">
+        <form action="{{url_for('import_via_csv')}}" method="post">
+            <input type="hidden" value="{{channel_id}}" name="channel_id">
+            <input type="hidden" value="{{file_url}}" name="file_url">
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+    </div>
+{% endblock %}

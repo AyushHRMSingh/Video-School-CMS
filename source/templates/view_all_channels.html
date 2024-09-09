@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block headtag %}
+    <title>Channels</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+{% endblock %}
+{% block content %}
+    <div class="row p-2">
+        <nav class="gx-5" aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{url_for('dashboard')}}">Dashboard</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Channels</li>
+            </ol>
+        </nav>
+    </div>
+    <div class='container'>
+        <h1>Channel table:-</h1>
+        <table class='table table-hover'>
+            <thead>
+                <th scope="col">ID</th>
+                <th scope="col">Name</th>
+                <th scope="col">Platform</th>
+                <th scope="col">Creator</th>
+                <th scope="col">Editor</th>
+                <th scope="col">Manager</th>
+                <th scope="col">Ops</th>
+                <th scope="col">Status</th>
+                <th scope="col">Linked</th>
+                <th scope="col">View</th>
+                <th scope="col">Edit</th>
+            </thead>
+            <tbody class="table-group-divider">
+                {% for channel in channels %}
+                    <tr>
+                        <td>{{ channel[0] }}</td>
+                        <td>{{ channel[1] }}</td>
+                        <td>{{ platform[channel[2]] }}</td>
+                        <td><a href="{{url_for('edit_user', user_id=channel[3])}}">{{ user[channel[3]] }}</a></td>
+                        <td><a href="{{ url_for('edit_user', user_id=channel[4]) }}">{{ user[channel[4]] }}</a></td>
+                        <td><a href="{{ url_for('edit_user', user_id=channel[5]) }}">{{ user[channel[5]] }}</a></td>
+                        <td><a href="{{ url_for('edit_user', user_id=channel[6]) }}">{{ user[channel[6]] }}</a></td>
+                        <td>{{ status[channel[7]] }}</td>
+                        <td>{{ channel[8] != "{}" }}</td>
+                        <td><a class="btn btn-primary" href="{{ url_for('view_single_channel', channel_id=channel[0]) }}">View</a></td>
+                        <td><a class="btn btn-primary" href="{{ url_for('edit_channel',channel_id=channel[0]) }}">Edit</a></td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
+        <a class="btn btn-primary" href="{{ url_for('add_channel') }}">Add Channel</a>
+    </div>
+{% endblock %}

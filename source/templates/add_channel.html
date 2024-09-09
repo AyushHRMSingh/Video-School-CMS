@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block headtag %}
+    <title>Add Channel</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    {% endblock %}
+{% block content %}
+    <div class="row p-2">
+        <nav class="gx-5" aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{url_for('dashboard')}}">Dashboard</a></li>
+                <li class="breadcrumb-item"><a href="{{url_for('view_all_channels')}}">Channels</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Add Channel</li>
+            </ol>
+        </nav>
+    </div>
+    <div class="container">
+        <h1 class="word">Add Channel</h1>
+        <div class="mb-3">
+            <br>
+            <a href="{{ url_for('oauth') }}" class="btn btn-primary" style="width: 100%;">Link Channel</a>
+        </div>
+        <p class="text-center mb-0">OR</p>
+        <form method="POST">
+            <div class="mb-3">
+                <label for="channel_name" class="form-label">Channel Name</label>
+                <input type="text" class="form-control" id="channel_name" name="channel_name" {% if channel_name != None %} value="{{ channel_name }}" {%else%} placeholder="Enter Channel Name here" {% endif %}required>
+            </div>
+            <div class="mb-3">
+                <label for="platform" class="form-label">Platform</label>
+                <select class="form-select" id="platform" name="platform" required>
+                    <option value="" selected disabled>Select Platform</option>
+                    {% for key, value in platform.items() %}
+                        <option value="{{ key }}">{{ value }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="creator_id" class="form-label">Channel Creator</label>
+                <select class="form-select" id="creator_id" name="creator_id" required>
+                    <option value="" selected disabled>Select Creator</option>
+                    {% for creator in creators %}
+                        <option value="{{ creator[0] }}">{{ creator[1] }} ({{ creator[2] }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="editor_id" class="form-label">Channel Editor</label>
+                <select class="form-select" id="editor_id" name="editor_id" required>
+                    <option value="" selected disabled>Select Editor</option>
+                    {% for editor in editors %}
+                        <option value="{{ editor[0] }}">{{ editor[1] }} ({{ editor[2] }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="ops_id" class="form-label">Channel Ops</label>
+                <select class="form-select" id="ops_id" name="ops_id" required>
+                    <option value="" selected disabled>Select Ops</option>
+                    {% for ops in opss %}
+                        <option value="{{ ops[0] }}">{{ ops[1] }} ({{ ops[2] }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="manager_id" class="form-label">Channel Manager</label>
+                <select class="form-select" id="manager_id" name="manager_id" required>
+                    <option value="" selected disabled>Select Manager</option>
+                    {% for manager in managers %}
+                        <option value="{{ manager[0] }}">{{ manager[1] }} ({{ manager[2] }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary">Add Channel</button>
+        </form>
+        {% if msg %}
+            <p>{{ msg }}</p>
+        {% endif %}
+    </div>   
+    
+    {% if msg %}
+        <script>
+            alert("{{ msg }}");
+        </script>
+    {% endif %}
+{% endblock %}

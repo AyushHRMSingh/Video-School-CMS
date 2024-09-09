@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block headtag %}
+    <title>Action Logs</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+{% endblock %}
+
+{% block content %}
+    <div class="row p-2">
+        <nav class="gx-5" aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{url_for('dashboard')}}">Dashboard</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Logs</li>
+            </ol>
+        </nav>
+    </div>
+    <div class='container'>
+        <div class="container-fluid d-flex justify-content-between">
+            <h1>Logs table:-</h1>
+            <div class="d-flex">
+                <nav aria-label="Page navigation example">
+                    <ul class="pagination">
+                        <li class="page-item"><a class="page-link" id="prev">Previous</a></li>
+                        {%for i in range(number_of_pages)%}
+                            <li class="page-item"><a class="page-link" id="p{{i+1}}" href="{{url_for("get_logs", pagenum=i+1)}}">{{i+1}}</a></li>
+                        {%endfor%}
+                        <li class="page-item"><a class="page-link" id="next">Next</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+        <div class="mb-3">
+            <label for="actionTypeFilter" class="form-label">Filter by Action Type:</label>
+            <select class="form-select" id="actionTypeFilter" onchange="filterLogs(this.value)">
+                <option value="">All</option>
+                {% for key, value in action.items() %}
+                    <option value="{{ key }}">{{ value }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class='container'>
+            <table class='table table-hover'>
+                <thead>
+                    <th scope="col">ID</th>
+                    <th scope="col">Action Type</th>
+                    <th scope="col">Date and Time</th>
+                    <th scope="col">Information</th>
+                </thead>
+                <tbody id="logsTableBody">
+                    {% for log in logs %}
+                    <tr data-action-type="{{ log[1] }}">
+                            <td>{{ log[0] }}</td>
+                            <td>{{ action[log[1]] }}</td>
+                            <td>{{ log[2] }}</td>
+                            <td>
+                            {# {{ log[3] }} #}
+                            <table class='table table-hover'>
+                                <tbody>
+                                {% for info in log[3] %}
+                                    <tr data-action-type="{{ log[1] }}">
+                                        <td>
+                                        {% if info=="author_id" %} 
+                                            User - {{ users[log[3][info]][0] }} ({{ users[log[3][info]][1] }})
+                                        {% else %} 
+                                            {{ info }} -   {{ log[3][info]|replace("_"," ")|replace("{","")|replace("}","")|replace("'","") }}
+                                        {% endif %}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <script>
+        function filterLogs(selectedValue) {
+            const tableRows = document.querySelectorAll('#logsTableBody tr');
+            tableRows.forEach(row => {
+                const actionType = row.getAttribute('data-action-type');
+                if (selectedValue === "" || actionType === selectedValue) {
+                    row.style.display = "";
+                } else {
+                    row.style.display = "none";
+                }
+            });
+        }
+        prevbutton = document.getElementById('prev');
+        nextbutton = document.getElementById('next');
+        page_number = {{pagenum}};
+        {% if pagenum > 1%}
+            prevbutton.addEventListener('click', function() {
+                if (page_number > 1) {
+                    page_number -= 1;
+                    window.location.href = "{{url_for("get_logs", pagenum=pagenum-1)}}";
+                }
+            });
+        {% else %}
+            prevbutton.style.display = 'none';
+        {% endif %}
+        
+        {% if pagenum < number_of_pages%}
+            nextbutton.addEventListener('click', function() {
+                page_number += 1;
+                window.location.href = "{{url_for("get_logs", pagenum=pagenum+1)}}";
+            });
+        {% else %}
+            nextbutton.style.display = 'none';
+        {% endif %}
+        document.getElementById('p{{pagenum}}').className += ' active';
+        {% if logs == [] %}
+            document.getElementById('next').style.display = 'none';
+        {% endif %}
+    </script>
+{% endblock %}

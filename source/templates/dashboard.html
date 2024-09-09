@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block headtag %}
+    <title>{{ user[sessionvar['user_type']] }}</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+{% endblock %}
+{% block content %}
+    <div class="index-container">
+        
+        <div class="row p-2">
+            <nav class="gx-5" aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item active" aria-current="page">Dashboard</li>
+                </ol>
+            </nav>
+        </div>
+        {# admin #}
+        {% if sessionvar['user_type'] == 0  %}
+            <div class="container">
+                <div class="table-responsive">
+                    <table class="table align-middle">
+                      <tbody>
+                        <tr class="align-bottom">
+                            <td class="align-top" scope="col"><a class="btn btn-outline-dark dark btn-lg" href="{{url_for("view_users")}}">Users</a></th>
+                            <td class="align-top" scope="col"><a class="btn btn-outline-dark dark btn-lg" href="{{url_for("view_all_channels")}}">Channels</a></th>
+                            <td class="align-top" scope="col"><a class="btn btn-outline-dark dark btn-lg" href="{{url_for("get_logs",pagenum=1)}}">Logs</a></th>
+                        </tr>
+                    </tbody>
+                    </table>
+                  </div>
+                  
+            </div>
+        {# manager #}
+        {% elif sessionvar['user_type'] >= 1  %}
+            <div class="container">
+                <div class="tablediv">
+                    <table class="table">
+                        <thead>
+                            <th scope="col">Name</th>
+                            <th scope="col">View</th>
+                        </thead>
+                        <tbody>
+                            {% for channel in channels%}
+                                <tr>
+                                    <td>{{ channel[1] }}</td>
+                                    <td><a href="{{ url_for('view_single_channel', channel_id=channel[0]) }}">View</a></td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        {% endif %}
+        
+    </div>
+{% endblock %}

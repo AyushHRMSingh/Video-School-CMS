@@ -302,6 +302,21 @@ def get_stat_api(channel_id):
         print('timedate changed to:', time_range)
         output = stat_functions_edited.get_videos(channel_id,time_range)
         return flask.jsonify(output)
+    elif request_json['req_type'] == "subs":
+        time_range = request_json['time_range']
+        print('timedate changed to:', time_range)
+        output = stat_functions_edited.get_subscribers(channel_id,time_range)
+        return flask.jsonify(output)
+    # elif request_json['req_type'] == "likes":
+    #     time_range = request_json['time_range']
+    #     print('timedate changed to:', time_range)
+    #     output = stat_functions_edited.get_likes_stats(channel_id,time_range)
+    #     return flask.jsonify(output)
+    # elif request_json['req_type'] == "avd":
+    #     time_range = request_json['time_range']
+    #     print('timedate changed to:', time_range)
+    #     output = stat_functions_edited.get_average_view_duration_stats(channel_id,time_range)
+    #     return flask.jsonify(output)
     return "nonoe"
 
 # page to edit channel details
@@ -818,4 +833,4 @@ def shutdown():
     func()
 
 if __name__ == '__main__':
-    app.run(debug=True, host="localhost")
+    app.run(debug=True, host="localhost",port=2077)

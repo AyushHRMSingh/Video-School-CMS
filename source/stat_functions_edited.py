@@ -2,7 +2,6 @@ import math
 from external_function import VidSchool
 import datetime
 import api_functions as api_functions
-import requests
 
 def get_default(channel_id):
     data = VidSchool.get_credentials(channel_id=channel_id)
@@ -11,17 +10,31 @@ def get_default(channel_id):
     stata = get_basic_stats(data)
     statb = get_top_vids(data, 'alltime')
     statc = get_subscriber_stats(data, 'last_7_days')
+    statd = get_likes_stats(data, 'last_7_days')
+    statc = get_average_view_duration_stats(data, 'last_7_days')
     return {
-        'section1': stata,
-        'section2': statb,
-        'section3': statc,
+        'base': stata,
+        'topVideos': statb,
+        'subscriberData': statc,
+        'likeData': statd,
+        'averageViewDuration': statc,
     }
 
+# function to get the top videos
 def get_videos(channel_id, date_range):
     data = VidSchool.get_credentials(channel_id=channel_id)
     return {
         'data' : get_top_vids(data, date_range)
     }
+
+# function to get the subscriber stats
+def get_subscribers(channel_id, date_range):
+    data = VidSchool.get_credentials(channel_id=channel_id)
+    return {
+        'data' : get_subscriber_stats(data, date_range)
+    }
+
+
 
 def get_main(channel_id):
     data = VidSchool.get_credentials(channel_id=channel_id)
@@ -36,6 +49,10 @@ def get_main(channel_id):
         'section3': statc,
     }
 
+
+### BACK FUNCTIONS (NOT FOR DIRECT CALLS)
+
+# function to get some base stats such as view count, subscriber count, video count, watch time
 def get_basic_stats(data):
     basic_stat = api_functions.youtubedata(
         'youtube',
@@ -64,6 +81,7 @@ def get_basic_stats(data):
         'watch_Time': math.floor(watch_time/60),
     }
 
+# function to get top videos associated with a youtube channel
 def get_top_vids(data, date_range):
     oldest_date = '1990-01-01'
     today = datetime.date.today().isoformat()
@@ -203,6 +221,7 @@ def get_top_vids(data, date_range):
         output[i]['title'] = stat_action['items'][i]['snippet']['title']    
     return output
 
+# function to get subscriber stats over time associated with a youtube channel
 def get_subscriber_stats(data, date_range):
     
     raw_today = (datetime.datetime.now()-datetime.timedelta(days=3)).date()
@@ -337,6 +356,269 @@ def get_subscriber_stats(data, date_range):
     else:
         return None
 
+# function to get likes stats over time associated with a youtube channel
+def get_likes_stats(data, date_range):
+    
+    raw_today = (datetime.datetime.now()-datetime.timedelta(days=3)).date()
+    today = raw_today.isoformat()
+    this_month = raw_today.replace(month=raw_today.month-1, day=1)
+    output = []
+    print(date_range)
+    
+    if date_range == 'last_7_days':
+        last_7_days_date = (raw_today-datetime.timedelta(days=6)).isoformat()
+        
+        # subsciber information for last 7 days
+        last_7_days = api_functions.youtubedata(
+            'youtubeAnalytics',
+            'v2',
+            credentials=data,
+            dimensions='day',
+            ids='channel==MINE',
+            startDate=last_7_days_date,
+            endDate=today,
+            metrics='likes',
+        )
+        
+        # append to output
+        for i in range(0, len(last_7_days['rows'])):
+            output.append({
+                'date': dateconverstion(last_7_days['rows'][i][0], 'day'),
+                'likes': last_7_days['rows'][i][1],
+            })
+        print(output)
+        return output
+    
+    elif date_range == 'last_30_days':
+        last_30_days_date = (raw_today-datetime.timedelta(days=29)).isoformat()
+    
+        # subsciber information for last 30 days
+        last_30_days = api_functions.youtubedata(
+            'youtubeAnalytics',
+            'v2',
+            credentials=data,
+            dimensions='day',
+            ids='channel==MINE',
+            startDate=last_30_days_date,
+            endDate=today,
+            metrics='likes',
+        )
+    
+        # append to output
+        for i in range(0, len(last_30_days['rows'])):
+            output.append({
+                'date': dateconverstion(last_30_days['rows'][i][0], 'day'),
+                'likes': last_30_days['rows'][i][1],
+            })
+
+        return output
+    
+    elif date_range == 'last_90_days':
+        last_90_days_date = (raw_today-datetime.timedelta(days=89)).isoformat()
+
+        # subsciber information for last 30 days
+        last_90_days = api_functions.youtubedata(
+            'youtubeAnalytics',
+            'v2',
+            credentials=data,
+            dimensions='day',
+            ids='channel==MINE',
+            startDate=last_90_days_date,
+            endDate=today,
+            metrics='likes',
+        )
+
+        # append to subs_list
+        for i in range(0, len(last_90_days['rows'])):
+            output.append({
+                'date': dateconverstion(last_90_days['rows'][i][0], 'day'),
+                'likes': last_90_days['rows'][i][1],
+            })
+        
+        return output
+    
+    elif date_range == 'last_6_months':
+        last_6_month_date = (this_month-datetime.timedelta(days=150)).replace(day=1).isoformat()
+
+        # return last_6_month_date
+        last_6_months = api_functions.youtubedata(
+            'youtubeAnalytics',
+            'v2',
+            credentials=data,
+            dimensions='month',
+            ids='channel==MINE',
+            startDate=last_6_month_date,
+            endDate=this_month,
+            metrics='likes',
+        )
+    
+        # append to output
+        for i in range(0, len(last_6_months['rows'])):
+            output.append({
+                'date': dateconverstion(last_6_months['rows'][i][0], 'month'),
+                'likes': last_6_months['rows'][i][1],
+            })
+
+        return output
+    
+    elif date_range == 'past_year':
+        last_year_date = (this_month-datetime.timedelta(days=335)).replace(day=1).isoformat()
+        
+        # return past_year
+        past_year = api_functions.youtubedata(
+            'youtubeAnalytics',
+            'v2',
+            credentials=data,
+            dimensions='month',
+            ids='channel==MINE',
+            startDate=last_year_date,
+            endDate=this_month,
+            metrics='likes',
+        )
+
+        # append to output
+        for i in range(0, len(past_year['rows'])):
+            output.append({
+                'date': dateconverstion(past_year['rows'][i][0], 'month'),
+                'likes': past_year['rows'][i][1],
+            })
+
+        return output
+    else:
+        return None
+
+# function to get the average view duration stats over time associated with a youtube channel
+def get_average_view_duration_stats(data, date_range):
+    
+    raw_today = (datetime.datetime.now()-datetime.timedelta(days=3)).date()
+    today = raw_today.isoformat()
+    this_month = raw_today.replace(month=raw_today.month-1, day=1)
+    output = []
+    print(date_range)
+    
+    if date_range == 'last_7_days':
+        last_7_days_date = (raw_today-datetime.timedelta(days=6)).isoformat()
+        
+        # subsciber information for last 7 days
+        last_7_days = api_functions.youtubedata(
+            'youtubeAnalytics',
+            'v2',
+            credentials=data,
+            dimensions='day',
+            ids='channel==MINE',
+            startDate=last_7_days_date,
+            endDate=today,
+            metrics='averageViewDuration',
+        )
+        
+        # append to output
+        for i in range(0, len(last_7_days['rows'])):
+            output.append({
+                'date': dateconverstion(last_7_days['rows'][i][0], 'day'),
+                'averageViewDuration': last_7_days['rows'][i][1],
+            })
+        print(output)
+        return output
+    
+    elif date_range == 'last_30_days':
+        last_30_days_date = (raw_today-datetime.timedelta(days=29)).isoformat()
+    
+        # subsciber information for last 30 days
+        last_30_days = api_functions.youtubedata(
+            'youtubeAnalytics',
+            'v2',
+            credentials=data,
+            dimensions='day',
+            ids='channel==MINE',
+            startDate=last_30_days_date,
+            endDate=today,
+            metrics='averageViewDuration',
+        )
+    
+        # append to output
+        for i in range(0, len(last_30_days['rows'])):
+            output.append({
+                'date': dateconverstion(last_30_days['rows'][i][0], 'day'),
+                'averageViewDuration': last_30_days['rows'][i][1],
+            })
+
+        return output
+    
+    elif date_range == 'last_90_days':
+        last_90_days_date = (raw_today-datetime.timedelta(days=89)).isoformat()
+
+        # subsciber information for last 30 days
+        last_90_days = api_functions.youtubedata(
+            'youtubeAnalytics',
+            'v2',
+            credentials=data,
+            dimensions='day',
+            ids='channel==MINE',
+            startDate=last_90_days_date,
+            endDate=today,
+            metrics='averageViewDuration',
+        )
+
+        # append to subs_list
+        for i in range(0, len(last_90_days['rows'])):
+            output.append({
+                'date': dateconverstion(last_90_days['rows'][i][0], 'day'),
+                'averageViewDuration': last_90_days['rows'][i][1],
+            })
+        
+        return output
+    
+    elif date_range == 'last_6_months':
+        last_6_month_date = (this_month-datetime.timedelta(days=150)).replace(day=1).isoformat()
+
+        # return last_6_month_date
+        last_6_months = api_functions.youtubedata(
+            'youtubeAnalytics',
+            'v2',
+            credentials=data,
+            dimensions='month',
+            ids='channel==MINE',
+            startDate=last_6_month_date,
+            endDate=this_month,
+            metrics='averageViewDuration',
+        )
+    
+        # append to output
+        for i in range(0, len(last_6_months['rows'])):
+            output.append({
+                'date': dateconverstion(last_6_months['rows'][i][0], 'month'),
+                'averageViewDuration': last_6_months['rows'][i][1],
+            })
+
+        return output
+    
+    elif date_range == 'past_year':
+        last_year_date = (this_month-datetime.timedelta(days=335)).replace(day=1).isoformat()
+        
+        # return past_year
+        past_year = api_functions.youtubedata(
+            'youtubeAnalytics',
+            'v2',
+            credentials=data,
+            dimensions='month',
+            ids='channel==MINE',
+            startDate=last_year_date,
+            endDate=this_month,
+            metrics='averageViewDuration',
+        )
+
+        # append to output
+        for i in range(0, len(past_year['rows'])):
+            output.append({
+                'date': dateconverstion(past_year['rows'][i][0], 'month'),
+                'averageViewDuration': past_year['rows'][i][1],
+            })
+
+        return output
+    else:
+        return None
+
+# function to convert date to a specific format
 def dateconverstion(datea, type):
     if type == 'day':
         return datetime.datetime.strptime(datea, '%Y-%m-%d').strftime('%d-%b')

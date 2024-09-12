@@ -52,7 +52,7 @@
             </div>
 
             <div>
-                <label for="subscribersTimeRangeSelect" class="form-label"><h3>Subscribers Count: </h3></label>
+                <label for="subscribersTimeRangeSelect" class="form-label"><h3>Subscribers Chart: </h3></label>
                 <select id="subscribersTimeRangeSelect" class="form-select">
                     <option value="last_7_days" selected>Last 7 Days</option>
                     <option value="last_30_days">Last 30 Days</option>
@@ -62,13 +62,34 @@
                 </select>
             </div>
             <canvas id="subscriberChart"></canvas>
+
+            <div>
+                <label for="likesTimeRangeSelect" class="form-label"><h3>Likes Chart: </h3></label>
+                <select id="likesTimeRangeSelect" class="form-select">
+                    <option value="last_7_days" selected>Last 7 Days</option>
+                    <option value="last_30_days">Last 30 Days</option>
+                    <option value="last_90_days">Last 90 Days</option>
+                    <option value="last_6_months">Last Six Months</option>
+                    <option value="past_year">Last Year</option>
+                </select>
+            </div>
+            <canvas id="likesChart"></canvas>
+
+            <div>
+                <label for="avdTimeRangeSelect" class="form-label"><h3>Average View Duration Chart: </h3></label>
+                <select id="avdTimeRangeSelect" class="form-select">
+                    <option value="last_7_days" selected>Last 7 Days</option>
+                    <option value="last_30_days">Last 30 Days</option>
+                    <option value="last_90_days">Last 90 Days</option>
+                    <option value="last_6_months">Last Six Months</option>
+                    <option value="past_year">Last Year</option>
+                </select>
+            </div>
+            <canvas id="avdChart"></canvas>
             
         {% else %}
             <p>Please link the channel to access the Channel statistics</p>
         {% endif %}
-        <div>
-            <canvas id="ViewChart"></canvas>
-        </div>
         <br>
     </div>
 
@@ -77,17 +98,31 @@
         <script>
         
             // define variables to hold the total subscriber, view, video and watch time count objects
-            const tsub = document.getElementById('total_sub_count');
-            const tview = document.getElementById('total_view_count');
-            const tvideo = document.getElementById('total_video_count');
-            const twatch = document.getElementById('total_watch_count');
-            const channel_url = document.getElementById('channel_url');
-            const topVideosTimeRangeSelect = document.getElementById('topVideosTimeRangeSelect');
-            const videosTableContainer = document.getElementById('videosTableContainer');
-            let rawData;
-            const subscribersTimeRangeSelect = document.getElementById('subscribersTimeRangeSelect');
-            
+            const tsub = document.getElementById('total_sub_count'); // total subscriber count element
+            const tview = document.getElementById('total_view_count'); // total view count element
+            const tvideo = document.getElementById('total_video_count'); // total video count element
+            const twatch = document.getElementById('total_watch_count'); // total watch time count element
+            const channel_url = document.getElementById('channel_url'); // channel url element
 
+            const topVideosTimeRangeSelect = document.getElementById('topVideosTimeRangeSelect'); // top videos time range select element
+            const videosTableContainer = document.getElementById('videosTableContainer'); // videos table container element
+            
+            // Subscriber chart related variable definitions
+            const subscribersTimeRangeSelect = document.getElementById('subscribersTimeRangeSelect'); // subscribers time range select element
+            let subData; // variable to hold the subscriber data
+            let subchart; // variable to hold the subscriber chart object
+
+            // Likes chart related variable definitions
+            const likesTimeRangeSelect = document.getElementById('likesTimeRangeSelect'); // likes time range select element
+            let likeData; // variable to hold the like data
+            let likechart; // variable to hold the like chart object
+            
+            // Average View Duration chart related variable definitions
+            const avdTimeRangeSelect = document.getElementById('avdTimeRangeSelect'); // average view duration time range select element
+            let avdData; // variable to hold the average view duration data
+            let avdchart; // variable to hold the average view duration chart object
+
+            // function to create the top 10 videos table
             function createVideosTable(data) {
                 let videos = data;
                 // creating the table header
@@ -121,12 +156,10 @@
                 videosTableContainer.innerHTML = tableHTML;
             }
 
-            let chart;
-
-            // funtion to create chart
-            function createChart(data) {
+            // funtion to create subscriber chart
+            function createSubChart(data) {
                 const ctx = document.getElementById('subscriberChart').getContext('2d');
-                chart = new Chart(ctx, {
+                subchart = new Chart(ctx, {
                     type: 'line',
                     data: {
                         labels: data.labels,
@@ -157,9 +190,9 @@
                 });
             }
 
-            // function to update the chart
-            function updateChart(period) {
-                const selectedData = rawData;
+            // function to update the sub chart
+            function updateSubChart(period) {
+                const selectedData = subData;
                 const labels = selectedData.map(entry => entry.date);
                 const gained = selectedData.map(entry => entry.subscribersGained);
                 const lost = selectedData.map(entry => entry.subscribersLost);
@@ -170,11 +203,110 @@
                     lost: lost
                 };
                 
-                if (chart) {
-                    chart.destroy();
+                if (subchart) {
+                    subchart.destroy();
                 }
                 
-                createChart(data);
+                createSubChart(data);
+            }
+
+            // function to create likes chart
+            function createLikeChart(data) {
+                const ctx = document.getElementById('likesChart').getContext('2d');
+                const likechart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: data.labels,
+                        datasets: [{
+                            label: 'Likes',
+                            data: data.likes,
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                            },
+                            title: {
+                                display: true,
+                                text: 'Likes Over Time'
+                            }
+                        }
+                    },
+                })
+            }
+
+            // function to update likes chart
+            function updateLikeChart(period) {
+                const selectedData = likeData;
+                const labels = selectedData.map(entry => entry.date);
+                const gained = selectedData.map(entry => entry.subscribersGained);
+                const lost = selectedData.map(entry => entry.subscribersLost);
+
+                const data = {
+                    labels: labels,
+                    gained: gained,
+                    lost: lost
+                };
+                
+                if (likechart) {
+                    likechart.destroy();
+                }
+                
+                createLikeChart(data);
+            }
+
+
+            // function to create likes chart
+            function createAVDChart(data) {
+                const ctx = document.getElementById('avdChart').getContext('2d');
+                const likechart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: data.labels,
+                        datasets: [{
+                            label: 'View Duration',
+                            data: data.likes,
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                            },
+                            title: {
+                                display: true,
+                                text: 'Average View Duration Over Time'
+                            }
+                        }
+                    },
+                })
+            }
+
+            // function to update likes chart
+            function updateAVDChart(period) {
+                const selectedData = avdData;
+                const labels = selectedData.map(entry => entry.date);
+                const gained = selectedData.map(entry => entry.subscribersGained);
+                const lost = selectedData.map(entry => entry.subscribersLost);
+
+                const data = {
+                    labels: labels,
+                    gained: gained,
+                    lost: lost
+                };
+                
+                if (avdchart) {
+                    avdchart.destroy();
+                }
+                
+                createAVDChart(data);
             }
 
             // fetch the default stats to show on page inital load
@@ -190,21 +322,30 @@
             .then(data => {
                 console.log(data);
                 // setting the innerHTML of the variables to the respective values
-                tsub.innerHTML = data['section1']['subscriber_Count'];
-                tview.innerHTML = data['section1']['view_Count'];
-                tvideo.innerHTML = data['section1']['video_Count'];
-                twatch.innerHTML = data['section1']['watch_Time'];
-                channel_url.href = "https://www.youtube.com/channel/" + data['section1']['url'];
+                tsub.innerHTML = data['base']['subscriber_Count'];
+                tview.innerHTML = data['base']['view_Count'];
+                tvideo.innerHTML = data['base']['video_Count'];
+                twatch.innerHTML = data['base']['watch_Time'];
+                channel_url.href = "https://www.youtube.com/channel/" + data['base']['url'];
                 
                 // setting up top 10 videos table
                 topVideosTimeRangeSelect.value = "alltime";
-                createVideosTable(data['section2']);
+                createVideosTable(data['topVideos']);
                 
                 // setting up subscribers chart
-                rawData = data['section3'];
-                console.log(rawData)
+                subData = data['subscriberData'];
                 subscribersTimeRangeSelect.value = "last_7_days";
-                updateChart(rawData);
+                updateSubChart(subData);
+
+                // settings up likes chart
+                likeData = data['likeData'];
+                likesTimeRangeSelect.value = "last_7_days";
+                updateLikeChart(likeData);
+
+                // settings up average view duration chart
+                avdData = data['averageViewDuration'];
+                avdTimeRangeSelect.value = "last_7_days";
+                updateAVDChart(avdData)
             });
 
             // event listener when top videos time range is changed
@@ -233,6 +374,26 @@
                 });
             });
             
+            subscribersTimeRangeSelect.addEventListener('change', function () {
+                fetch("{{ url_for('get_stat_api', channel_id=channel[0]) }}", {
+                    method: "post",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        req_type: "subs",
+                        time_range: this.value
+                    })
+                }).then(response => response.json())
+                .then(data => {
+                    console.log(data);
+                    subData = data;
+                    updateSubChart(subData);
+                });
+
+                        
+            })
+
         </script>
     {% endif %}
 

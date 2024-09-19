@@ -55,6 +55,8 @@ app.secret_key = 'your secret key'
 
 @app.context_processor
 def inject_user():
+    if 'loggedin' not in session:
+        return dict(user=None)
     author = {
         'user_id': session['user_id'],
         'user_type': session['user_type']
@@ -842,4 +844,7 @@ def shutdown():
     func()
 
 if __name__ == '__main__':
-    app.run(debug=True, host="localhost",port=2077)
+    try:
+        app.run(debug=True, host="localhost",port=2077)
+    except KeyboardInterrupt:
+        print("Shutting down server")

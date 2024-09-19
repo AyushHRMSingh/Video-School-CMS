@@ -26,22 +26,22 @@ class VidSchool:
                 "USE  {}".format(dbname),
             ]
             if self.dbconnect.is_connected():
-                print("Connected to database")
+                # print("Connected to database")
                 connected = True
                 self.select_db()
             VidSchool.credentialpool = {}
             try:
                 VidSchool.start_credential_pool(self)
             except Exception as e:
-                print("Error connecting to database: ", e)
-                print('Retrying in 5 seconds')
+                # print("Error connecting to database: ", e)
+                # print('Retrying in 5 seconds')
                 time.sleep(5)
     
     # destructor function
     def __del__(self):
         if self.dbconnect.is_connected():
             self.dbconnect.close()
-            print("Disconnected from database")
+            # print("Disconnected from database")
 
     # hashing and salting password for security with bcrypt library
     def hash_password(self, password):
@@ -55,7 +55,7 @@ class VidSchool:
         for command in self.sqlcommands:
             self.cursor.execute(command)
             self.dbconnect.commit()
-        print("Setup complete")
+        # print("Setup complete")
 
     @staticmethod
     def start_credential_pool(self):
@@ -64,7 +64,7 @@ class VidSchool:
         result = self.cursor.fetchall()
         # add credentials to credential pool
         if result == []:
-            print("No channels found")
+            # print("No channels found")
             VidSchool.credentialpool = {}
             return False
         for i in list(result):
@@ -72,23 +72,23 @@ class VidSchool:
             cred = ast.literal_eval(cred[0])
             VidSchool.credentialpool[i[0]] = cred
         # print(VidSchool.credentialpool)
-        print("Credential pool started")
+        # print("Credential pool started")
         # # Refresh all access tokens
         remove = []
         for i in VidSchool.credentialpool:
-            print('credschool refreshing i:', i)
+            # print('credschool refreshing i:', i)
             oldcred = VidSchool.credentialpool[i]
             # print('oldcred:', oldcred)
             # print(api_functions.refresh_token(oldcred))
             # print('testing')
             VidSchool.credentialpool[i] = api_functions.refresh_token(oldcred)
             if VidSchool.credentialpool[i] == None:
-                print("Error refreshing token")
+                # print("Error refreshing token")
                 remove.append(i)
         for i in remove:
-            print("Removing channel from credential pool due to error: ", i)
+            # print("Removing channel from credential pool due to error: ", i)
             VidSchool.credentialpool.pop(i)
-        print("Credential pool refreshed")
+        # print("Credential pool refreshed")
 
     @staticmethod
     def check_credential_pool():
@@ -103,7 +103,7 @@ class VidSchool:
     def get_credentials(channel_id):
         VidSchool.check_credential_pool()
         if channel_id not in VidSchool.credentialpool:
-            print("Channel not found")
+            # print("Channel not found")
             return False
         # cred = ast.literal_eval(VidSchool.credentialpool[channel_id][0])
         cred = VidSchool.credentialpool[channel_id][0]
@@ -497,11 +497,11 @@ class VidSchool:
                 comment = row[5] if row[5] != '' else None
                 status = int(row[6]) if row[6] != '' else None
                 insert_list.append((old_id, title, channel_id, shoot_timestamp, edit_timestamp, upload_timestamp, status, comment))
-            print(sql)
+            # print(sql)
             try:
                 self.cursor.executemany(sql, insert_list)
                 self.dbconnect.commit()
-                print("Videos added")
+                # print("Videos added")
             except mysql.connector.IntegrityError as err:
                 if err.errno == mysql.connector.errorcode.ER_DUP_ENTRY:
                     return "Video Already Exists"
@@ -595,7 +595,7 @@ class VidSchool:
                 # if 
                 # print("Linking channel")
                 sql = "UPDATE Channel SET tokens = %s WHERE id=%s"
-                print(type(token))
+                # print(type(token))
                 val = (token, channel_id)
                 self.cursor.execute(sql, val)
                 self.dbconnect.commit()
@@ -618,18 +618,18 @@ class VidSchool:
     def unlink_channel(self, channel_id, author):
         if author['user_type'] == 0:
             try:
-                print("Unlinking channel")
+                # print("Unlinking channel")
                 sql = "update Channel set tokens=JSON_OBJECT() where id=%s"
                 val = (channel_id,)
                 try:
-                    print('try unlinking')
+                    # print('try unlinking')
                     self.cursor.execute(sql, val)
                     self.dbconnect.commit()
                 except mysql.connector.IntegrityError as err:
-                    print("unlink failed here")
+                    # print("unlink failed here")
                     return "Some Error: "+str(err)
                 except Exception as e:
-                    print("unlink failed there")
+                    # print("unlink failed there")
                     return "Some Error"+str(e)
                 log_data = {
                     "action": "unlink_channel",
@@ -802,12 +802,12 @@ class VidSchool:
         self.cursor.execute(sql)
         result = self.cursor.fetchone()
         row_num = result[0]
-        print(row_num)
+        # print(row_num)
         sql2 = "SELECT * FROM Log_Table ORDER BY id DESC LIMIT 50 OFFSET %s"
         val = ((page*50),)
         self.cursor.execute(sql2, val)
         result2 = self.cursor.fetchall()
-        print(sql2, val)
+        # print(sql2, val)
         # print(result2)
         return [result2, row_num]
     
@@ -816,4 +816,4 @@ class VidSchool:
     def clearpro(self):
         self.cursor.execute("DROP DATABASE {}".format(self.dbname))
         self.dbconnect.commit()
-        print("Database cleared")
+        # print("Database cleared")

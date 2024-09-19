@@ -13,11 +13,9 @@ def refresh_token(old_credentials):
     try:
         response = requests.post("https://oauth2.googleapis.com/token", data=data)
         if response.status_code != 200:
-            print("Error: ", response.json())
             return None
         new_tokens = response.json()
         new_access_token = new_tokens.get("access_token")
-        # print("new_access_token: ", new_access_token)
         expiry = time.time()+new_tokens.get("expires_in")
         newcred = {
             'client_id': old_credentials['client_id'],
@@ -33,7 +31,6 @@ def refresh_token(old_credentials):
         return None
 
 def youtubedata(API_SERVICE_NAME, API_SERVICE_VERSION, credentials, **kwargs):
-    # print("Stuff: ",API_SERVICE_NAME, API_SERVICE_VERSION, credentials, kwargs)
     # Build the service object.
     credentials = google.oauth2.credentials.Credentials(**credentials)
     service = build(API_SERVICE_NAME, API_SERVICE_VERSION, credentials=credentials)

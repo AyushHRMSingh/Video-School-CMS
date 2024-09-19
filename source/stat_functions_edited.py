@@ -203,8 +203,8 @@ def get_top_vids(data, date_range):
     else:
         return None
     # get the videos
-    print('\n\n\n\n\n de output')
-    print(output)
+    # print('\n\n\n\n\n de output')
+    # print(output)
     # for key in output:
     idlist = []
     for i in range(0,len(output)):
@@ -228,7 +228,7 @@ def get_subscriber_stats(data, date_range):
     today = raw_today.isoformat()
     this_month = raw_today.replace(month=raw_today.month-1, day=1)
     output = []
-    print(date_range)
+    # print(date_range)
     if date_range == 'last_7_days':
         last_7_days_date = (raw_today-datetime.timedelta(days=6)).isoformat()
         
@@ -251,7 +251,7 @@ def get_subscriber_stats(data, date_range):
                 'subscribersGained': last_7_days['rows'][i][1],
                 'subscribersLost': last_7_days['rows'][i][2],
             })
-        print(output)
+        # print(output)
         return output
     
     elif date_range == 'last_30_days':
@@ -363,7 +363,7 @@ def get_likes_stats(data, date_range):
     today = raw_today.isoformat()
     this_month = raw_today.replace(month=raw_today.month-1, day=1)
     output = []
-    print(date_range)
+    # print(date_range)
     
     if date_range == 'last_7_days':
         last_7_days_date = (raw_today-datetime.timedelta(days=6)).isoformat()
@@ -386,7 +386,7 @@ def get_likes_stats(data, date_range):
                 'date': dateconverstion(last_7_days['rows'][i][0], 'day'),
                 'likes': last_7_days['rows'][i][1],
             })
-        print(output)
+        # print(output)
         return output
     
     elif date_range == 'last_30_days':
@@ -494,7 +494,7 @@ def get_average_view_duration_stats(data, date_range):
     today = raw_today.isoformat()
     this_month = raw_today.replace(month=raw_today.month-1, day=1)
     output = []
-    print(date_range)
+    # print(date_range)
     
     if date_range == 'last_7_days':
         last_7_days_date = (raw_today-datetime.timedelta(days=6)).isoformat()
@@ -517,7 +517,7 @@ def get_average_view_duration_stats(data, date_range):
                 'date': dateconverstion(last_7_days['rows'][i][0], 'day'),
                 'averageViewDuration': last_7_days['rows'][i][1],
             })
-        print(output)
+        # print(output)
         return output
     
     elif date_range == 'last_30_days':

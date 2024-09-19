@@ -310,12 +310,12 @@ def get_stat_api(channel_id):
         return flask.jsonify(output)
     elif request_json['req_type'] == "videos":
         time_range = request_json['time_range']
-        print('timedate changed to:', time_range)
+        # print('timedate changed to:', time_range)
         output = stat_functions_edited.get_videos(channel_id,time_range)
         return flask.jsonify(output)
     elif request_json['req_type'] == "subs":
         time_range = request_json['time_range']
-        print('timedate changed to:', time_range)
+        # print('timedate changed to:', time_range)
         output = stat_functions_edited.get_subscribers(channel_id,time_range)
         return flask.jsonify(output)
     # elif request_json['req_type'] == "likes":
@@ -497,12 +497,12 @@ def unlink_channel(channel_id):
         # check if user is admin
         if session['user_type'] == USER_TYPE_ADMIN:
             # check if request is POST then considered api request
-            print("unlinking channel")
+            # print("unlinking channel")
             author = {
                 'user_id': session['user_id'],
                 'user_type': session['user_type']
             }
-            print("unlinking channel2")
+            # print("unlinking channel2")
             # call external function to unlink channel
             result = cmsobj_db.unlink_channel(channel_id, author)
             # return value based on the result
@@ -820,7 +820,7 @@ def get_data_for_cache():
                 'user_type': session['user_type']
             }
             channels_list = cmsobj_db.get_channels()
-            print(channels_list)
+            # print(channels_list)
             users_list = cmsobj_db.get_users(author=author)
             return json.dumps({
                 'success': True,

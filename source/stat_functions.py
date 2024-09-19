@@ -11,8 +11,8 @@ def get_main(channel_id):
     stata = get_basic_stats(data)
     statb = get_top_vids(data)
     statc = get_subscriber_stats(data)
-    print(statb)
-    print(statc)
+    # print(statb)
+    # print(statc)
     return {
         'section1': stata,
         'section2': statb,

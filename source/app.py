@@ -53,6 +53,15 @@ app.config['UPLOAD_FOLDER'] = os.path.join(PROJECT_PATH, 'Data')
 ALLOWED_EXTENSIONS = {'csv'}
 app.secret_key = 'your secret key'
 
+@app.context_processor
+def inject_user():
+    author = {
+        'user_id': session['user_id'],
+        'user_type': session['user_type']
+    }
+    channels_list = cmsobj_db.get_channels()
+    users_list = cmsobj_db.get_users(author=author)
+    return dict(clist=channels_list, ulist=users_list)
 
 # Redirect request for favicon to static folder
 @app.route('/favicon.ico')
@@ -114,7 +123,7 @@ def dashboard():
         elif session['user_type'] in [USER_TYPE_MANAGER, USER_TYPE_CREATOR, USER_TYPE_EDITOR, USER_TYPE_OPS]:
             channellist = cmsobj_db.get_channels_by_user(session['user_id'], session['user_type'])
             # return "Manager Dashboard"
-            return render_template('dashboard.html', sessionvar=session, channels=channellist, user=user_enumeration.roletype)
+            return render_template('dashboard.html', sessionvar=session, channels=channellist, user=user_enumeration.roletype, test="testingval")
     else:
         return redirect(url_for('login'))
 
@@ -809,7 +818,7 @@ def get_data_for_cache():
                 'user_type': session['user_type']
             }
             channels_list = cmsobj_db.get_channels()
-            # print(channels_list)
+            print(channels_list)
             users_list = cmsobj_db.get_users(author=author)
             return json.dumps({
                 'success': True,

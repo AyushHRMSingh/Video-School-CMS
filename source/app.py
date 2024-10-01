@@ -103,9 +103,6 @@ def login():
     # Render login.html template with current message (empty message)    
     return render_template('login.html', msg=msg)
 
-
-
-
 # User logout, deletes all session variables
 @app.route('/logout')
 def logout():

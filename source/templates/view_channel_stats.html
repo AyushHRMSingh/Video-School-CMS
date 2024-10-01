@@ -387,8 +387,8 @@
                 }).then(response => response.json())
                 .then(data => {
                     console.log(data);
-                    subData = data;
-                    updateSubChart(subData);
+                    subData = data["data"];
+                    {# updateSubChart(subData); #}
                 });
 
                         

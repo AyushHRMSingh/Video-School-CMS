@@ -208,8 +208,8 @@
             }
 
             // function to update the sub chart
-            function updateSubChart(period) {
-                const selectedData = subData;
+            function updateSubChart(data) {
+                const selectedData = data;
                 const labels = selectedData.map(entry => entry.date);
                 const gained = selectedData.map(entry => entry.subscribersGained);
                 const lost = selectedData.map(entry => entry.subscribersLost);
@@ -257,7 +257,7 @@
             }
 
             // function to update likes chart
-            function updateLikeChart(period) {
+            function updateLikeChart(data) {
                 const selectedData = likeData;
                 const labels = selectedData.map(entry => entry.date);
                 const likes = selectedData.map(entry => entry.likes);
@@ -304,8 +304,8 @@
             }
 
             // function to update avd chart
-            function updateAVDChart(period) {
-                const selectedData = avdData;
+            function updateAVDChart(data) {
+                const selectedData = data;
                 const labels = selectedData.map(entry => entry.date);
                 const avd = selectedData.map(entry => entry.averageViewDuration);
 
@@ -351,8 +351,8 @@
             }
 
             // function to update cpm chart
-            function updateCPMChart(period) {
-                const selectedData = avdData;
+            function updateCPMChart(data) {
+                const selectedData = data;
                 const labels = selectedData.map(entry => entry.date);
                 const cpm = selectedData.map(entry => entry.cpm);
 

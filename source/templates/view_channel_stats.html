@@ -260,13 +260,13 @@
             // function to create likes chart
             function createAVDChart(data) {
                 const ctx = document.getElementById('avdChart').getContext('2d');
-                const likechart = new Chart(ctx, {
+                avdchart = new Chart(ctx, {
                     type: 'line',
                     data: {
                         labels: data.labels,
                         datasets: [{
                             label: 'View Duration',
-                            data: data.likes,
+                            data: data.avd,
                             borderColor: 'rgba(75, 192, 192, 1)',
                             backgroundColor: 'rgba(75, 192, 192, 0.2)',
                         }]
@@ -290,13 +290,11 @@
             function updateAVDChart(period) {
                 const selectedData = avdData;
                 const labels = selectedData.map(entry => entry.date);
-                const gained = selectedData.map(entry => entry.subscribersGained);
-                const lost = selectedData.map(entry => entry.subscribersLost);
+                const avd = selectedData.map(entry => entry.averageViewDuration);
 
                 const data = {
                     labels: labels,
-                    gained: gained,
-                    lost: lost
+                    avd: avd
                 };
                 
                 if (avdchart) {
@@ -407,6 +405,25 @@
                     updateLikeChart(likeData);
                 });     
             })
+
+            avdTimeRangeSelect.addEventListener('change', function () {
+                fetch("{{ url_for('get_stat_api', channel_id=channel[0]) }}", {
+                    method: "post",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        req_type: "avd",
+                        time_range: this.value
+                    })
+                }).then(response => response.json())
+                .then(data => {
+                    console.log(data);
+                    avdData = data["data"];
+                    updateAVDChart(avdData);
+                });     
+            })
+
 
         </script>
     {% endif %}

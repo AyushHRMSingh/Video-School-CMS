@@ -53,6 +53,12 @@ def get_likes(channel_id, date_range):
         'data' : get_likes_stats(data, date_range)
     }
 
+def get_average_view_duration(channel_id, date_range):
+    data = VidSchool.get_credentials(channel_id=channel_id)
+    return {
+        'data' : get_average_view_duration_stats(data, date_range)
+    }
+
 ### BACK FUNCTIONS (NOT FOR DIRECT CALLS)
 
 # function to get some base stats such as view count, subscriber count, video count, watch time

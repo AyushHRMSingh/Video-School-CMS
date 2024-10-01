@@ -126,6 +126,25 @@
                 </div>
             </div>
             <canvas id="cpmChart"></canvas>
+
+            <div>
+                <label for="sharesTimeRangeSelect" class="form-label"><h3>CPM Chart: </h3></label>
+                <select id="sharesTimeRangeSelect" class="form-select">
+                    <option value="last_7_days" selected>Last 7 Days</option>
+                    <option value="last_30_days">Last 30 Days</option>
+                    <option value="last_90_days">Last 90 Days</option>
+                    <option value="last_6_months">Last Six Months</option>
+                    <option value="past_year">Last Year</option>
+                </select>
+            </div>
+            <div id="sharesLoader" class="pt-3">
+                <div class="text-center">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            </div>
+            <canvas id="sharesChart"></canvas>
             
         {% else %}
             <p>Please link the channel to access the Channel statistics</p>
@@ -178,6 +197,14 @@
             cpmChartObject.style.display = "none";
             let cpmData; // variable to hold the cpm data
             let cpmchart; // variable to hold the cpm chart object
+
+            // shares chart related variable definitions
+            const sharesTimeRangeSelect = document.getElementById('sharesTimeRangeSelect'); // shares time range select element
+            const sharesLoader = document.getElementById('sharesLoader'); // shares loader element
+            const sharesChartObject = document.getElementById('sharesChart'); // shares chart object
+            sharesChartObject.style.display = "none";
+            let sharesData; // variable to hold the shares data
+            let shareschart; // variable to hold the shares chart object
 
             // function to create the top 10 videos table
             function createVideosTable(data) {
@@ -407,6 +434,53 @@
                 createCPMChart(data);
             }
 
+            // function to create shares chart
+            function createSharesChart(data) {
+                const ctx = sharesChartObject.getContext('2d');
+                shareschart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: data.labels,
+                        datasets: [{
+                            label: 'No. of Shares',
+                            data: data.shares,
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                            },
+                            title: {
+                                display: true,
+                                text: 'CPM rate over time'
+                            }
+                        }
+                    },
+                })
+            }
+
+            // function to update share chart
+            function updateSharesChart(period) {
+                const selectedData = sharesData;
+                const labels = selectedData.map(entry => entry.date);
+                const shares = selectedData.map(entry => entry.shares);
+
+                const data = {
+                    labels: labels,
+                    shares:shares
+                };
+                
+                if (shareschart) {
+                    shareschart.destroy();
+                }
+                createSharesChart(data);
+            }
+
+
             // fetch the default stats to show on page inital load
             fetch("{{ url_for('get_stat_api', channel_id=channel[0]) }}", {
                 method: "post",
@@ -573,6 +647,28 @@
                     updateCPMChart(cpmData);
                     cpmLoader.style.display = "none";
                     cpmChartObject.style.display = "block";
+                });
+            })
+
+            sharesTimeRangeSelect.addEventListener('change', function () {
+                sharesChartObject.style.display = "none";
+                sharesLoader.style.display = "block";
+                fetch("{{ url_for('get_stat_api', channel_id=channel[0]) }}", {
+                    method: "post",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        req_type: "shares",
+                        time_range: this.value
+                    })
+                }).then(response => response.json())
+                .then(data => {
+                    console.log(data);
+                    sharesData = data["data"];
+                    updateSharesChart(sharesData);
+                    sharesLoader.style.display = "none";
+                    sharesChartObject.style.display = "block";
                 });
             })
 

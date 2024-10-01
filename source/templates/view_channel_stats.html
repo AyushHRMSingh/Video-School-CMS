@@ -387,9 +387,25 @@
                     console.log(data);
                     subData = data["data"];
                     updateSubChart(subData);
-                });
+                });     
+            })
 
-                        
+            likesTimeRangeSelect.addEventListener('change', function () {
+                fetch("{{ url_for('get_stat_api', channel_id=channel[0]) }}", {
+                    method: "post",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        req_type: "likes",
+                        time_range: this.value
+                    })
+                }).then(response => response.json())
+                .then(data => {
+                    console.log(data);
+                    subData = data["data"];
+                    updateLikeChart(subData);
+                });     
             })
 
         </script>

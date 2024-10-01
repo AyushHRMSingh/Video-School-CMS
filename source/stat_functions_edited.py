@@ -47,6 +47,11 @@ def get_main(channel_id):
         'section3': statc,
     }
 
+def get_likes(channel_id, date_range):
+    data = VidSchool.get_credentials(channel_id=channel_id)
+    return {
+        'data' : get_likes_stats(data, date_range)
+    }
 
 ### BACK FUNCTIONS (NOT FOR DIRECT CALLS)
 

@@ -61,6 +61,13 @@
                     <option value="past_year">Last Year</option>
                 </select>
             </div>
+            <div id="subscribersLoader" class="pt-3">
+                <div class="text-center">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            </div>
             <canvas id="subscriberChart"></canvas>
 
             <div>
@@ -72,6 +79,13 @@
                     <option value="last_6_months">Last Six Months</option>
                     <option value="past_year">Last Year</option>
                 </select>
+            </div>
+            <div id="likesLoader" class="pt-3">
+                <div class="text-center">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
             </div>
             <canvas id="likesChart"></canvas>
 
@@ -85,6 +99,13 @@
                     <option value="past_year">Last Year</option>
                 </select>
             </div>
+            <div id="avdLoader" class="pt-3">
+                <div class="text-center">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            </div>
             <canvas id="avdChart"></canvas>
 
             <div>
@@ -96,6 +117,13 @@
                     <option value="last_6_months">Last Six Months</option>
                     <option value="past_year">Last Year</option>
                 </select>
+            </div>
+            <div id="cpmLoader" class="pt-3">
+                <div class="text-center">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
             </div>
             <canvas id="cpmChart"></canvas>
             
@@ -121,21 +149,33 @@
             
             // Subscriber chart related variable definitions
             const subscribersTimeRangeSelect = document.getElementById('subscribersTimeRangeSelect'); // subscribers time range select element
+            const subscribersLoader = document.getElementById('subscribersLoader'); // subscribers loader element
+            const subscriberChartObject = document.getElementById('subscriberChart'); // subscriber chart object
+            subscriberChartObject.style.display = "none";
             let subData; // variable to hold the subscriber data
             let subchart; // variable to hold the subscriber chart object
 
             // Likes chart related variable definitions
             const likesTimeRangeSelect = document.getElementById('likesTimeRangeSelect'); // likes time range select element
+            const likesLoader = document.getElementById('likesLoader'); // likes loader element
+            const likeChartObject = document.getElementById('likesChart'); // likes chart object
+            likeChartObject.style.display = "none";
             let likeData; // variable to hold the like data
             let likechart; // variable to hold the like chart object
             
             // Average View Duration chart related variable definitions
             const avdTimeRangeSelect = document.getElementById('avdTimeRangeSelect'); // average view duration time range select element
+            const avdLoader = document.getElementById('avdLoader'); // average view duration loader element
+            const avdChartObject = document.getElementById('avdChart'); // average view duration chart object
+            avdChartObject.style.display = "none";
             let avdData; // variable to hold the average view duration data
             let avdchart; // variable to hold the average view duration chart object
 
             // CPM chart related variable definitions
             const cpmTimeRangeSelect = document.getElementById('cpmTimeRangeSelect'); // cpm time range select element
+            const cpmLoader = document.getElementById('cpmLoader'); // cpm loader element
+            const cpmChartObject = document.getElementById('cpmChart'); // cpm chart object
+            cpmChartObject.style.display = "none";
             let cpmData; // variable to hold the cpm data
             let cpmchart; // variable to hold the cpm chart object
 
@@ -175,7 +215,7 @@
 
             // funtion to create subscriber chart
             function createSubChart(data) {
-                const ctx = document.getElementById('subscriberChart').getContext('2d');
+                const ctx = subscriberChartObject.getContext('2d');
                 subchart = new Chart(ctx, {
                     type: 'line',
                     data: {
@@ -229,7 +269,7 @@
 
             // function to create likes chart
             function createLikeChart(data) {
-                const ctx = document.getElementById('likesChart').getContext('2d');
+                const ctx = likeChartObject.getContext('2d');
                 likechart = new Chart(ctx, {
                     type: 'line',
                     data: {
@@ -276,7 +316,7 @@
 
             // function to create avd chart
             function createAVDChart(data) {
-                const ctx = document.getElementById('avdChart').getContext('2d');
+                const ctx = avdChartObject.getContext('2d');
                 avdchart = new Chart(ctx, {
                     type: 'line',
                     data: {
@@ -323,7 +363,7 @@
 
             // function to create cpm chart
             function createCPMChart(data) {
-                const ctx = document.getElementById('cpmChart').getContext('2d');
+                const ctx = cpmChartObject.getContext('2d');
                 cpmchart = new Chart(ctx, {
                     type: 'line',
                     data: {
@@ -395,21 +435,31 @@
                 subData = data['subscriberData'];
                 subscribersTimeRangeSelect.value = "last_7_days";
                 updateSubChart(subData);
+                subscribersLoader.style.display = "none";
+                subscriberChartObject.style.display = "block";
+
 
                 // settings up likes chart
                 likeData = data['likeData'];
                 likesTimeRangeSelect.value = "last_7_days";
                 updateLikeChart(likeData);
+                likesLoader.style.display = "none";
+                likeChartObject.style.display = "block";
+
 
                 // settings up average view duration chart
                 avdData = data['averageViewDuration'];
                 avdTimeRangeSelect.value = "last_7_days";
                 updateAVDChart(avdData)
+                avdLoader.style.display = "none";
+                avdChartObject.style.display = "block";
 
                 // settimg up cpm chart
                 cpmData = data['cpmData'];
                 cpmTimeRangeSelect.value = "last_7_days";
                 updateCPMChart(cpmData);
+                cpmLoader.style.display = "none";
+                cpmChartObject.style.display = "block";
             });
 
             // event listener when top videos time range is changed
@@ -439,6 +489,8 @@
             });
             
             subscribersTimeRangeSelect.addEventListener('change', function () {
+                subscriberChartObject.style.display = "none";
+                subscribersLoader.style.display = "block";
                 fetch("{{ url_for('get_stat_api', channel_id=channel[0]) }}", {
                     method: "post",
                     headers: {
@@ -453,10 +505,14 @@
                     console.log(data);
                     subData = data["data"];
                     updateSubChart(subData);
+                    subscribersLoader.style.display = "none";
+                    subscriberChartObject.style.display = "block";
                 });     
             })
 
             likesTimeRangeSelect.addEventListener('change', function () {
+                likeChartObject.style.display = "none";
+                likesLoader.style.display = "block";
                 fetch("{{ url_for('get_stat_api', channel_id=channel[0]) }}", {
                     method: "post",
                     headers: {
@@ -471,10 +527,14 @@
                     console.log(data);
                     likeData = data["data"];
                     updateLikeChart(likeData);
+                    likesLoader.style.display = "none";
+                    likeChartObject.style.display = "block";
                 });     
             })
 
             avdTimeRangeSelect.addEventListener('change', function () {
+                avdChartObject.style.display = "none";
+                avdLoader.style.display = "block";
                 fetch("{{ url_for('get_stat_api', channel_id=channel[0]) }}", {
                     method: "post",
                     headers: {
@@ -489,10 +549,14 @@
                     console.log(data);
                     avdData = data["data"];
                     updateAVDChart(avdData);
+                    avdLoader.style.display = "none";
+                    avdChartObject.style.display = "block";
                 });     
             })
 
             cpmTimeRangeSelect.addEventListener('change', function () {
+                cpmChartObject.style.display = "none";
+                cpmLoader.style.display = "block";
                 fetch("{{ url_for('get_stat_api', channel_id=channel[0]) }}", {
                     method: "post",
                     headers: {
@@ -507,9 +571,10 @@
                     console.log(data);
                     cpmData = data["data"];
                     updateCPMChart(cpmData);
-                });     
+                    cpmLoader.style.display = "none";
+                    cpmChartObject.style.display = "block";
+                });
             })
-
 
         </script>
     {% endif %}

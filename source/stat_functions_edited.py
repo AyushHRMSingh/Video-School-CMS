@@ -12,14 +12,14 @@ def get_default(channel_id):
     stat_c = get_subscriber_stats(data, 'last_7_days')
     stat_d = get_likes_stats(data, 'last_7_days')
     stat_e = get_average_view_duration_stats(data, 'last_7_days')
-    stat_f = get_cpm_stats(data, 'last_7_days')
+    # stat_f = get_cpm_stats(data, 'last_7_days')
     return {
         'base': stat_a,
         'topVideos': stat_b,
         'subscriberData': stat_c,
         'likeData': stat_d,
         'averageViewDuration': stat_e,
-        'cpmData': stat_f,
+        # 'cpmData': stat_f,
     }
 
 # function to get the top videos

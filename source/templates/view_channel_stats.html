@@ -534,6 +534,13 @@
                 updateCPMChart(cpmData);
                 cpmLoader.style.display = "none";
                 cpmChartObject.style.display = "block";
+
+                // setting up shares chart
+                sharesData = data['sharesData'];
+                sharesTimeRangeSelect.value = "last_7_days";
+                updateSharesChart(sharesData);
+                sharesLoader.style.display = "none";
+                sharesChartObject.style.display = "block";
             });
 
             // event listener when top videos time range is changed

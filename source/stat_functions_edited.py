@@ -12,12 +12,14 @@ def get_default(channel_id):
     stat_c = get_subscriber_stats(data, 'last_7_days')
     stat_d = get_likes_stats(data, 'last_7_days')
     stat_e = get_average_view_duration_stats(data, 'last_7_days')
+    stat_f = get_cpm_stats(data, 'last_7_days')
     return {
         'base': stat_a,
         'topVideos': stat_b,
         'subscriberData': stat_c,
         'likeData': stat_d,
         'averageViewDuration': stat_e,
+        'cpmData': stat_f,
     }
 
 # function to get the top videos
@@ -57,6 +59,12 @@ def get_average_view_duration(channel_id, date_range):
     data = VidSchool.get_credentials(channel_id=channel_id)
     return {
         'data' : get_average_view_duration_stats(data, date_range)
+    }
+
+def get_cpm(channel_id, data_range):
+    data = VidSchool.get_credentials(channel_id=channel_id)
+    return {
+        'data' : get_cpm_stats(data, data_range)
     }
 
 ### BACK FUNCTIONS (NOT FOR DIRECT CALLS)
@@ -626,6 +634,138 @@ def get_average_view_duration_stats(data, date_range):
         return output
     else:
         return None
+
+def get_cpm_stats(data, date_range):
+    
+    raw_today = (datetime.datetime.now()-datetime.timedelta(days=3)).date()
+    today = raw_today.isoformat()
+    this_month = raw_today.replace(month=raw_today.month-1, day=1)
+    output = []
+    # print(date_range)
+    
+    if date_range == 'last_7_days':
+        last_7_days_date = (raw_today-datetime.timedelta(days=6)).isoformat()
+        
+        # subsciber information for last 7 days
+        last_7_days = api_functions.youtubedata(
+            'youtubeAnalytics',
+            'v2',
+            credentials=data,
+            dimensions='day',
+            ids='channel==MINE',
+            startDate=last_7_days_date,
+            endDate=today,
+            metrics='cpm',
+        )
+        
+        # append to output
+        for i in range(0, len(last_7_days['rows'])):
+            output.append({
+                'date': dateconverstion(last_7_days['rows'][i][0], 'day'),
+                'cpm': last_7_days['rows'][i][1],
+            })
+        # print(output)
+        return output
+    
+    elif date_range == 'last_30_days':
+        last_30_days_date = (raw_today-datetime.timedelta(days=29)).isoformat()
+    
+        # subsciber information for last 30 days
+        last_30_days = api_functions.youtubedata(
+            'youtubeAnalytics',
+            'v2',
+            credentials=data,
+            dimensions='day',
+            ids='channel==MINE',
+            startDate=last_30_days_date,
+            endDate=today,
+            metrics='cpm',
+        )
+    
+        # append to output
+        for i in range(0, len(last_30_days['rows'])):
+            output.append({
+                'date': dateconverstion(last_30_days['rows'][i][0], 'day'),
+                'cpm': last_30_days['rows'][i][1],
+            })
+
+        return output
+    
+    elif date_range == 'last_90_days':
+        last_90_days_date = (raw_today-datetime.timedelta(days=89)).isoformat()
+
+        # subsciber information for last 30 days
+        last_90_days = api_functions.youtubedata(
+            'youtubeAnalytics',
+            'v2',
+            credentials=data,
+            dimensions='day',
+            ids='channel==MINE',
+            startDate=last_90_days_date,
+            endDate=today,
+            metrics='cpm',
+        )
+
+        # append to subs_list
+        for i in range(0, len(last_90_days['rows'])):
+            output.append({
+                'date': dateconverstion(last_90_days['rows'][i][0], 'day'),
+                'cpm': last_90_days['rows'][i][1],
+            })
+        
+        return output
+    
+    elif date_range == 'last_6_months':
+        last_6_month_date = (this_month-datetime.timedelta(days=150)).replace(day=1).isoformat()
+
+        # return last_6_month_date
+        last_6_months = api_functions.youtubedata(
+            'youtubeAnalytics',
+            'v2',
+            credentials=data,
+            dimensions='month',
+            ids='channel==MINE',
+            startDate=last_6_month_date,
+            endDate=this_month,
+            metrics='cpm',
+        )
+    
+        # append to output
+        for i in range(0, len(last_6_months['rows'])):
+            output.append({
+                'date': dateconverstion(last_6_months['rows'][i][0], 'month'),
+                'cpm': last_6_months['rows'][i][1],
+            })
+
+        return output
+    
+    elif date_range == 'past_year':
+        last_year_date = (this_month-datetime.timedelta(days=335)).replace(day=1).isoformat()
+        
+        # return past_year
+        past_year = api_functions.youtubedata(
+            'youtubeAnalytics',
+            'v2',
+            credentials=data,
+            dimensions='month',
+            ids='channel==MINE',
+            startDate=last_year_date,
+            endDate=this_month,
+            metrics='cpm',
+        )
+
+        # append to output
+        for i in range(0, len(past_year['rows'])):
+            output.append({
+                'date': dateconverstion(past_year['rows'][i][0], 'month'),
+                'cpm': past_year['rows'][i][1],
+            })
+        print(output)
+        return output
+    else:
+        return None
+
+
 
 # function to convert date to a specific format
 def dateconverstion(datea, type):

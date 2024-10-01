@@ -86,6 +86,18 @@
                 </select>
             </div>
             <canvas id="avdChart"></canvas>
+
+            <div>
+                <label for="cpmTimeRangeSelect" class="form-label"><h3>CPM Chart: </h3></label>
+                <select id="cpmTimeRangeSelect" class="form-select">
+                    <option value="last_7_days" selected>Last 7 Days</option>
+                    <option value="last_30_days">Last 30 Days</option>
+                    <option value="last_90_days">Last 90 Days</option>
+                    <option value="last_6_months">Last Six Months</option>
+                    <option value="past_year">Last Year</option>
+                </select>
+            </div>
+            <canvas id="cpmChart"></canvas>
             
         {% else %}
             <p>Please link the channel to access the Channel statistics</p>
@@ -121,6 +133,11 @@
             const avdTimeRangeSelect = document.getElementById('avdTimeRangeSelect'); // average view duration time range select element
             let avdData; // variable to hold the average view duration data
             let avdchart; // variable to hold the average view duration chart object
+
+            // CPM chart related variable definitions
+            const cpmTimeRangeSelect = document.getElementById('cpmTimeRangeSelect'); // cpm time range select element
+            let cpmData; // variable to hold the cpm data
+            let cpmchart; // variable to hold the cpm chart object
 
             // function to create the top 10 videos table
             function createVideosTable(data) {
@@ -257,7 +274,7 @@
                 createLikeChart(data);
             }
 
-            // function to create likes chart
+            // function to create avd chart
             function createAVDChart(data) {
                 const ctx = document.getElementById('avdChart').getContext('2d');
                 avdchart = new Chart(ctx, {
@@ -286,7 +303,7 @@
                 })
             }
 
-            // function to update likes chart
+            // function to update avd chart
             function updateAVDChart(period) {
                 const selectedData = avdData;
                 const labels = selectedData.map(entry => entry.date);
@@ -302,6 +319,52 @@
                 }
                 
                 createAVDChart(data);
+            }
+
+            // function to create cpm chart
+            function createCPMChart(data) {
+                const ctx = document.getElementById('cpmChart').getContext('2d');
+                cpmchart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: data.labels,
+                        datasets: [{
+                            label: 'CPM Rate',
+                            data: data.cpm,
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                            },
+                            title: {
+                                display: true,
+                                text: 'CPM rate over time'
+                            }
+                        }
+                    },
+                })
+            }
+
+            // function to update cpm chart
+            function updateCPMChart(period) {
+                const selectedData = avdData;
+                const labels = selectedData.map(entry => entry.date);
+                const cpm = selectedData.map(entry => entry.cpm);
+
+                const data = {
+                    labels: labels,
+                    cpm:cpm
+                };
+                
+                if (cpmchart) {
+                    cpmchart.destroy();
+                }
+                createCPMChart(data);
             }
 
             // fetch the default stats to show on page inital load
@@ -342,6 +405,11 @@
                 avdData = data['averageViewDuration'];
                 avdTimeRangeSelect.value = "last_7_days";
                 updateAVDChart(avdData)
+
+                // settimg up cpm chart
+                cpmData = data['cpmData'];
+                cpmTimeRangeSelect.value = "last_7_days";
+                updateCPMChart(cpmData);
             });
 
             // event listener when top videos time range is changed
@@ -421,6 +489,24 @@
                     console.log(data);
                     avdData = data["data"];
                     updateAVDChart(avdData);
+                });     
+            })
+
+            cpmTimeRangeSelect.addEventListener('change', function () {
+                fetch("{{ url_for('get_stat_api', channel_id=channel[0]) }}", {
+                    method: "post",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        req_type: "cpm",
+                        time_range: this.value
+                    })
+                }).then(response => response.json())
+                .then(data => {
+                    console.log(data);
+                    cpmData = data["data"];
+                    updateCPMChart(cpmData);
                 });     
             })
 

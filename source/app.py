@@ -325,6 +325,11 @@ def get_stat_api(channel_id):
         # print('timedate changed to:', time_range)
         output = stat_functions_edited.get_average_view_duration(channel_id,time_range)
         return flask.jsonify(output)
+    elif request_json['req_type'] == "cpm":
+        time_range = request_json['time_range']
+        # print('timedate changed to:', time_range)
+        output = stat_functions_edited.get_cpm(channel_id,time_range)
+        return flask.jsonify(output)
     return "nonoe"
 
 # page to edit channel details

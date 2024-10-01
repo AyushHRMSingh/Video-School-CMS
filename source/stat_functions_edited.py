@@ -7,17 +7,17 @@ def get_default(channel_id):
     data = VidSchool.get_credentials(channel_id=channel_id)
     if data == None:
         return None
-    stata = get_basic_stats(data)
-    statb = get_top_vids(data, 'alltime')
-    statc = get_subscriber_stats(data, 'last_7_days')
-    statd = get_likes_stats(data, 'last_7_days')
-    statc = get_average_view_duration_stats(data, 'last_7_days')
+    stat_a = get_basic_stats(data)
+    stat_b = get_top_vids(data, 'alltime')
+    stat_c = get_subscriber_stats(data, 'last_7_days')
+    stat_d = get_likes_stats(data, 'last_7_days')
+    stat_e = get_average_view_duration_stats(data, 'last_7_days')
     return {
-        'base': stata,
-        'topVideos': statb,
-        'subscriberData': statc,
-        'likeData': statd,
-        'averageViewDuration': statc,
+        'base': stat_a,
+        'topVideos': stat_b,
+        'subscriberData': stat_c,
+        'likeData': stat_d,
+        'averageViewDuration': stat_e,
     }
 
 # function to get the top videos
@@ -33,8 +33,6 @@ def get_subscribers(channel_id, date_range):
     return {
         'data' : get_subscriber_stats(data, date_range)
     }
-
-
 
 def get_main(channel_id):
     data = VidSchool.get_credentials(channel_id=channel_id)

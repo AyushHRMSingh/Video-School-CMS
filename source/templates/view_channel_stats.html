@@ -259,7 +259,6 @@
                 createLikeChart(data);
             }
 
-
             // function to create likes chart
             function createAVDChart(data) {
                 const ctx = document.getElementById('avdChart').getContext('2d');
@@ -318,7 +317,8 @@
                 body: JSON.stringify({
                     req_type: "default"
                 })
-            }).then(response => response.json())
+            })
+            .then(response => response.json())
             .then(data => {
                 console.log(data);
                 // setting the innerHTML of the variables to the respective values

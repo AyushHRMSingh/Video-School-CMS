@@ -243,13 +243,11 @@
             function updateLikeChart(period) {
                 const selectedData = likeData;
                 const labels = selectedData.map(entry => entry.date);
-                const gained = selectedData.map(entry => entry.subscribersGained);
-                const lost = selectedData.map(entry => entry.subscribersLost);
+                const liked = selectedData.map(entry => entry.likes);
 
                 const data = {
                     labels: labels,
-                    gained: gained,
-                    lost: lost
+                    likes:likes
                 };
                 
                 if (likechart) {

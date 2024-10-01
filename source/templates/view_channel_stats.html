@@ -213,7 +213,7 @@
             // function to create likes chart
             function createLikeChart(data) {
                 const ctx = document.getElementById('likesChart').getContext('2d');
-                const likechart = new Chart(ctx, {
+                likechart = new Chart(ctx, {
                     type: 'line',
                     data: {
                         labels: data.labels,

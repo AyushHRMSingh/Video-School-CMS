@@ -34,7 +34,7 @@ source /path/to/.venv/bin/activate # Linux and Mac Systems
 ```
 5. Install the required packages
 ```bash
-pip install -r Source/requirements.txt
+pip install -r source/requirements.txt
 ```
 6. Create a YAML file in the root directory of the project and name it 'env.yml'. Add the following lines to the file
 ```yaml

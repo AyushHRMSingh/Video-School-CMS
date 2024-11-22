@@ -406,7 +406,8 @@ class VidSchool:
             self.cursor.execute(sql, val)
             self.dbconnect.commit()
         elif author['user_type'] in [USER_TYPE_MANAGER, USER_TYPE_ADMIN]:
-            print("Manager or Admin")
+            print()
+            # print("Manager or Admin")
         else:
             # return if invalid author
             return {

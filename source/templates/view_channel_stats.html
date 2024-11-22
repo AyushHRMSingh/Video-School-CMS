@@ -277,6 +277,12 @@
             // function to update the sub chart
             function updateSubChart(period) {
                 const selectedData = subData;
+                if (selectedData == {}) {
+                    const ctx = subscriberChartObject.getContext('2d');
+                    ctx.font = "40px Times New Roman";
+                    ctx.fillText("Data not found",0,80);
+                    return;
+                }
                 const labels = selectedData.map(entry => entry.date);
                 const gained = selectedData.map(entry => entry.subscribersGained);
                 const lost = selectedData.map(entry => entry.subscribersLost);
@@ -326,6 +332,12 @@
             // function to update likes chart
             function updateLikeChart(period) {
                 const selectedData = likeData;
+                if (selectedData == {}) {
+                    const ctx = likeChartObject.getContext('2d');
+                    ctx.font = "40px Times New Roman";
+                    ctx.fillText("Data not found",0,80);
+                    return;
+                }
                 const labels = selectedData.map(entry => entry.date);
                 const likes = selectedData.map(entry => entry.likes);
 
@@ -373,6 +385,12 @@
             // function to update avd chart
             function updateAVDChart(period) {
                 const selectedData = avdData;
+                if (selectedData == {}) {
+                    const ctx = avdChartObject.getContext('2d');
+                    ctx.font = "40px Times New Roman";
+                    ctx.fillText("Data not found",0,80);
+                    return;
+                }
                 const labels = selectedData.map(entry => entry.date);
                 const avd = selectedData.map(entry => entry.averageViewDuration);
 
@@ -420,6 +438,15 @@
             // function to update cpm chart
             function updateCPMChart(period) {
                 const selectedData = cpmData;
+                console.log(selectedData)
+                // if (selectedData == {}) {
+                if (selectedData.length == undefined) {
+                    console.log("Data not found");
+                    const ctx = cpmChartObject.getContext('2d');
+                    ctx.font = "40px Times New Roman";
+                    ctx.fillText("Data not found",0,80);
+                    return;
+                }
                 const labels = selectedData.map(entry => entry.date);
                 const cpm = selectedData.map(entry => entry.cpm);
 
@@ -466,6 +493,12 @@
             // function to update share chart
             function updateSharesChart(period) {
                 const selectedData = sharesData;
+                if (selectedData == {}) {
+                    const ctx = sharesChartObject.getContext('2d');
+                    ctx.font = "40px Times New Roman";
+                    ctx.fillText("Data not found",0,80);
+                    return;
+                }
                 const labels = selectedData.map(entry => entry.date);
                 const shares = selectedData.map(entry => entry.shares);
 
@@ -680,6 +713,11 @@
             })
 
         </script>
+        <style>
+            canvas {
+                width: min-content;
+            }
+        </style>
     {% endif %}
 
 {% endblock %}
